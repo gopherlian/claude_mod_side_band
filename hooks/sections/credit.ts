@@ -18,25 +18,25 @@ export const LICENSE = {
 
 const YEAR = 2026
 
-/** Between the name, the email and the license. */
+/** Between the name and the email. */
 const SEPARATOR = ' │ '
 
 /**
  * The credit that closes the band, in a faint frame like the rule between the
- * elements of a group: the author's name, a vertical bar, the email, another bar
- * and the license, on one row centered in the frame like the time. The name, the
- * bars and the license are dark orange and the email bright orange, the two
- * oranges of the separators. Where the row is wider than the frame it wraps, each
- * row centered, and a word wider still is cut, so no row passes `columns`.
- * Nothing where the band has no room for a frame.
+ * elements of a group: the author's name, a vertical bar and the email on one
+ * row, the license alone on the row below it, both centered in the frame like the
+ * time. The name, the bar and the license are dark orange and the email bright
+ * orange, the two oranges of the separators. Where a row is wider than the frame
+ * it wraps, each row centered, and a word wider still is cut, so no row passes
+ * `columns`. Nothing where the band has no room for a frame.
  */
 export const creditLines = (columns: number): Line[] => {
   const inner = columns - FRAME_COLUMNS
   if (inner < 1) return []
 
-  const rows = wrap([`© ${YEAR} ${AUTHOR.name}`, AUTHOR.email, LICENSE.name].join(SEPARATOR), inner).map(row =>
-    centered(row, inner),
-  )
+  const rows = [`© ${YEAR} ${AUTHOR.name}${SEPARATOR}${AUTHOR.email}`, LICENSE.name]
+    .flatMap(fact => wrap(fact, inner))
+    .map(row => centered(row, inner))
 
   // Only the email is bright; everything else on the row is dark orange.
   const paint = (text: string): Cell[] => {
