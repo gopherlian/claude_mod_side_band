@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import { monitorLines } from '../sections/monitor'
-import { RESOURCE_COLORS } from '../sections/palette'
+import { RESOURCE_COLORS, RESOURCE_TEXT_COLORS } from '../sections/palette'
 import { meter } from '../sections/usage'
 import { cpuUsage, parseStat } from './cpu'
 import { parseAmd, parseNvidia } from './gpu'
@@ -100,4 +100,20 @@ test('every resource bar has its own colour: CPU and GPU keep their own, never t
   ])
   expect(new Set(Object.values(RESOURCE_COLORS)).size).toBe(Object.values(RESOURCE_COLORS).length)
   expect(Object.values(RESOURCE_COLORS)).not.toContain('#ff8c00')
+})
+
+test('the label and the percent are a lighter shade of the resource colour and the bar keeps the darker one', () => {
+  const line = monitorLines({ cpu: { total: 20, cores: [] }, gpus: [], npus: [] }, 30)[0]!
+  const cells = line.cells!
+
+  expect(cells.map(c => c.text).join('')).toBe(line.text)
+  expect(cells[0]).toEqual({ text: 'CPU     ', color: RESOURCE_TEXT_COLORS.cpu })
+  expect(cells[1]!.color).toBe(RESOURCE_COLORS.cpu)
+  expect(cells[2]).toEqual({ text: '  20%', color: RESOURCE_TEXT_COLORS.cpu })
+})
+
+test('every resource has a lighter text colour of its own, none orange', () => {
+  expect(Object.keys(RESOURCE_TEXT_COLORS).sort()).toEqual(Object.keys(RESOURCE_COLORS).sort())
+  expect(new Set(Object.values(RESOURCE_TEXT_COLORS)).size).toBe(Object.values(RESOURCE_TEXT_COLORS).length)
+  expect(Object.values(RESOURCE_TEXT_COLORS)).not.toContain('#ff8c00')
 })

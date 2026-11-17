@@ -19,3 +19,17 @@ export const RESOURCE_COLORS = {
 } as const
 
 export type Resource = keyof typeof RESOURCE_COLORS
+
+/** The same hues, lighter: the name and the number of a bar, so they read well beside its darker fill. */
+export const RESOURCE_TEXT_COLORS: Record<Resource, string> = {
+  cpu: '#68d391',
+  gpu: '#63b3ed',
+  vram: '#4dd0e1',
+  npu: '#9aa5ff',
+  ram: '#c084fc',
+  swap: '#e0b83a',
+  disk: '#5eead4',
+  down: '#bef264',
+  up: '#a0aec0',
+}
+
