@@ -1,0 +1,276 @@
+// The usage section: context of this session, plus what the account allows.
+import { formatRemaining } from '../format'
+import { wrap } from './wrap'
+
+export type UsageData = {
+  contextTokens?: number
+  contextWindow: number
+  contextPercent?: number
+  /** US dollars this session; present on API accounts and subscriptions alike. */
+  costUsd?: number
+  /** Rate-limit windows; empty off a subscription or before the first reading. */
+  limits: { kind: string; percentUsed: number; resetsAt?: string }[]
+  /** When the session began, in `$.clock.now()` milliseconds. */
+  startedAt?: number
+}
+
+export type Line = {
+  text: string
+  color?: string
+  dimColor?: boolean
+  /** Drawn in the middle of the row instead of at the left; the text itself is not padded. */
+  align?: 'center'
+  /** Drawn instead of `text` when the row has more than one colour; `text` is the same row without colour. */
+  cells?: Cell[]
+}
+
+/** A run of a coloured row. */
+export type Cell = { text: string; color?: string; backgroundColor?: string; dimColor?: boolean }
+
+/** Plan windows, in the order they are drawn. Unlisted kinds follow. */
+const LIMITS: { kind: string; label: string }[] = [
+  { kind: 'five_hour', label: 'Session' },
+  { kind: 'seven_day', label: 'Weekly' },
+]
+const EXTRA_LABELS: Record<string, string> = { spend_limit: 'Spend' }
+
+/** How long each plan window lasts; with it the bar can show how much of it has gone by. */
+const WINDOW_MS: Record<string, number> = { five_hour: 5 * 3_600_000, seven_day: 7 * 86_400_000 }
+
+const LABEL_WIDTH = 8
+const PERCENT_WIDTH = 4
+/** The tick on a bar: where the time of the window stands, against the fill of what is used. */
+const MARK = '┃'
+/** The tick is green so it stands apart from the white bar and from its orange and red warnings. */
+const MARK_COLOR = 'green'
+
+type Limit = UsageData['limits'][number]
+
+/** The plan windows in the order they are drawn: the known ones always, the others after. */
+const windows = (limits: Limit[]): { label: string; limit?: Limit }[] => {
+  const byKind = new Map(limits.map(limit => [limit.kind, limit]))
+  const known = new Set(LIMITS.map(window => window.kind))
+
+  return [
+    ...LIMITS.map(window => ({ label: window.label, limit: byKind.get(window.kind) })),
+    ...limits
+      .filter(limit => !known.has(limit.kind))
+      .map(limit => ({ label: EXTRA_LABELS[limit.kind] ?? limit.kind, limit })),
+  ]
+}
+
+/** When a window ends, in the clock of `now`; undefined if it does not say or says it badly. */
+const endsAt = (limit: Limit | undefined): number | undefined => {
+  const ends = limit?.resetsAt ? Date.parse(limit.resetsAt) : NaN
+
+  return Number.isNaN(ends) ? undefined : ends
+}
+
+/** The share of a window already gone, 0 to 1; undefined where its length or end is not known. */
+const elapsedShare = (limit: Limit | undefined, now: number | undefined): number | undefined => {
+  const span = limit ? WINDOW_MS[limit.kind] : undefined
+  const ends = endsAt(limit)
+  if (span === undefined || ends === undefined || now === undefined) return undefined
+
+  return Math.min(1, Math.max(0, 1 - (ends - now) / span))
+}
+
+/**
+ * The separators are orange. `dimColor` would replace the colour with the theme's
+ * dim one, so the faint rules take a darker orange instead of being dimmed.
+ */
+const RULE_COLOR = '#ff8c00'
+const SOFT_RULE_COLOR = '#b36200'
+
+/** The heavy line that opens a group. Inside a group, `softRule` is used. */
+export const rule = (columns: number): Line => ({
+  text: '━'.repeat(columns),
+  color: RULE_COLOR,
+})
+
+/**
+ * A faint line between blocks inside a group. Its dashes carry less ink than
+ * the solid `rule` that opens a group, so the two are not taken for each other.
+ */
+export const softRule = (columns: number): Line => ({
+  text: '┈'.repeat(columns),
+  color: SOFT_RULE_COLOR,
+})
+
+/**
+ * The short faint rule that sets the footnotes apart from the band: about a
+ * third of its width, so it is not taken for a group or an inner separator.
+ */
+export const footRule = (columns: number): Line => ({
+  text: '┈'.repeat(Math.min(columns, Math.max(3, Math.floor(columns / 3)))),
+  color: SOFT_RULE_COLOR,
+})
+
+/**
+ * A row with nothing on it. It holds a space, so the row is drawn where an
+ * empty text might take no height at all.
+ */
+export const blank = (): Line => ({ text: ' ' })
+
+/**
+ * A rule that names the section it opens (`━━ Claude ━━━━`), as wide as the
+ * band. It takes the row a plain rule would, so naming costs nothing.
+ */
+export const titledRule = (label: string, columns: number): Line => {
+  const head = `━━ ${label} `
+
+  return {
+    text: head.length >= columns ? head.slice(0, columns) : head + '━'.repeat(columns - head.length),
+    color: RULE_COLOR,
+  }
+}
+
+export const formatTokens = (n: number): string =>
+  n >= 1_000_000
+    ? `${(n / 1_000_000).toFixed(1)}M`
+    : n >= 1_000
+      ? `${Math.round(n / 1_000)}k`
+      : String(n)
+
+/** Warmer colors as a window fills: yellow from 70%, red from 85%. */
+export const colorFor = (percent: number | undefined): string | undefined =>
+  percent === undefined ? undefined : percent >= 85 ? 'red' : percent >= 70 ? 'yellow' : undefined
+
+export const bar = (percent: number, width: number): string => {
+  const filled = Math.round((Math.min(100, Math.max(0, percent)) / 100) * width)
+
+  return '█'.repeat(filled) + '░'.repeat(width - filled)
+}
+
+/** Marks a row that has a footnote, and starts that footnote; in parentheses it reads as a note. */
+const NOTE_MARK = '(*)'
+
+/** What the tick means, longest wording first; the row takes the first that fits the band. */
+const LEGEND = [`${MARK} time elapsed in the window`, `${MARK} time elapsed`]
+
+/**
+ * The one-row legend under the bars, or nothing where not even the short
+ * wording fits. When its footnote is to be drawn (`noted`) the row ends with
+ * the mark that points to it, and the wording is chosen with the mark in.
+ */
+const legendLines = (columns: number, noted: boolean): Line[] => {
+  const text = LEGEND.map(wording => (noted ? `${wording} ${NOTE_MARK}` : wording)).find(
+    wording => wording.length <= columns,
+  )
+
+  return text === undefined ? [] : [{ text, dimColor: true }]
+}
+
+/** A tick over the bar, at `share` (0 to 1) of its length; it replaces the cell it lands on. */
+const withMark = (drawn: string, share: number): string => {
+  const at = Math.min(drawn.length - 1, Math.floor(Math.min(1, Math.max(0, share)) * drawn.length))
+
+  return drawn.slice(0, at) + MARK + drawn.slice(at + 1)
+}
+
+/** A row that holds the tick, drawn in cells so the tick alone is green; `text` stays the plain row. */
+const withGreenTick = (line: Line): Line => {
+  const at = line.text.indexOf(MARK)
+  if (at < 0) return line
+
+  const run = (text: string): Cell[] =>
+    text === '' ? [] : [{ text, color: line.color, dimColor: line.dimColor }]
+
+  return {
+    ...line,
+    cells: [
+      ...run(line.text.slice(0, at)),
+      { text: MARK, color: MARK_COLOR },
+      ...run(line.text.slice(at + MARK.length)),
+    ],
+  }
+}
+
+/**
+ * One meter: an optional label, a bar and the number, filling `columns`.
+ * Without a percent (no reading yet) the bar is empty and the number a dash.
+ * With `mark`, the share of its window already gone, a tick shows where the
+ * time stands: right of the fill you are under the pace, left of it over.
+ */
+export const meter = (
+  label: string,
+  percent: number | undefined,
+  columns: number,
+  mark?: number,
+): string => {
+  const head = label ? label.padEnd(LABEL_WIDTH) : ''
+  const width = Math.max(4, columns - head.length - 1 - PERCENT_WIDTH)
+  const number = (percent === undefined ? '—' : `${Math.round(percent)}%`).padStart(PERCENT_WIDTH)
+  const drawn = percent === undefined ? '░'.repeat(width) : bar(percent, width)
+
+  return `${head}${mark === undefined ? drawn : withMark(drawn, mark)} ${number}`
+}
+
+/**
+ * One dim row per window that says when it ends: `↻ Session  1h 23m`. They
+ * come in the order of the meters and carry the same names.
+ */
+export const resetLines = (data: UsageData | undefined, columns: number, now: number): Line[] =>
+  windows(data?.limits ?? []).flatMap(({ label, limit }) => {
+    const ends = endsAt(limit)
+
+    return ends === undefined
+      ? []
+      : [{ text: `↻ ${label.padEnd(LABEL_WIDTH)} ${formatRemaining(ends - now)}`.slice(0, columns), dimColor: true }]
+  })
+
+const PACE_NOTE = `If ${MARK} is inside the fill, you spend faster than time passes; beyond it, you are under pace.`
+
+/**
+ * How to read the tick: a footnote that starts with the mark the legend
+ * carries, wrapped to the band with what wraps indented under the text.
+ * Nothing while there is no legend row to point from. It is long, so it is
+ * drawn only where the band has rows to spare.
+ */
+export const paceNote = (data: UsageData | undefined, columns: number, now?: number): Line[] => {
+  const pointed = usageLines(data, columns, now, true).some(line => line.text.endsWith(` ${NOTE_MARK}`))
+  if (!pointed) return []
+
+  const hang = NOTE_MARK.length + 1
+
+  return wrap(PACE_NOTE, columns - hang).map((text, i) => ({
+    text: (i === 0 ? `${NOTE_MARK} ` : ' '.repeat(hang)) + text,
+    dimColor: true,
+  }))
+}
+
+/**
+ * The lines of the section, each at most `columns` cells wide. Given `now`,
+ * the plan meters carry a tick for how much of their window has gone by, and
+ * a one-row legend below them says what it is; `noted` makes that row point to
+ * the footnote that explains how to read it.
+ */
+export const usageLines = (data: UsageData | undefined, columns: number, now?: number, noted = false): Line[] => {
+  if (!data) return [{ text: 'Usage unavailable', dimColor: true }]
+
+  const tokens = data.contextTokens === undefined ? '—' : formatTokens(data.contextTokens)
+  const lines: Line[] = [
+    {
+      text: `Context ${tokens} / ${formatTokens(data.contextWindow)}`,
+      color: colorFor(data.contextPercent),
+    },
+    {
+      text: meter('', data.contextPercent, columns),
+      color: colorFor(data.contextPercent),
+      dimColor: data.contextPercent === undefined,
+    },
+  ]
+
+  for (const { label, limit } of windows(data.limits)) {
+    const percent = limit?.percentUsed
+    lines.push({
+      text: meter(label, percent, columns, elapsedShare(limit, now)),
+      color: colorFor(percent),
+      dimColor: percent === undefined,
+    })
+  }
+  // The tick is new to the eye: say what it is under the bars, only while one is drawn.
+  if (lines.some(line => line.text.includes(MARK))) lines.push(...legendLines(columns, noted))
+
+  return lines.map(line => withGreenTick({ ...line, text: line.text.slice(0, columns) }))
+}

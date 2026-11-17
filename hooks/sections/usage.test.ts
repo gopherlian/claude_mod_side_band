@@ -1,0 +1,269 @@
+import { expect, test } from 'claude-code/testing'
+
+import {
+  bar,
+  colorFor,
+  footRule,
+  formatTokens,
+  meter,
+  paceNote,
+  resetLines,
+  rule,
+  softRule,
+  titledRule,
+  usageLines,
+} from './usage'
+import type { UsageData } from './usage'
+
+const NOW = Date.parse('2026-11-16T10:00:00Z')
+const endsIn = (ms: number) => new Date(NOW + ms).toISOString()
+
+/** Session has 77% of its five hours behind it (1h09m left); Weekly is half way (3.5 days left). */
+const windows = (): UsageData => ({
+  contextTokens: 10_000,
+  contextWindow: 200_000,
+  contextPercent: 5,
+  limits: [
+    { kind: 'seven_day', percentUsed: 23, resetsAt: endsIn(302_400_000) },
+    { kind: 'five_hour', percentUsed: 41, resetsAt: endsIn(4_140_000) },
+  ],
+})
+
+test('a meter can carry a mark where the time of its window stands', () => {
+  expect(meter('Session', 41, 24, 0.77)).toBe('Session █████░░░┃░░  41%')
+  expect(meter('Session', 41, 24, 0)).toBe('Session ┃████░░░░░░  41%')
+  expect(meter('Session', 41, 24, 1)).toBe('Session █████░░░░░┃  41%')
+  expect(meter('Session', 41, 24, 7)).toBe(meter('Session', 41, 24, 1))
+  expect(meter('Session', 41, 24, -3)).toBe(meter('Session', 41, 24, 0))
+  expect(meter('Session', 41, 24, 0.77).length).toBe(meter('Session', 41, 24).length)
+})
+
+test('the plan meters are marked where their time stands; the context and the rest are not', () => {
+  const lines = usageLines(windows(), 24, NOW).map(l => l.text)
+
+  expect(lines[1]).not.toContain('┃')
+  expect(lines[2]).toBe('Session █████░░░┃░░  41%')
+  expect(lines[3]).toBe('Weekly  ███░░┃░░░░░  23%')
+
+  const spend = usageLines(
+    { contextWindow: 200_000, limits: [{ kind: 'spend_limit', percentUsed: 50, resetsAt: endsIn(3_600_000) }] },
+    24,
+    NOW,
+  ).map(l => l.text)
+  expect(spend.some(t => t.startsWith('Spend') && !t.includes('┃'))).toBe(true)
+})
+
+test('a one-row legend under the meters says what the tick is', () => {
+  const lines = usageLines(windows(), 30, NOW)
+
+  expect(lines.slice(4)).toEqual([
+    {
+      text: '┃ time elapsed in the window',
+      dimColor: true,
+      cells: [
+        { text: '┃', color: 'green' },
+        { text: ' time elapsed in the window', color: undefined, dimColor: true },
+      ],
+    },
+  ])
+  expect(lines.length).toBe(5)
+})
+
+test('the legend shortens in a narrow band, goes when it cannot fit, and never overflows', () => {
+  const legend = (columns: number) => usageLines(windows(), columns, NOW).slice(4).map(l => l.text)
+
+  expect(legend(28)).toEqual(['┃ time elapsed in the window'])
+  expect(legend(27)).toEqual(['┃ time elapsed'])
+  expect(legend(14)).toEqual(['┃ time elapsed'])
+  expect(legend(13)).toEqual([])
+  for (let columns = 10; columns <= 40; columns++) {
+    for (const line of usageLines(windows(), columns, NOW)) expect(line.text.length).toBeLessThanOrEqual(columns)
+  }
+})
+
+test('when its note is to be drawn, the legend points to it with a (*)', () => {
+  const legend = (columns: number, noted = true) =>
+    usageLines(windows(), columns, NOW, noted).slice(4).map(l => l.text)
+
+  expect(usageLines(windows(), 32, NOW, true).slice(4).map(l => l.text)).toEqual(['┃ time elapsed in the window (*)'])
+  expect(legend(31)).toEqual(['┃ time elapsed (*)'])
+  expect(legend(18)).toEqual(['┃ time elapsed (*)'])
+  expect(legend(17)).toEqual([])
+  expect(legend(30, false)).toEqual(['┃ time elapsed in the window'])
+  expect(usageLines(windows(), 32, undefined, true).some(l => l.text.includes('(*)'))).toBe(false)
+})
+
+test('the pace note starts with the same (*), indents what wraps and says how to read the tick', () => {
+  const note = paceNote(windows(), 30, NOW).map(l => l.text)
+
+  expect(note.length).toBeGreaterThan(1)
+  expect(note[0].startsWith('(*) If ┃ is inside')).toBe(true)
+  expect(note.slice(1).every(text => text.startsWith('    ') && !text.startsWith('     '))).toBe(true)
+  expect(note.map(text => text.slice(4)).join(' ')).toBe(
+    'If ┃ is inside the fill, you spend faster than time passes; beyond it, you are under pace.',
+  )
+  expect(note.every(text => text.length <= 30)).toBe(true)
+  expect(paceNote(windows(), 30, NOW).every(l => l.dimColor === true)).toBe(true)
+})
+
+test('the pace note is only there while a tick is drawn and the legend can point to it', () => {
+  expect(paceNote(windows(), 30)).toEqual([])
+  expect(paceNote(undefined, 30, NOW)).toEqual([])
+  expect(paceNote({ contextWindow: 200_000, limits: [] }, 30, NOW)).toEqual([])
+  expect(paceNote(windows(), 18, NOW).length).toBeGreaterThan(0)
+  expect(paceNote(windows(), 17, NOW)).toEqual([])
+})
+
+test('a short faint rule sets the footnotes apart from the band', () => {
+  expect(footRule(30)).toEqual({ text: '┈'.repeat(10), color: '#b36200' })
+  expect(footRule(12).text).toBe('┈'.repeat(4))
+  expect(footRule(6).text).toBe('┈'.repeat(3))
+  expect(footRule(2).text).toBe('┈┈')
+  expect(footRule(30).text).not.toBe(softRule(30).text)
+})
+
+test('with no tick on the meters there is no legend', () => {
+  expect(usageLines(windows(), 30)).toHaveLength(4)
+  expect(usageLines({ contextWindow: 200_000, limits: [] }, 30, NOW)).toHaveLength(4)
+  expect(
+    usageLines(
+      { contextWindow: 200_000, limits: [{ kind: 'spend_limit', percentUsed: 50, resetsAt: endsIn(3_600_000) }] },
+      30,
+      NOW,
+    ).some(l => l.text.includes('time elapsed')),
+  ).toBe(false)
+})
+
+test('without the time, or without a valid end, a meter has no mark', () => {
+  expect(usageLines(windows(), 24).some(l => l.text.includes('┃'))).toBe(false)
+
+  const broken: UsageData = {
+    contextWindow: 200_000,
+    limits: [{ kind: 'five_hour', percentUsed: 41, resetsAt: 'soon' }, { kind: 'seven_day', percentUsed: 23 }],
+  }
+  expect(usageLines(broken, 24, NOW).some(l => l.text.includes('┃'))).toBe(false)
+})
+
+test('each window gets a reset row: the symbol, the name of its meter and what is left', () => {
+  const rows = resetLines(windows(), 30, NOW)
+
+  expect(rows.map(r => r.text)).toEqual(['↻ Session  1h 9m', '↻ Weekly   3d 12h'])
+  expect(rows.every(r => r.dimColor === true)).toBe(true)
+})
+
+test('a reset row is drawn only for a window that tells when it ends, and never overflows', () => {
+  const data: UsageData = {
+    contextWindow: 200_000,
+    limits: [
+      { kind: 'five_hour', percentUsed: 41, resetsAt: 'soon' },
+      { kind: 'seven_day', percentUsed: 23 },
+      { kind: 'spend_limit', percentUsed: 50, resetsAt: endsIn(2 * 3_600_000) },
+    ],
+  }
+
+  expect(resetLines(data, 30, NOW).map(r => r.text)).toEqual(['↻ Spend    2h 0m'])
+  expect(resetLines(data, 10, NOW)[0].text).toBe('↻ Spend   ')
+  expect(resetLines(undefined, 30, NOW)).toEqual([])
+  expect(resetLines({ contextWindow: 200_000, limits: [] }, 30, NOW)).toEqual([])
+})
+
+test('the rule inside a group is fainter than the one between groups', () => {
+  const soft = softRule(12)
+
+  expect(soft.text).toBe('┈'.repeat(12))
+  expect(soft.color).toBe('#b36200')
+  expect(rule(12).color).toBe('#ff8c00')
+  expect(soft.text).not.toBe(rule(12).text)
+  expect(rule(12).text).toBe('━'.repeat(12))
+})
+
+test('a titled rule carries the name of the section and fills the width', () => {
+  const line = titledRule('Claude', 30)
+
+  expect(line.text).toBe('━━ Claude ' + '━'.repeat(20))
+  expect(line.text.length).toBe(30)
+  expect(line.color).toBe('#ff8c00')
+})
+
+test('a titled rule never overflows a narrow band', () => {
+  expect(titledRule('Claude', 8).text).toBe('━━ Claud')
+  expect(titledRule('Claude', 10).text).toBe('━━ Claude ')
+})
+
+test('tokens are written short', () => {
+  expect(formatTokens(950)).toBe('950')
+  expect(formatTokens(87_400)).toBe('87k')
+  expect(formatTokens(1_250_000)).toBe('1.3M')
+})
+
+test('the context warns from 70% and alarms from 85%', () => {
+  expect(colorFor(40)).toBeUndefined()
+  expect(colorFor(70)).toBe('yellow')
+  expect(colorFor(85)).toBe('red')
+})
+
+test('the bar fills in proportion', () => {
+  expect(bar(50, 10)).toBe('█████░░░░░')
+  expect(bar(150, 4)).toBe('████')
+})
+
+test('a meter shows the bar and the number', () => {
+  expect(meter('Weekly', 41, 24)).toBe('Weekly  ' + bar(41, 11) + '  41%')
+  expect(meter('', 43, 20)).toBe(bar(43, 15) + '  43%')
+  expect(meter('Session', undefined, 24)).toBe('Session ' + '░'.repeat(11) + '    —')
+})
+
+test('an API account shows empty plan meters; a plan fills them', () => {
+  const api = usageLines(
+    { contextTokens: 87_000, contextWindow: 200_000, contextPercent: 43, costUsd: 2.3, limits: [] },
+    30,
+  ).map(l => l.text)
+  expect(api[0]).toBe('Context 87k / 200k')
+  expect(api[1]).toBe(meter('', 43, 30))
+  expect(api[2]).toBe(meter('Session', undefined, 30))
+  expect(api[3]).toBe(meter('Weekly', undefined, 30))
+  expect(api.length).toBe(4)
+
+  const plan = usageLines(
+    {
+      contextTokens: 10_000,
+      contextWindow: 200_000,
+      contextPercent: 5,
+      limits: [
+        { kind: 'seven_day', percentUsed: 41 },
+        { kind: 'five_hour', percentUsed: 23.4 },
+      ],
+    },
+    30,
+  ).map(l => l.text)
+  expect(plan[2]).toBe(meter('Session', 23.4, 30))
+  expect(plan[3]).toBe(meter('Weekly', 41, 30))
+})
+
+test('a window at 85% or more is red, with the number still readable', () => {
+  const lines = usageLines(
+    { contextWindow: 200_000, limits: [{ kind: 'seven_day', percentUsed: 91 }] },
+    30,
+  )
+  const weekly = lines.find(l => l.text.startsWith('Weekly'))!
+  expect(weekly.color).toBe('red')
+  expect(weekly.text).toContain('91%')
+})
+
+test('before the first answer the context is a dash and lines never overflow', () => {
+  const lines = usageLines({ contextWindow: 200_000, limits: [] }, 12)
+  expect(lines[0].text.startsWith('Context —')).toBe(true)
+  for (const line of lines) expect(line.text.length).toBeLessThanOrEqual(12)
+})
+
+test('the tick is green on every meter that has one, and nothing else on the row changes colour', () => {
+  const lines = usageLines(windows(), 24, NOW)
+
+  expect(lines[1].cells).toBeUndefined()
+  for (const line of lines.slice(2, 4)) {
+    const green = line.cells!.filter(cell => cell.color === 'green')
+    expect(green).toEqual([{ text: '┃', color: 'green' }])
+    expect(line.cells!.map(cell => cell.text).join('')).toBe(line.text)
+    expect(line.cells!.filter(cell => cell.color !== 'green').every(cell => cell.color === line.color)).toBe(true)
+  }
+})
