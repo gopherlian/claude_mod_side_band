@@ -1,0 +1,5 @@
+{
+  "name": "claude-mod-side-band",
+  "owner": { "name": "Alberto Rodriguez Baixauli" },
+  "plugins": [{ "name": "side-band", "source": "./" }]
+}
