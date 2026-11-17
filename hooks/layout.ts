@@ -78,6 +78,10 @@ export const fit = (all: Chunk[], columns: number, rows: number): string[] => {
   return []
 }
 
+/** `row` with the spaces on its left that centre it in `columns` cells; nothing where it fills them. */
+export const centered = (row: string, columns: number): string =>
+  ' '.repeat(Math.max(0, Math.floor((columns - row.length) / 2))) + row
+
 const BIG_GAP = '  '
 /** Narrowest side column worth drawing next to the big numbers. */
 const MIN_SIDE = 10
@@ -121,8 +125,10 @@ export const compose = (
   const isStacked = options.stack === true && rows > height
   if (isStacked || sideColumns < MIN_SIDE) {
     const lead = options.stack ? ' '.repeat(Math.max(0, Math.floor((columns - width) / 2))) : ''
+    const below = fit(rest, columns, rows - height)
 
-    return [...big.map(row => lead + row), ...fit(rest, columns, rows - height)]
+    // Stacked, what goes below the time is centered under it, row by row.
+    return [...big.map(row => lead + row), ...(options.stack ? below.map(row => centered(row, columns)) : below)]
   }
 
   const side = fit(rest, sideColumns, height)

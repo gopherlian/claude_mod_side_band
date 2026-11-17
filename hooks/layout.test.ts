@@ -55,14 +55,16 @@ test('on a narrow band the big time stands alone, with text below if rows remain
   expect(rows.length).toBe(5)
 })
 
-test('stacked, the big time is centered on its own rows and the rest goes below, left as it was', () => {
+test('stacked, the big time is centered on its own rows and the rest goes below it, each row centered too', () => {
   const big = bigText('14:32', 3)
   const pad = ' '.repeat(Math.floor((50 - big[0].length) / 2))
   const rows = compose(chunks, 50, 6, { stack: true })
 
   expect(rows.slice(0, 3)).toEqual(big.map(row => pad + row))
   expect(rows.slice(3).join('\n')).toContain('18°C · Clear · Madrid')
-  expect(rows.slice(3).every(row => !row.startsWith(' '))).toBe(true)
+  for (const row of rows.slice(3)) {
+    expect(row).toBe(' '.repeat(Math.floor((50 - row.trim().length) / 2)) + row.trim())
+  }
   expect(rows[0]).not.toContain('18°C')
   expect(rows.length).toBeLessThanOrEqual(6)
 })

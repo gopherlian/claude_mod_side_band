@@ -79,8 +79,8 @@ const elapsedShare = (limit: Limit | undefined, now: number | undefined): number
  * The separators are orange. `dimColor` would replace the colour with the theme's
  * dim one, so the faint rules take a darker orange instead of being dimmed.
  */
-const RULE_COLOR = '#ff8c00'
-const SOFT_RULE_COLOR = '#b36200'
+export const RULE_COLOR = '#ff8c00'
+export const SOFT_RULE_COLOR = '#b36200'
 
 /** The heavy line that opens a group. Inside a group, `softRule` is used. */
 export const rule = (columns: number): Line => ({
