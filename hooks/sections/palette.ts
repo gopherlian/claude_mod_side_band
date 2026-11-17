@@ -10,7 +10,7 @@ export const RESOURCE_COLORS = {
   gpu: GPU_COLOR,
   vram: 'cyan',
   npu: '#818cf8',
-  ram: '#a855f7',
+  ram: '#7e22ce',
   swap: '#ca8a04',
   disk: '#2dd4bf',
   down: '#a3e635',
