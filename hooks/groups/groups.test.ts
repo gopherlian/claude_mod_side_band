@@ -216,7 +216,11 @@ test('a footnote never costs a widget a row: what drops is what dropped without 
   const unmark = (line: { text: string; cells?: { text: string }[] }) => ({
     ...line,
     text: strip(line.text),
-    ...(line.cells && { cells: line.cells.map(cell => ({ ...cell, text: strip(cell.text) })) }),
+    ...(line.cells && {
+      cells: line.cells
+        .filter(cell => cell.text !== '(*)')
+        .map(cell => ({ ...cell, text: line.cells!.some(c => c.text === '(*)') ? cell.text.replace(/ $/, '') : cell.text })),
+    }),
   })
 
   for (let available = 5; available <= 80; available++) {

@@ -267,3 +267,17 @@ test('the tick is green on every meter that has one, and nothing else on the row
     expect(line.cells!.filter(cell => cell.color !== 'green').every(cell => cell.color === line.color)).toBe(true)
   }
 })
+
+test('in the footnote and the legend the tick is green and the (*) bright yellow; the rest stays dim', () => {
+  const note = paceNote(windows(), 30, NOW)
+  const cells = note.flatMap(l => l.cells ?? [])
+
+  expect(cells.filter(c => c.text === '(*)')).toEqual([{ text: '(*)', color: 'yellowBright' }])
+  expect(cells.filter(c => c.color === 'green')).toEqual([{ text: '┃', color: 'green' }])
+  expect(cells.filter(c => c.color === undefined).every(c => c.dimColor === true)).toBe(true)
+  expect(note.map(l => (l.cells ?? [l]).map(c => c.text).join(''))).toEqual(note.map(l => l.text))
+
+  const legend = usageLines(windows(), 32, NOW, true).slice(4)[0]!
+
+  expect(legend.cells!.find(c => c.text === '(*)')).toEqual({ text: '(*)', color: 'yellowBright' })
+})

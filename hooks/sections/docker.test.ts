@@ -1,6 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import { containerLine, dockerLines, groupByNetwork } from './docker'
+import { CPU_COLOR, GPU_COLOR } from './palette'
 
 const c = (name: string, ...networks: string[]) => ({ name, networks })
 const texts = (lines: { text: string }[]) => lines.map(l => l.text)
@@ -84,16 +85,16 @@ test('the top half of the bar is the CPU in green and the bottom half the GPU in
   // 16 cells of bar: 50% is 8, 25% is 4.
   const load = { cpu: 50, gpu: 25 }
 
-  expect(filledCells(load, 'color', 'green')).toBe(8)
-  expect(filledCells(load, 'backgroundColor', 'blue')).toBe(4)
+  expect(filledCells(load, 'color', CPU_COLOR)).toBe(8)
+  expect(filledCells(load, 'backgroundColor', GPU_COLOR)).toBe(4)
   expect(runs(load).reduce((sum, cell) => sum + cell.text.length, 0)).toBe(16)
 })
 
 test('a bar with no load is empty, a trickle still shows one cell and a full load fills it', () => {
-  expect(filledCells({}, 'color', 'green') + filledCells({}, 'backgroundColor', 'blue')).toBe(0)
-  expect(filledCells({ cpu: 0.4 }, 'color', 'green')).toBe(1)
-  expect(filledCells({ cpu: 250, gpu: 100 }, 'color', 'green')).toBe(16)
-  expect(filledCells({ cpu: 250, gpu: 100 }, 'backgroundColor', 'blue')).toBe(16)
+  expect(filledCells({}, 'color', CPU_COLOR) + filledCells({}, 'backgroundColor', GPU_COLOR)).toBe(0)
+  expect(filledCells({ cpu: 0.4 }, 'color', CPU_COLOR)).toBe(1)
+  expect(filledCells({ cpu: 250, gpu: 100 }, 'color', CPU_COLOR)).toBe(16)
+  expect(filledCells({ cpu: 250, gpu: 100 }, 'backgroundColor', GPU_COLOR)).toBe(16)
 })
 
 test('only a container that asked for a GPU shows the GPU use', () => {
@@ -107,7 +108,7 @@ test('only a container that asked for a GPU shows the GPU use', () => {
     100,
   )
   const blue = (i: number) =>
-    lines[i].cells!.filter(c => c.backgroundColor === 'blue').reduce((sum, c) => sum + c.text.length, 0)
+    lines[i].cells!.filter(c => c.backgroundColor === GPU_COLOR).reduce((sum, c) => sum + c.text.length, 0)
 
   expect(blue(0)).toBe(17)
   expect(blue(1)).toBe(0)

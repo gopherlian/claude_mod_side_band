@@ -168,21 +168,27 @@ const withMark = (drawn: string, share: number): string => {
   return drawn.slice(0, at) + MARK + drawn.slice(at + 1)
 }
 
-/** A row that holds the tick, drawn in cells so the tick alone is green; `text` stays the plain row. */
-const withGreenTick = (line: Line): Line => {
-  const at = line.text.indexOf(MARK)
-  if (at < 0) return line
+/** The `(*)` that points to the footnote and starts it: bright yellow, so the note is found. */
+const NOTE_COLOR = 'yellowBright'
 
-  const run = (text: string): Cell[] =>
-    text === '' ? [] : [{ text, color: line.color, dimColor: line.dimColor }]
+/**
+ * A row that holds the tick or the `(*)`, drawn in cells so those alone are
+ * coloured (the tick green, the `(*)` bright yellow) and the rest keeps the
+ * row's own colour. `text` stays the plain row. Other rows come back as they are.
+ */
+const withMarks = (line: Line): Line => {
+  const parts = line.text.split(/(┃|\(\*\))/).filter(part => part !== '')
+  if (!parts.some(part => part === MARK || part === NOTE_MARK)) return line
 
   return {
     ...line,
-    cells: [
-      ...run(line.text.slice(0, at)),
-      { text: MARK, color: MARK_COLOR },
-      ...run(line.text.slice(at + MARK.length)),
-    ],
+    cells: parts.map(part =>
+      part === MARK
+        ? { text: part, color: MARK_COLOR }
+        : part === NOTE_MARK
+          ? { text: part, color: NOTE_COLOR }
+          : { text: part, color: line.color, dimColor: line.dimColor },
+    ),
   }
 }
 
@@ -233,10 +239,9 @@ export const paceNote = (data: UsageData | undefined, columns: number, now?: num
 
   const hang = NOTE_MARK.length + 1
 
-  return wrap(PACE_NOTE, columns - hang).map((text, i) => ({
-    text: (i === 0 ? `${NOTE_MARK} ` : ' '.repeat(hang)) + text,
-    dimColor: true,
-  }))
+  return wrap(PACE_NOTE, columns - hang).map((text, i) =>
+    withMarks({ text: (i === 0 ? `${NOTE_MARK} ` : ' '.repeat(hang)) + text, dimColor: true }),
+  )
 }
 
 /**
@@ -272,5 +277,5 @@ export const usageLines = (data: UsageData | undefined, columns: number, now?: n
   // The tick is new to the eye: say what it is under the bars, only while one is drawn.
   if (lines.some(line => line.text.includes(MARK))) lines.push(...legendLines(columns, noted))
 
-  return lines.map(line => withGreenTick({ ...line, text: line.text.slice(0, columns) }))
+  return lines.map(line => withMarks({ ...line, text: line.text.slice(0, columns) }))
 }

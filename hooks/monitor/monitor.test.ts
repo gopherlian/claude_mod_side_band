@@ -65,7 +65,7 @@ test('the monitor is only percent bars: no cores, names, GB, temperature or foot
     meter('VRAM', 50, 30),
     meter('NPU', 5, 30),
   ])
-  expect(lines[1].color).toBe('blue')
+  expect(lines[1].color).toBe(RESOURCE_COLORS.gpu)
 })
 
 test('several gpus are told apart by number', () => {
@@ -82,7 +82,7 @@ test('several gpus are told apart by number', () => {
   expect(lines).toEqual([meter('GPU0', 1, 30), meter('GPU1', 2, 30)])
 })
 
-test('every resource bar has its own colour: CPU green, GPU blue, never the separators orange', () => {
+test('every resource bar has its own colour: CPU and GPU keep their own, never the separators orange', () => {
   const lines = monitorLines(
     {
       cpu: { total: 20, cores: [] },
@@ -92,7 +92,12 @@ test('every resource bar has its own colour: CPU green, GPU blue, never the sepa
     30,
   )
 
-  expect(lines.map(l => l.color)).toEqual(['green', 'blue', 'cyan', '#818cf8'])
+  expect(lines.map(l => l.color)).toEqual([
+    RESOURCE_COLORS.cpu,
+    RESOURCE_COLORS.gpu,
+    RESOURCE_COLORS.vram,
+    RESOURCE_COLORS.npu,
+  ])
   expect(new Set(Object.values(RESOURCE_COLORS)).size).toBe(Object.values(RESOURCE_COLORS).length)
   expect(Object.values(RESOURCE_COLORS)).not.toContain('#ff8c00')
 })
