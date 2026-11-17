@@ -15,7 +15,7 @@ hot-reloads. It only reads; it never changes your files, your repository or your
 - [How it works](#how-it-works)
 - [The groups](#the-groups): [Time](#1-time) · [Claude](#2-claude) · [Project](#3-project) · [System](#4-system) · [Footnote and credit](#the-footnote-and-the-credit)
 - [Colour guide](#colour-guide)
-- [Develop it](#develop-it)
+- [Develop it](#develop-it) (spec-driven)
 - [License](#license)
 
 ## Install
@@ -227,12 +227,18 @@ not turn yellow or red when they fill: each resource keeps its own colour.
 
 ## Develop it
 
+This repository is spec-driven: the behaviour is written in [`specs/`](specs/README.md) before it is built, and the
+tests and the code follow from it. The order of work is specify, test, build, fold the change into the specs,
+refresh the screenshots, commit. [`AGENTS.md`](AGENTS.md) has the same for coding agents.
+
 ```
-claude plugin test .        # runs the tests in hooks/**/*.test.ts
-claude plugin validate .    # reads the manifest and the hooks module as the engine will
+claude plugin test .                  # runs the tests in hooks/**/*.test.ts
+claude plugin validate .              # reads the manifest and the hooks module as the engine will
+tools/screenshots/regenerate.sh       # redraws docs/img/*.svg from what the mod really draws
 ```
 
 ```
+specs/                 what the band must do: one spec per capability, and changes in progress
 .claude-plugin/        plugin.json and marketplace.json
 hooks/
   register.tsx         the hooks module: events, timers, sampling, the /band command, the pane
@@ -242,11 +248,14 @@ hooks/
   widgets/             clock, date and weather
   layout.ts            the band's width and the rows it may take
   limits.ts            the plan limits shared between bands
+tools/screenshots/     how the screenshots above are drawn from the mod's own lines
+docs/img/              the screenshots (generated: they are redrawn with every visible change)
 ```
 
 Adding a group is adding a file in `hooks/groups/` that exports a `Group` (an `id`, an optional `label`, a
-`priority` and a `lines(ctx)` function) and appending it to the list in `hooks/groups/index.ts`. Every group reads
-only its own part of the context. Every file has a test beside it; a change to what is drawn changes its test.
+`priority` and a `lines(ctx)` function) and appending it to the list in `hooks/groups/index.ts`, after writing its
+spec in `specs/`. Every group reads only its own part of the context. Every file has a test beside it; a change to
+what is drawn changes its test.
 
 Two terminal facts the code relies on: `dimColor` replaces a text's colour with the theme's dim one, so anything
 coloured is not also dimmed; and a row with more than one colour is drawn from `cells`, runs of text each with its

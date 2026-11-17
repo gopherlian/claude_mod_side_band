@@ -1,0 +1,60 @@
+// Template of a temporary test, copied to hooks/zz_dump.test.ts by regenerate.sh and deleted afterwards.
+// A hooks module cannot import node:fs, so the lines the mod draws travel in the error it throws.
+
+import { test } from 'claude-code/testing'
+import { arrange, groups } from './groups/index'
+import { creditLines } from './sections/credit'
+import type { GroupContext } from './groups/types'
+
+const NOW = Date.parse('2026-11-17T17:16:20')
+const endsIn = (ms: number) => new Date(NOW + ms).toISOString()
+
+const ctx = (columns: number): GroupContext => ({
+  now: NOW,
+  columns,
+  rows: 60,
+  weather: {
+    status: 'ready', place: 'Valencia', temperature: 22, feelsLike: 20, humidity: 56, wind: 20,
+    summary: 'Overcast', icon: '☁',
+    forecast: { max: 24, min: 15, rainPercent: 3, uv: 3, sunrise: '07:47', sunset: '17:45' },
+  },
+  usage: {
+    contextTokens: 265_000, contextWindow: 1_000_000, contextPercent: 26, costUsd: 4.82,
+    startedAt: NOW - 95 * 60_000,
+    limits: [
+      { kind: 'five_hour', percentUsed: 41, resetsAt: endsIn(4_140_000) },
+      { kind: 'seven_day', percentUsed: 23, resetsAt: endsIn(302_400_000) },
+    ],
+  },
+  stats: {
+    toolCalls: 37, activeTools: 0, lastTurnMs: 74_000, model: 'Opus 5.5', effort: 'high',
+    categories: [
+      { name: 'Messages', tokens: 148_000 }, { name: 'System prompt', tokens: 21_000 }, { name: 'Tools', tokens: 12_000 },
+    ],
+  },
+  hardware: {
+    cpu: { total: 34, cores: [] },
+    gpus: [{ name: 'RTX 4090', util: 62, memUsedMb: 9830, memTotalMb: 24576 }],
+    npus: [],
+  },
+  system: {
+    ramPercent: 58, swapPercent: 7, diskPercent: 71, downBps: 3_400_000, upBps: 410_000, netPeakBps: 12_000_000,
+    dockers: [
+      { name: 'inference-api', networks: ['aimira'], cpu: 38, gpu: true },
+      { name: 'directus', networks: ['aimira'], cpu: 12 },
+      { name: 'postgres', networks: ['db'], cpu: 5 },
+    ],
+  },
+  git: { branch: 'US-593', changed: 3, ahead: 2, behind: 0 },
+  timerEndsAt: NOW + 24 * 60_000 + 30_000,
+})
+
+test('dump', () => {
+  const out: Record<string, unknown> = {}
+  const c = ctx(40)
+  for (const g of groups) out[g.id] = g.lines({ ...c, noted: true })
+  out.footnote = groups.flatMap(g => g.footnote?.(c) ?? [])
+  out.credit = creditLines(40)
+  out.overview = arrange(c, 500, groups, creditLines(40))
+  throw new Error('DUMPSTART' + JSON.stringify(out) + 'DUMPEND')
+})

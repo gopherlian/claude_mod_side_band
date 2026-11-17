@@ -1,0 +1,48 @@
+# Capability: appearance
+
+The rules every group follows. If a change breaks one of these, it changes this spec first.
+
+## Requirements
+
+**R1.** Separators SHALL be orange: the heavy rule that opens a group (`━━ Claude ━━━…`) in bright orange `#ff8c00`;
+the faint rules inside a group, before the footnote and before the credit (`┈┈┈`) in dark orange `#b36200`.
+
+**R2.** A text that is drawn with a colour SHALL NOT also be dimmed: on the terminal, dimming replaces the colour
+with the theme's dim one. Where a row needs two looks, it SHALL be drawn in cells, runs of text each with its own
+colour.
+
+**R3.** Dim SHALL be used only for secondary text: the outlook under the frame, the activity rows, the legend, the
+footnote.
+
+**R4.** The frame of the time group SHALL be heavy (`┏━┓ ┃ ┗━┛`) and bright orange. Only the frame is orange; what is
+inside keeps its own colours.
+
+**R5.** The pace tick `┃` SHALL be green wherever it is drawn (bars, legend, footnote). The `(*)` that points to the
+footnote SHALL be bright yellow.
+
+**R6.** The credit SHALL sit in a faint dark-orange frame (`╭┈┈╮ ┊ ╰┈┈╯`), centred like the time: first row
+`© 2026 Alberto Rodriguez Baixauli │ a@webtory.es`, second row `GNU GPL v3 or later`. The name, the bar and the
+license SHALL be dark orange `#b36200`; the email bright orange `#ff8c00`. Where a row is wider than the frame it
+SHALL wrap, each row centred, and the email SHALL stay whole.
+
+**R7.** The system palette SHALL be muted and dark. Bar colour / text colour:
+
+| Resource | Bar | Name and number |
+| --- | --- | --- |
+| CPU | `#2f855a` | `#68d391` |
+| GPU | `#2b6cb0` | `#63b3ed` |
+| VRAM | `#0e7490` | `#4dd0e1` |
+| NPU | `#4c51bf` | `#9aa5ff` |
+| RAM | `#6b21a8` | `#c084fc` |
+| Swap | `#8a6d0b` | `#e0b83a` |
+| Disk | `#0f766e` | `#5eead4` |
+| Down | `#4d7c0f` | `#bef264` |
+| Up | `#64748b` | `#a0aec0` |
+
+No resource SHALL use orange (reserved for separators and frames) or pink. The container bars SHALL use the CPU and GPU
+colours.
+
+**R8.** No row SHALL be wider than the band: text is wrapped or cut, never allowed to push the right edge out.
+
+**R9.** The README screenshots SHALL be drawn from the lines the mod really draws (`tools/screenshots`), and SHALL be
+regenerated with any visible change.
