@@ -13,11 +13,11 @@ test('a container is a bar and its name, filling the width', () => {
 test('the longer the name, the shorter the bar', () => {
   const barOf = (text: string) => text.split(' ')[0].length
   const short = containerLine('db', 30).text
-  const long = containerLine('gateway-aimira-py-jetbrains', 40).text
+  const long = containerLine('gateway-dev-workspace', 40).text
 
   expect(short.length).toBe(30)
   expect(long.length).toBe(40)
-  expect(barOf(containerLine('gateway-aimira-py-jetbrains', 30).text)).toBeLessThan(barOf(short))
+  expect(barOf(containerLine('gateway-dev-workspace', 30).text)).toBeLessThan(barOf(short))
 })
 
 test('a name too long for the width is cut, a bar stays and the line never overflows', () => {
