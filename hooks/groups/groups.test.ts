@@ -364,14 +364,14 @@ test('docker lists at most five names and counts the rest; none running is said'
   expect(system.lines(ctx()).some(l => l.text.startsWith('docker'))).toBe(false)
 })
 
-test('the credit goes last, right under an untitled orange rule with a blank row above it, whole, only where rows are left over', () => {
+test('the credit goes last, right under an untitled orange rule with no blank row around it, whole, only where rows are left over', () => {
   const c = paced()
   const credit = creditLines(30)
   const plain = arrange(c, 500)
   const full = arrange(c, 500, groups, credit)
 
   expect(credit.length).toBe(1)
-  expect(full.slice(plain.length)).toEqual([{ text: ' ' }, rule(30), ...credit])
+  expect(full.slice(plain.length)).toEqual([rule(30), ...credit])
   expect(rule(30).text).toBe('━'.repeat(30))
   expect(full.slice(0, plain.length)).toEqual(plain)
   expect(arrange(c, full.length, groups, credit)).toEqual(full)
@@ -391,7 +391,7 @@ test('the credit never costs a widget a row', () => {
       continue
     }
     expect(credited.slice(0, plain.length)).toEqual(plain)
-    expect(credited.slice(plain.length)).toEqual([{ text: ' ' }, rule(40), ...credit])
+    expect(credited.slice(plain.length)).toEqual([rule(40), ...credit])
   }
 })
 

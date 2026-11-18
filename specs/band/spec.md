@@ -33,7 +33,7 @@ dropped.
 **R5.** A group with no lines SHALL NOT appear, and SHALL NOT leave a rule or a blank row behind.
 
 **R6.** When rows are left after the groups, the band SHALL draw the credit, whole or not at all, right under
-the orange rule of a group's name, untitled, which has a blank row above it. It SHALL NOT take the place of a group. The band
+the orange rule of a group's name, untitled, with no blank row around it. It SHALL NOT take the place of a group. The band
 has no footnote. In the strip (R13) the credit follows the columns after a blank row, where the pane has rows left
 for all of it.
 

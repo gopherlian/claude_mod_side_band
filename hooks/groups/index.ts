@@ -12,14 +12,14 @@ export const groups: Group[] = [time, session, project, system]
 /** Between two groups: a blank row, then the rule that names the second. */
 const SEPARATOR_ROWS = 2
 
-/** Above the credit: a blank row, then the orange rule of a group's name, untitled. */
-const creditSeparator = (columns: number): Line[] => [blank(), rule(columns)]
+/** Above the credit: the orange rule of a group's name, untitled, with no blank row around it. */
+const creditSeparator = (columns: number): Line[] => [rule(columns)]
 
 /**
  * The lines to draw in `available` rows: every group with something to show,
  * a blank row and a rule between them, dropping whole groups (highest priority
  * number first) until it fits. The first group always stays. Last of all goes
- * `credit`, right under an untitled orange rule with a blank row above it:
+ * `credit`, right under an untitled orange rule, with no blank row around it:
  * whole or not at all, never at the cost of a group.
  */
 export const arrange = (
