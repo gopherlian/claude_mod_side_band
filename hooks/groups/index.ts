@@ -3,24 +3,24 @@ import { session } from './session'
 import { system } from './system'
 import { time } from './time'
 import type { Group, GroupContext } from './types'
-import { blank, rule, titledRule } from '../sections/usage'
+import { rule, titledRule } from '../sections/usage'
 import type { Line } from '../sections/usage'
 
 /** Display order, top to bottom. Add a theme by appending it. */
 export const groups: Group[] = [time, session, project, system]
 
-/** Between two groups: the rule that names the second, with a blank row on each side. */
-const SEPARATOR_ROWS = 3
+/** Between two groups: the rule that names the second, with no blank row around it. */
+const SEPARATOR_ROWS = 1
 
-/** Above the credit: a blank row, the orange rule of a group's name, untitled, and another blank row. */
-const creditSeparator = (columns: number): Line[] => [blank(), rule(columns), blank()]
+/** Above the credit: the orange rule of a group's name, untitled. */
+const creditSeparator = (columns: number): Line[] => [rule(columns)]
 
 /**
  * The lines to draw in `available` rows: every group with something to show,
- * a rule between them with a blank row on each side, dropping whole groups
- * (highest priority number first) until it fits. The first group always stays.
- * Last of all goes `credit`, under an untitled orange rule set between blank
- * rows: whole or not at all, never at the cost of a group.
+ * a rule between them, dropping whole groups (highest priority number first)
+ * until it fits. The first group always stays. Last of all goes `credit`,
+ * right under an untitled orange rule: whole or not at all, never at the cost
+ * of a group.
  */
 export const arrange = (
   ctx: GroupContext,
@@ -41,7 +41,7 @@ export const arrange = (
 
   const out: Line[] = []
   shown.forEach((item, i) => {
-    if (i > 0) out.push(blank(), item.group.label ? titledRule(item.group.label, ctx.columns) : rule(ctx.columns), blank())
+    if (i > 0) out.push(item.group.label ? titledRule(item.group.label, ctx.columns) : rule(ctx.columns))
     out.push(...item.lines)
   })
   const foot = [...creditSeparator(ctx.columns), ...credit]

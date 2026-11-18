@@ -170,8 +170,7 @@ docked pane nothing is dropped, because it scrolls.
 | 2 | Project | third |
 | 3 | System | first |
 
-If rows are left after the groups, the credit goes at the foot, under an orange rule set between blank rows, whole or
-not at all.
+If rows are left after the groups, the credit goes at the foot, right under an orange rule, whole or not at all.
 
 ## The groups
 
@@ -243,7 +242,7 @@ colour so they read well.
 
 ### The credit
 
-At the foot of the band, only when rows are left over, under an orange rule set between blank rows:
+At the foot of the band, only when rows are left over, right under an orange rule:
 
 <p align="center"><img src="docs/img/credit.svg" alt="The credit"></p>
 
