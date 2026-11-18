@@ -8,6 +8,8 @@ All notable changes to this mod are written here. The format follows
 
 ### Changed
 - A group's name now has a blank row below it as well as above it, so it sits apart from the group's content.
+- In the Claude group a blank row sets the `Context` label, its bar and the legend apart.
+- A blank row sits above and below the orange rule that closes the footnote, before the credit.
 
 ## [1.2.0] - 2026-11-18
 

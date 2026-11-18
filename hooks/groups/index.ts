@@ -12,18 +12,17 @@ export const groups: Group[] = [time, session, project, system]
 /** Between two groups: the rule that names the second, with a blank row on each side. */
 const SEPARATOR_ROWS = 3
 
-/** Around the footnotes: the faint grey rule above them and the orange rule, untitled, below them. */
-const FOOTNOTE_SEPARATOR_ROWS = 2
+/** Around the footnotes: the faint grey rule above them, then a blank row and the orange rule, untitled, below them. */
+const FOOTNOTE_SEPARATOR_ROWS = 3
 
 /**
  * The lines to draw in `available` rows: every group with something to show,
  * a rule between them with a blank row on each side, dropping whole groups (highest
  * priority number first) until it fits. The first group always stays. Then,
  * if rows are left, the footnotes of the groups shown go at the foot, between
- * the faint grey rule of a group's inside and the orange rule of a group's
- * name, untitled: whole or not at all, so they never cost a group its place.
- * Last of all goes `credit`, right under the footnote's rule, or after a blank row where there is no footnote, on the
- * same terms: whole or not at all, never at the cost of a group or a note.
+ * the faint grey rule of a group's inside and, after a blank row, the orange
+ * rule of a group's name, untitled: whole or not at all, so they never cost a group its place.
+ * Last of all goes `credit`, after a blank row, on the same terms: whole or not at all, never at the cost of a group or a note.
  */
 export const arrange = (
   ctx: GroupContext,
@@ -51,11 +50,9 @@ export const arrange = (
     if (i > 0) out.push(blank(), item.group.label ? titledRule(item.group.label, ctx.columns) : rule(ctx.columns), blank())
     out.push(...item.lines)
   })
-  if (noted) out.push(softRule(ctx.columns), ...notes.flat(), rule(ctx.columns))
-  // Right under the footnote's orange rule the credit needs no blank row; anywhere else it keeps one.
-  const gap = noted ? [] : [blank()]
-  if (credit.length > 0 && available - out.length >= credit.length + gap.length) {
-    out.push(...gap, ...credit)
+  if (noted) out.push(softRule(ctx.columns), ...notes.flat(), blank(), rule(ctx.columns))
+  if (credit.length > 0 && available - out.length >= credit.length + 1) {
+    out.push(blank(), ...credit)
   }
 
   return out

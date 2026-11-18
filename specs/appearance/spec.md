@@ -8,7 +8,7 @@ The rules every group follows. If a change breaks one of these, it changes this 
 orange `#a05800`, and the bars between the columns of the strip (`┊`) in dark orange `#744000`. The rules inside a
 group SHALL be a thin line across the band (`────`) in a very faint grey `#3a3a3a`, seen only when looked for. The
 footnote sits between that faint grey rule, above it, and the orange rule of a group's name with no title (`━━━━`),
-below it. The credit follows that orange rule at once; with no footnote, it is set apart by a blank row.
+below it after a blank row. The credit is always set apart by a blank row.
 The oranges are dark, so they frame without glaring.
 
 **R2.** A text that is drawn with a colour SHALL NOT also be dimmed: on the terminal, dimming replaces the colour

@@ -279,11 +279,12 @@ export const usageLines = (data: UsageData | undefined, columns: number, now?: n
       text: `Context ${tokens} / ${formatTokens(data.contextWindow)}`,
       color: colorFor(data.contextPercent),
     },
+    blank(),
     contextBar(data, columns),
   ]
-  // A faint rule sets the legend of the runs apart from the plan windows.
+  // A blank row sets the legend of the runs apart from the bar, and a faint rule from the plan windows.
   const legend = compositionLegend(data.categories, columns).map(cells => ({ text: cells.map(cell => cell.text).join(''), cells }))
-  lines.push(...legend)
+  if (legend.length > 0) lines.push(blank(), ...legend)
   if (legend.length > 0) lines.push(softRule(columns))
 
   for (const { label, limit } of windows(data.limits)) lines.push(windowRow(label, limit, columns, now))

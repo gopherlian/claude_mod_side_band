@@ -48,7 +48,8 @@ fit, and nothing where neither fits. The `┃` is green.
 **R6.** When rows are left, the footnote SHALL be the sentence `┃ inside the fill: over pace; beyond it: under pace.`
 wrapped to the band, the `┃` green and the rest dim. There is no `(*)`.
 
-**R6a.** A faint rule SHALL separate the legend of the context runs from the plan windows (stacked band).
+**R6a.** In the stacked band a blank row SHALL separate the `Context` label from its bar, and another the bar from
+the legend of the context runs, where there is a legend; a faint rule SHALL separate that legend from the plan windows.
 
 **R7 (removed).** There is no `↻` row: each window carries its own time left (R2a).
 
