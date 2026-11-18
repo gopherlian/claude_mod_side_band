@@ -64,6 +64,7 @@ test('a working copy ahead of the repository is left alone', async () => {
 
 test('a clean working copy on main pulls, fast-forward only, and asks for a restart', async () => {
   const { machine, ran } = ports({ published: '1.2.4' })
+  machine.readLocal = async () => manifest(ran.some(argv => argv.includes('pull')) ? '1.2.4' : '1.2.3')
 
   expect(await checkForUpdate(machine)).toEqual({ status: 'restart', version: '1.2.3', latest: '1.2.4' })
   expect(ran.at(-1)).toEqual(['git', '-C', ROOT, 'pull', '--ff-only'])
@@ -139,5 +140,32 @@ test('where the message does not fit, the version alone is drawn', () => {
   expect(versionLine({ status: 'reload', version: '1.2.3', latest: '1.2.4' }, 20)).toEqual({
     text: ' '.repeat(14) + 'v1.2.4',
     color: 'green',
+  })
+})
+
+test('the version that runs is told before the published one is fetched', async () => {
+  const seen: unknown[] = []
+  let seenWhenFetched: unknown[] | undefined
+  const { machine } = ports({
+    fetchPublished: async () => {
+      seenWhenFetched = [...seen]
+
+      return manifest('1.2.3')
+    },
+    seen: state => seen.push(state),
+  })
+
+  await checkForUpdate(machine)
+  expect(seenWhenFetched).toEqual([{ status: 'current', version: '1.2.3' }])
+})
+
+test('a pull that does not bring the new version says it is out, not that a restart would load it', async () => {
+  const { machine } = ports({ published: '1.2.4' })
+
+  // The working copy still reads 1.2.3 after its pull: it tracks another upstream.
+  expect(await checkForUpdate({ ...machine, readLocal: async () => manifest('1.2.3') })).toEqual({
+    status: 'available',
+    version: '1.2.3',
+    latest: '1.2.4',
   })
 })

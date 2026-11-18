@@ -32,6 +32,8 @@ export type UpdatePorts = {
   hasGit: () => Promise<boolean>
   /** Runs a command by its argument vector and answers its exit code and output. */
   run: (argv: string[]) => Promise<{ exitCode: number; stdout: string }>
+  /** Told the version that runs as soon as it is read, before the published one is fetched. */
+  seen?: (state: UpdateState) => void
 }
 
 /** The `version` of a `plugin.json` text; nothing where the text is not one. */
@@ -79,7 +81,7 @@ const attempt = async <T>(work: () => Promise<T>): Promise<T | undefined> => {
 }
 
 /** Installs `latest` as the mod was installed; answers what became of it. */
-const install = async (ports: UpdatePorts): Promise<'restart' | 'reload' | 'available'> => {
+const install = async (ports: UpdatePorts, latest: string): Promise<'restart' | 'reload' | 'available'> => {
   const ok = async (argv: string[]) => (await attempt(() => ports.run(argv)))?.exitCode === 0
 
   const market = marketplaceOf(ports.root, ports.home)
@@ -94,7 +96,11 @@ const install = async (ports: UpdatePorts): Promise<'restart' | 'reload' | 'avai
   const isClean = changes?.exitCode === 0 && changes.stdout.trim() === ''
   if (branch?.exitCode !== 0 || branch.stdout.trim() !== 'main' || !isClean) return 'available'
 
-  return (await ok(['git', '-C', ports.root, 'pull', '--ff-only'])) ? 'restart' : 'available'
+  if (!(await ok(['git', '-C', ports.root, 'pull', '--ff-only']))) return 'available'
+  // A pull that did not bring it (the copy tracks another upstream) would never load it, restart or not.
+  const pulled = readVersion((await attempt(ports.readLocal)) ?? '')
+
+  return pulled !== undefined && !isNewer(latest, pulled) ? 'restart' : 'available'
 }
 
 /**
@@ -105,6 +111,7 @@ export const checkForUpdate = async (ports: UpdatePorts): Promise<UpdateState | 
   const local = async () => readVersion((await attempt(ports.readLocal)) ?? '')
   const version = await local()
   if (version === undefined) return undefined
+  ports.seen?.({ status: 'current', version })
   const latest = readVersion((await attempt(ports.fetchPublished)) ?? '')
   if (latest === undefined || !isNewer(latest, version)) return { status: 'current', version }
 
@@ -112,7 +119,7 @@ export const checkForUpdate = async (ports: UpdatePorts): Promise<UpdateState | 
   const now = await local()
   if (now !== undefined && !isNewer(latest, now)) return { status: 'current', version: now }
 
-  return { status: await install(ports), version, latest }
+  return { status: await install(ports, latest), version, latest }
 }
 
 const MESSAGE: Record<Exclude<UpdateState['status'], 'current'>, (latest: string) => string> = {

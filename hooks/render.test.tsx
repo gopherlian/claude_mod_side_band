@@ -297,7 +297,10 @@ const drawVersion = async ($: Parameters<typeof draw>[0], on: Parameters<typeof 
   on('env.get', () => ({ value: '/home/test' }))
   on('fs.exists', () => ({ value: true }))
   on('fs.read', (_, e) => ({
-    value: String((e as { path?: string }).path).endsWith('plugin.json') ? JSON.stringify({ version: local }) : '[]',
+    // After a pull the working copy holds what was published.
+    value: String((e as { path?: string }).path).endsWith('plugin.json')
+      ? JSON.stringify({ version: ran.some(argv => argv.includes('pull')) ? published : local })
+      : '[]',
   }))
   on('fs.write', () => ({ value: undefined }))
   const tree = await draw($, on, 40, { scroll: { offset: 0, bodyRows: 200 } }, {
@@ -326,5 +329,5 @@ test('a clean working copy on main pulls a newer version and asks for a restart'
   const { above, ran } = await drawVersion($, on, '1.2.3', '1.2.4')
 
   expect(above.trim()).toBe('v1.2.4: restart')
-  expect(ran.at(-1)?.slice(-2)).toEqual(['pull', '--ff-only'])
+  expect(ran.filter(argv => argv.includes('pull'))).toEqual([['git', '-C', expect.any(String), 'pull', '--ff-only']])
 })

@@ -69,6 +69,8 @@ export const register: Register = on => {
   let isDemo = false
   /** Which version of the mod runs, and what became of a newer one; read at session start. */
   let update: UpdateState | undefined
+  /** A check under way: another is not started over it, so a pull never runs twice at once. */
+  let isLookingForUpdate = false
 
   on('session.start', async ($, e, next) => {
     await $.command.register({
@@ -394,10 +396,21 @@ export const register: Register = on => {
           return got.text
         },
         hasGit: () => $.fs.exists(`${root}/.git`),
+        // Never a prompt on the terminal: git and ssh fail instead of asking for a password or a host key.
         run: async argv => {
-          const done = await $.process.run(argv, { timeoutMs: 120_000 })
+          const done = await $.process.run(argv, {
+            timeoutMs: 120_000,
+            stdin: '',
+            env: { GIT_TERMINAL_PROMPT: '0', GIT_SSH_COMMAND: 'ssh -o BatchMode=yes' },
+          })
 
           return { exitCode: done.exitCode, stdout: done.stdout }
+        },
+        seen: state => {
+          if (update === undefined) {
+            update = state
+            $.ui.invalidate('ui.render')
+          }
         },
       })
       // Once installed, the new version waits for a reload: a later check, which reads it as current, keeps saying so.
@@ -407,7 +420,15 @@ export const register: Register = on => {
     }
 
     // Quiet: whatever fails leaves the band as it was.
-    const lookQuietly = () => void lookForUpdate().catch(() => undefined)
+    const lookQuietly = () => {
+      if (isLookingForUpdate) return
+      isLookingForUpdate = true
+      void lookForUpdate()
+        .catch(() => undefined)
+        .finally(() => {
+          isLookingForUpdate = false
+        })
+    }
     lookQuietly()
     $.clock.every(UPDATE_EVERY_MS, lookQuietly)
     void refresh()

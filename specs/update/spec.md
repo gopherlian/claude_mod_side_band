@@ -21,7 +21,9 @@ newer when its `major.minor.patch` is higher, compared number by number.
 - anything else, a working copy with changes or on another branch, or a command that fails, SHALL install nothing.
 
 Just before installing it SHALL read its own version again, so a band of another session that already installed it
-is not repeated.
+is not repeated. A band SHALL NOT start a check while its previous one is under way. The commands SHALL never ask on
+the terminal: git and ssh fail instead of asking for a password or a host key. A pull that leaves the working copy's
+version below the published one counts as not installed.
 
 **R3 (shown).** On the blank row above the `━━ Claude` rule, right-aligned, the band SHALL draw:
 
@@ -32,7 +34,8 @@ is not repeated.
 | Updated through the marketplace | `v1.2.4: /reload-plugins` | green |
 | Newer version out, not installed (R2, last case) | `v1.2.4 available` | yellow |
 
-Where the text does not fit the row, the version alone SHALL be drawn. A working copy the session watches reloads
+Where the text does not fit the row, the version alone SHALL be drawn. The version that runs SHALL be drawn as soon
+as it is read, before the published one is fetched. A working copy the session watches reloads
 itself when pulled, and then draws its new version, dim. The strip (side by side) draws no version.
 
 - *Given* `1.2.3` installed and nothing newer, *Then* the row above `━━ Claude` ends with `v1.2.3`, dim.
