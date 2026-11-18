@@ -7,7 +7,8 @@ All notable changes to this mod are written here. The format follows
 ## [Unreleased]
 
 ### Changed
-- No blank rows around the rule that names a group, nor around the orange rule above the credit.
+- A group's name has a blank row above it and none below it, and the orange rule above the credit has a blank row
+  above it and none below it.
 
 ## [1.2.2] - 2026-11-18
 

@@ -266,12 +266,12 @@ test('when rows run short the highest priority number is dropped first, whole', 
     return groups.filter(g => g.lines(full).every(l => lines.some(x => x.text === l.text))).map(g => g.id)
   }
   expect(ids(200)).toEqual(['time', 'session', 'project', 'system'])
-  // Each boundary between groups takes one row: the rule that names the group.
+  // Each boundary between groups takes two rows: a blank one and the rule that names the group.
   const base = time.lines(full).length + session.lines(full).length + project.lines(full).length
-  const noSystem = arrange(full, base + 2)
+  const noSystem = arrange(full, base + 4)
   expect(noSystem.some(l => l.text.startsWith('RAM'))).toBe(false)
   expect(noSystem.some(l => l.text === 'US-1')).toBe(true)
-  const noProject = arrange(full, base + 1)
+  const noProject = arrange(full, base + 3)
   expect(noProject.some(l => l.text === 'US-1')).toBe(false)
   expect(noProject.some(l => l.text.startsWith('━━ Claude'))).toBe(true)
   const onlyTime = arrange(full, 1)
@@ -296,9 +296,9 @@ test('every group but the time one is named, on the line that separates it from 
   ])
   expect(texts.every(t => t.length <= 30)).toBe(true)
   expect(lines.filter(l => l.text.startsWith('━━ ')).every(l => l.color === '#a05800')).toBe(true)
-  // Each boundary is the rule that names the section, with no blank row around it.
+  // Each boundary is a blank row and then the rule that names the section.
   const own = groups.reduce((sum, g) => sum + g.lines(full).length, 0)
-  expect(lines.length).toBe(own + 3)
+  expect(lines.length).toBe(own + 6)
 })
 
 test('every separator inside a group is the faint one, so none is mistaken for a group boundary', () => {
@@ -325,17 +325,18 @@ test('every separator inside a group is the faint one, so none is mistaken for a
   expect(texts.some(t => t.startsWith('┄'))).toBe(false)
 })
 
-test('no blank row sits around the rule that names a group, or anywhere in the band', () => {
+test('a blank row sits right before the rule that names a group, and nowhere else', () => {
   const full = ctx({
     git: { branch: 'US-1', changed: 0, ahead: 0, behind: 0 },
     system: { ramPercent: 10 },
     usage: { contextWindow: 200_000, limits: [] },
   })
   const texts = arrange(full, 200).map(l => l.text)
+  const blanks = texts.flatMap((t, i) => (t.trim() === '' ? [i] : []))
   const rules = texts.flatMap((t, i) => (t.startsWith('━━ ') ? [i] : []))
 
   expect(rules.length).toBe(3)
-  expect(texts.some(t => t.trim() === '')).toBe(false)
+  expect(blanks).toEqual(rules.map(i => i - 1))
 })
 
 test('a group dropped for lack of rows takes its name with it', () => {
@@ -344,7 +345,7 @@ test('a group dropped for lack of rows takes its name with it', () => {
     system: { ramPercent: 10 },
     usage: { contextWindow: 200_000, limits: [] },
   })
-  const rows = time.lines(full).length + session.lines(full).length + project.lines(full).length + 2
+  const rows = time.lines(full).length + session.lines(full).length + project.lines(full).length + 4
   const texts = arrange(full, rows).map(l => l.text)
 
   expect(texts.some(t => t.startsWith('━━ System'))).toBe(false)
@@ -363,14 +364,14 @@ test('docker lists at most five names and counts the rest; none running is said'
   expect(system.lines(ctx()).some(l => l.text.startsWith('docker'))).toBe(false)
 })
 
-test('the credit goes last, right under an untitled orange rule, whole, only where rows are left over', () => {
+test('the credit goes last, right under an untitled orange rule with a blank row above it, whole, only where rows are left over', () => {
   const c = paced()
   const credit = creditLines(30)
   const plain = arrange(c, 500)
   const full = arrange(c, 500, groups, credit)
 
   expect(credit.length).toBe(1)
-  expect(full.slice(plain.length)).toEqual([rule(30), ...credit])
+  expect(full.slice(plain.length)).toEqual([{ text: ' ' }, rule(30), ...credit])
   expect(rule(30).text).toBe('━'.repeat(30))
   expect(full.slice(0, plain.length)).toEqual(plain)
   expect(arrange(c, full.length, groups, credit)).toEqual(full)
@@ -390,7 +391,7 @@ test('the credit never costs a widget a row', () => {
       continue
     }
     expect(credited.slice(0, plain.length)).toEqual(plain)
-    expect(credited.slice(plain.length)).toEqual([rule(40), ...credit])
+    expect(credited.slice(plain.length)).toEqual([{ text: ' ' }, rule(40), ...credit])
   }
 })
 

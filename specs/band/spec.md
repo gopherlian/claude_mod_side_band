@@ -19,8 +19,8 @@ of content and never more than 45% of the window, with 2 columns of padding on e
 - *Given* it was never hidden, *When* a session starts, *Then* the band is open.
 
 **R3.** The band SHALL draw its groups in this order, top to bottom: Time, Claude, Project, System. Every group
-after the first SHALL be preceded by a titled rule (`━━ Claude ━━━…`), with no blank row above or below it; the Time
-group has no title.
+after the first SHALL be preceded by a blank row and a titled rule (`━━ Claude ━━━…`), with no blank row below the
+rule; the Time group has no title.
 
 **R4.** When a docked band has fewer rows than its groups need, it SHALL scroll (mouse wheel; arrow keys while it
 has focus) and SHALL NOT drop any group. Where it cannot scroll, it SHALL drop whole groups, highest priority
@@ -30,10 +30,10 @@ dropped.
 - *Given* a band that cannot scroll and has room for Time and Claude only, *Then* Project and System are absent
   and Claude is drawn whole.
 
-**R5.** A group with no lines SHALL NOT appear, and SHALL NOT leave a rule behind.
+**R5.** A group with no lines SHALL NOT appear, and SHALL NOT leave a rule or a blank row behind.
 
 **R6.** When rows are left after the groups, the band SHALL draw the credit, whole or not at all, right under
-the orange rule of a group's name, untitled. It SHALL NOT take the place of a group. The band
+the orange rule of a group's name, untitled, which has a blank row above it. It SHALL NOT take the place of a group. The band
 has no footnote. In the strip (R13) the credit follows the columns after a blank row, where the pane has rows left
 for all of it.
 
