@@ -188,7 +188,7 @@ test('after the columns, the credit, if all of it fits below a blank row', () =>
 
   expect(texts(withCredit).slice(-credit.length)).toEqual(texts(credit))
   expect(texts(withCredit)[withCredit.length - credit.length - 1]!.trim()).toBe('')
-  expect(texts(without).join('\n')).not.toMatch(/GNU GPL/)
+  expect(texts(without).join('\n')).not.toMatch(/GNU\/GPL/)
 })
 
 test('with no credit given, nothing follows the columns', () => {

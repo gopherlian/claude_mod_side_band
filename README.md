@@ -247,8 +247,8 @@ credit:
 
 <p align="center"><img src="docs/img/credit.svg" alt="The credit"></p>
 
-It has no frame: one centred row for the name and the email, another for the license; in a narrow band the text
-wraps, each row centred.
+It is one centred row with no frame, `© 2026 a@webtory.es  GNU/GPL`; in a band narrower than that it wraps, each
+row centred.
 
 ## Colour guide
 

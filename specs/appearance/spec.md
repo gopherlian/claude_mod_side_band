@@ -21,10 +21,10 @@ inside keeps its own colours.
 
 **R5.** The pace tick `┃` SHALL be green wherever it is drawn (bars, legend, footnote).
 
-**R6.** The credit SHALL have no frame. It is centred like the time: first row
-`© 2026 Alberto Rodriguez Baixauli │ a@webtory.es`, second row `GNU GPL v3 or later`. The name, the bar and the
-license SHALL be dark orange `#b36200`; the email bright orange `#ff8c00`. Where a row is wider than the band it
-SHALL wrap, each row centred, and the email SHALL stay whole.
+**R6.** The credit SHALL be one row, centred like the time, with no frame, no name and no bar:
+`© 2026 a@webtory.es  GNU/GPL` (two spaces before the license), 28 cells, so it fits the band it is designed for. The
+year and the license SHALL be dark orange `#b36200`; the email bright orange `#ff8c00`. Where the row is wider than the
+band it SHALL wrap, each row centred, and the email SHALL stay whole.
 
 **R7.** The system palette SHALL be muted and dark. Bar colour / text colour:
 

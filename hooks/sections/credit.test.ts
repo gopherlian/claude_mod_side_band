@@ -3,36 +3,34 @@ import { expect, test } from 'claude-code/testing'
 import { AUTHOR, LICENSE, creditLines } from './credit'
 import { RULE_COLOR, SOFT_RULE_COLOR } from './usage'
 
-test('the credit has no frame: name and email split by a bar, the license alone below, both centered', () => {
-  const lines = creditLines(80)
-  const first = `© 2026 ${AUTHOR.name} │ ${AUTHOR.email}`
+test('the credit is one centred row: the year, the email and the license, with no name, bar or frame', () => {
+  const row = `© 2026 ${AUTHOR.email}  ${LICENSE.name}`
   const lead = (text: string) => text.length - text.trimStart().length
 
-  expect(lines.map(line => line.text.trim())).toEqual([first, LICENSE.name])
-  expect(lead(lines[0]!.text)).toBe(Math.floor((80 - first.length) / 2))
-  expect(lead(lines[1]!.text)).toBe(Math.floor((80 - LICENSE.name.length) / 2))
-  expect(lines.some(line => /[╭╮╰╯┊┈]/.test(line.text))).toBe(false)
-  expect(AUTHOR.name).toBe('Alberto Rodriguez Baixauli')
-  expect(AUTHOR.email).toBe('a@webtory.es')
-  expect(LICENSE.name).toBe('GNU GPL v3 or later')
+  expect(row).toBe('© 2026 a@webtory.es  GNU/GPL')
+  for (const columns of [28, 43, 80]) {
+    const lines = creditLines(columns)
+    expect(lines.map(line => line.text.trim())).toEqual([row])
+    expect(lead(lines[0]!.text)).toBe(Math.floor((columns - row.length) / 2))
+  }
+  expect(creditLines(80)[0]!.text).not.toMatch(/Alberto|│|[╭╮╰╯┊┈]/)
 })
 
-test('the name, the bar and the license are dark orange and only the email is bright orange', () => {
-  const lines = creditLines(80)
-  const row = lines[0]!.cells!
+test('the year and the license are dark orange and only the email is bright orange', () => {
+  const [line] = creditLines(43)
+  const cells = line!.cells!
 
-  expect(lines[1]!.cells!.every(cell => cell.color === SOFT_RULE_COLOR)).toBe(true)
-  expect(row.filter(cell => cell.color === RULE_COLOR)).toEqual([{ text: AUTHOR.email, color: RULE_COLOR }])
-  expect(row.filter(cell => cell.color !== RULE_COLOR).every(cell => cell.color === SOFT_RULE_COLOR)).toBe(true)
-  for (const line of lines) expect(line.cells!.map(cell => cell.text).join('')).toBe(line.text)
-  expect(lines.some(line => line.dimColor)).toBe(false)
+  expect(cells.filter(cell => cell.color === RULE_COLOR)).toEqual([{ text: AUTHOR.email, color: RULE_COLOR }])
+  expect(cells.filter(cell => cell.color !== RULE_COLOR).every(cell => cell.color === SOFT_RULE_COLOR)).toBe(true)
+  expect(cells.map(cell => cell.text).join('')).toBe(line!.text)
+  expect(line!.dimColor).toBeUndefined()
 })
 
-test('in a narrow band the row wraps, each row centred, and the email stays whole and bright', () => {
-  const lines = creditLines(30)
+test('in a band narrower than the row it wraps, each row centred, and the email stays whole and bright', () => {
+  const lines = creditLines(20)
 
-  expect(lines.length).toBeGreaterThan(2)
-  expect(lines.every(line => line.text.length <= 30)).toBe(true)
+  expect(lines.length).toBeGreaterThan(1)
+  expect(lines.every(line => line.text.length <= 20)).toBe(true)
   expect(lines.flatMap(line => line.cells ?? []).filter(cell => cell.color === RULE_COLOR)).toEqual([
     { text: AUTHOR.email, color: RULE_COLOR },
   ])

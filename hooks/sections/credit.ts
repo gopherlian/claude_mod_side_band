@@ -3,37 +3,35 @@ import { RULE_COLOR, SOFT_RULE_COLOR } from './usage'
 import type { Cell, Line } from './usage'
 import { wrap } from './wrap'
 
-/** Who wrote the mod. */
+/** How to reach who wrote the mod. */
 export const AUTHOR = {
-  name: 'Alberto Rodriguez Baixauli',
   email: 'a@webtory.es',
 }
 
 /** The license the mod is distributed under; the full text is in LICENSE. */
 export const LICENSE = {
-  name: 'GNU GPL v3 or later',
+  name: 'GNU/GPL',
   spdx: 'GPL-3.0-or-later',
 }
 
 const YEAR = 2026
 
-/** Between the name and the email. */
-const SEPARATOR = ' │ '
+/** Between the email and the license: two spaces, so the row fits the 28 columns the band is designed for. */
+const SEPARATOR = '  '
 
 /**
- * The credit that closes the band, with no frame: the author's name, a vertical
- * bar and the email on one row, the license alone on the row below it, both
- * centred. The name, the bar and the license are dark orange and the email bright
- * orange, the two oranges of the separators. Where a row is wider than the band
+ * The credit that closes the band: one centred row, `© 2026 a@webtory.es  GNU/GPL`,
+ * with no frame. The year and the license are dark orange and the email bright
+ * orange, the two oranges of the separators. Where the row is wider than the band
  * it wraps, each row centred, and a word wider still is cut, so no row passes
  * `columns`.
  */
 export const creditLines = (columns: number): Line[] => {
   if (columns < 1) return []
 
-  const rows = [`© ${YEAR} ${AUTHOR.name}${SEPARATOR}${AUTHOR.email}`, LICENSE.name]
-    .flatMap(fact => wrap(fact, columns))
-    .map(row => centered(row, columns))
+  // Whole where it fits; wrapping would fold the two spaces into one.
+  const credit = `© ${YEAR} ${AUTHOR.email}${SEPARATOR}${LICENSE.name}`
+  const rows = (credit.length <= columns ? [credit] : wrap(credit, columns)).map(row => centered(row, columns))
 
   // Only the email is bright; everything else on the row is dark orange.
   const paint = (text: string): Cell[] => {

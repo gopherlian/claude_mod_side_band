@@ -428,7 +428,7 @@ test('the credit goes last, after a blank row, with no rule, whole, only where r
   const plain = arrange(c, 500)
   const full = arrange(c, 500, groups, credit)
 
-  expect(credit.length).toBeGreaterThan(1)
+  expect(credit.length).toBe(1)
   expect(full.slice(-credit.length)).toEqual(credit)
   expect(full.slice(-credit.length - 1, -credit.length)).toEqual([{ text: ' ' }])
   expect(full.slice(0, plain.length)).toEqual(plain)
