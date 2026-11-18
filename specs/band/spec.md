@@ -70,11 +70,16 @@ two, the time first as text with one, and the outlook and the timer where rows a
 
 **R7.** The band SHALL redraw every second so the clock, the timer and the pace tick stay live.
 
-**R8.** The machine SHALL be sampled every 5 seconds by default (see [commands](../commands/spec.md) R3). The slow
-readings (containers, git) SHALL be taken every third sample. The weather SHALL be fetched every 10 minutes.
+**R8.** The machine SHALL be read at most once per refresh interval (5 seconds by default, see
+[commands](../commands/spec.md) R3) across all open bands: a band whose turn comes while the shared reading is younger
+than its interval SHALL show that reading instead of taking a new one. The slow readings (containers) SHALL be taken
+once every third interval across all bands, the repository's state every third interval by each band for its own
+folder. The weather SHALL be fetched once every 10 minutes across all bands, and every band SHALL show the latest one
+fetched.
 
-**R9.** Rates and utilisation are changes between two samples: the first sample SHALL only prime them, and the band
-SHALL take a second sample one second later so the first CPU reading appears soon.
+**R9.** Rates and utilisation are changes between two readings, and the earlier reading is the shared one, so whichever
+band reads, its figures continue those of the others. A band that finds no shared reading SHALL take one and a second
+one a second later, so the first CPU reading appears soon.
 
 **R10.** What is not on the machine SHALL be left out without an error: no `nvidia-smi` means no GPU bar, no
 `docker` means no container block, and so on.
@@ -83,6 +88,14 @@ SHALL take a second sample one second later so the first CPU reading appears soo
 every 8 seconds, and each SHALL show the highest reading of the current window. A window that has ended SHALL be
 dropped; a later reset SHALL count as a new window.
 
+**R11a.** The machine's readings (CPU, GPU, VRAM, NPU, RAM, Swap, Disk, the network rates and their peak, containers)
+and the weather SHALL be shared through `~/.claude/side-band-state.json`. What belongs to a session (its context, cost,
+tools, model, the repository of its folder) stays its own. A file that is missing, unreadable or of another version
+SHALL be ignored, and the band reads for itself.
+
+- *Given* two bands open and one has read the machine 2 seconds ago, *When* the other's turn comes, *Then* it shows the
+  same CPU, RAM and network figures and does not read `/proc`.
+
 **R12.** The band SHALL send nothing off the machine except the weather request to `api.open-meteo.com` with the
-coordinates of the fixed place (Valencia). It SHALL write nothing except `~/.claude/side-band-limits.json` and its
-own store (whether it is hidden, the refresh interval). It SHALL NOT change files, repositories or containers.
+coordinates of the fixed place (Valencia). It SHALL write nothing except `~/.claude/side-band-limits.json`,
+`~/.claude/side-band-state.json` and its own store (whether it is hidden, the refresh interval). It SHALL NOT change files, repositories or containers.

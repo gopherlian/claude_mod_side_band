@@ -6,6 +6,14 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-18
+
+### Changed
+- The machine (CPU, GPU, VRAM, NPU, RAM, Swap, Disk, network, containers) and the weather are now shared between the
+  bands of all open sessions through `~/.claude/side-band-state.json`, so every session shows the same figures. A band
+  whose turn comes while another's reading is younger than its refresh interval shows that reading instead of taking a
+  new one. Context, cost, tools, model and the repository of each session's folder stay per session.
+
 ## [1.0.0] - 2026-11-18
 
 First stable version. What the band does is written in [`specs/`](specs/README.md).

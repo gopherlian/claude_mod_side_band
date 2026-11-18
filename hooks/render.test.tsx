@@ -155,6 +155,74 @@ test('a band opened by the command asks for the strip rows and a twelfth of the 
   expect(opened.columns).toBe(28 + 4)
 })
 
+const NOW = Date.parse('2026-11-16T10:00:00Z')
+
+/** What another band left in the shared file, taken `age` milliseconds ago. */
+const sharedBy = (age: number, weatherAge = 1000) =>
+  JSON.stringify({
+    v: 1,
+    at: NOW - age,
+    hardware: { cpu: { total: 77, cores: [] }, gpus: [], npus: [] },
+    system: { ramPercent: 42, swapPercent: 0, diskPercent: 9, downBps: 1000, upBps: 500, netPeakBps: 2_000_000, dockers: [] },
+    slowAt: NOW - age,
+    weather: { status: 'ready', place: 'Valencia', temperature: 31, summary: 'Clear' },
+    weatherAt: NOW - weatherAge,
+  })
+
+/** Draws the band with `shared` in the file the bands trade, and says what it wrote back. */
+const drawShared = async ($: Parameters<typeof draw>[0], on: Parameters<typeof draw>[1], shared: string) => {
+  const writes: string[] = []
+  on('env.get', () => ({ value: '/home/test' }))
+  on('fs.read', (_, e) => ({ value: String((e as { path?: string }).path).endsWith('state.json') ? shared : '[]' }))
+  on('fs.write', (_, e) => {
+    writes.push(String((e as { text?: string }).text ?? ''))
+
+    return { value: undefined }
+  })
+  const tree = await draw($, on, 40, { scroll: { offset: 0, bodyRows: 200 } })
+
+  return { text: textsOf(tree).join('\n'), writes }
+}
+
+test('a band whose turn comes while the shared reading is fresh shows it instead of reading the machine', async ($, on) => {
+  const { text } = await drawShared($, on, sharedBy(2000))
+
+  expect(text).toMatch(/CPU[^%]*77%/)
+  expect(text).toMatch(/RAM[^%]*42%/)
+  expect(text).toMatch(/Disk[^%]*9%/)
+})
+
+test('the weather another band fetched is shown, and not fetched again while it is fresh', async ($, on) => {
+  const { text } = await drawShared($, on, sharedBy(2000))
+
+  expect(text).toContain('31°C')
+})
+
+test('a fresh shared reading is not written over: the band that adopts it leaves the file alone', async ($, on) => {
+  const { writes } = await drawShared($, on, sharedBy(2000))
+
+  expect(writes.filter(w => w.includes('"hardware"'))).toEqual([])
+})
+
+test('a stale shared reading is not shown: the band reads for itself', async ($, on) => {
+  const { text, writes } = await drawShared($, on, sharedBy(60_000, 60 * 60_000))
+
+  expect(text).not.toMatch(/CPU[^%]*77%/)
+  expect(text).not.toMatch(/RAM[^%]*42%/)
+  // What it read, it shares: the file carries its reading and the weather it fetched.
+  const state = JSON.parse(writes.filter(w => w.includes('"v":1')).at(-1) ?? '{}')
+  expect(state.v).toBe(1)
+  expect(state.at).toBe(NOW)
+  expect(state.weather.status).toBe('ready')
+})
+
+test('a shared file that is not ours is ignored without an error', async ($, on) => {
+  const { text } = await drawShared($, on, 'not json at all')
+
+  expect(text).not.toMatch(/RAM[^%]*42%/)
+  expect(text).toContain('Claude')
+})
+
 /** Every line of text in the drawn tree. */
 const textsOf = (node: Drawn): string[] =>
   (node.children ?? []).flatMap(child =>
@@ -168,7 +236,8 @@ test('an idle band shows the higher five-hour figure another band shared', async
   on('env.get', () => ({ value: '/home/test' }))
   on('fs.read', () => ({ value: JSON.stringify([{ kind: 'five_hour', percentUsed: 21, resetsAt }]) }))
   on('fs.write', (_, e) => {
-    written = String((e as { text?: string }).text ?? '')
+    // Only the shared limits matter here; the shared machine state is written too, to its own file.
+    if (String((e as { path?: string }).path).endsWith('limits.json')) written = String((e as { text?: string }).text ?? '')
 
     return { value: undefined }
   })

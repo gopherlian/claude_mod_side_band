@@ -31,6 +31,8 @@ import type {
   NpuReading,
   SystemStats,
 } from './monitor/types'
+import { isFresh, mergeShared, parseShared, sharedPath } from './shared'
+import type { Shared } from './shared'
 import { trackTool } from './tools'
 import type { WeatherState } from './widgets/types'
 import { DEFAULT_PLACE, parseWeather, weatherUrl } from './widgets/weather'
@@ -42,7 +44,7 @@ const DEFAULT_REFRESH_SECONDS = 5
 const MIN_REFRESH_SECONDS = 1
 const MAX_REFRESH_SECONDS = 300
 const MAX_TIMER_MINUTES = 600
-// Slow things (git, docker) are read every this many samples.
+// Slow things (git, docker) are read every this many refresh intervals.
 const SLOW_EVERY = 3
 // A network bar is never scaled below this, so a trickle does not look full.
 const NET_FLOOR_BPS = 1_048_576
@@ -80,7 +82,42 @@ export const register: Register = on => {
       refreshSeconds = Math.round(saved)
     }
 
+    // What belongs to the machine is shared by the bands of every open session, in one file.
+    const readShared = async (): Promise<Shared> => {
+      try {
+        const home = await $.env.get('HOME')
+
+        return parseShared(home === undefined ? '' : await $.fs.read(sharedPath(home)))
+      } catch {
+        return parseShared('')
+      }
+    }
+    const writeShared = async (patch: Partial<Shared>) => {
+      try {
+        const home = await $.env.get('HOME')
+        if (home === undefined) return
+        const current = await readShared()
+        await $.fs.write(sharedPath(home), JSON.stringify(mergeShared(current, patch)))
+      } catch {
+        // The others keep what they have; this band keeps its own.
+      }
+    }
+    // The latest weather any band fetched, if it is newer than this band's.
+    const takeWeather = (shared: Shared) => {
+      if (shared.weather?.status === 'ready' && (shared.weatherAt ?? 0) > weatherAt) {
+        weather = shared.weather
+        weatherAt = shared.weatherAt ?? 0
+      }
+    }
+
     const refresh = async () => {
+      const now = await $.clock.now()
+      takeWeather(await readShared())
+      if (isFresh(weatherAt, now, WEATHER_EVERY_MS) && weather.status === 'ready') {
+        $.ui.invalidate('ui.render')
+
+        return
+      }
       try {
         const got = await $.http.fetch(
           weatherUrl(DEFAULT_PLACE.lat, DEFAULT_PLACE.lon),
@@ -91,6 +128,8 @@ export const register: Register = on => {
           place: DEFAULT_PLACE.name,
           ...parseWeather(got.text),
         }
+        weatherAt = now
+        await writeShared({ weather, weatherAt })
       } catch (error) {
         weather = { status: 'error', message: String((error as Error).message) }
       }
@@ -103,7 +142,9 @@ export const register: Register = on => {
     const previousNpu = new Map<string, { busyUs: number; at: number }>()
     let nvidiaBinary: string | undefined
     let isSampling = false
-    let sampleCount = 0
+    // When this band last read the repository of its folder, and when it last took the shared weather.
+    let lastGitAt = 0
+    let weatherAt = 0
 
     // Reads the machine. Whatever is not there is simply left out.
     const sample = async () => {
@@ -111,124 +152,156 @@ export const register: Register = on => {
       isSampling = true
       try {
         const at = await $.clock.now()
-        let cpu: CpuReading | undefined
-        const gpus: GpuReading[] = []
-        const npus: NpuReading[] = []
-        const nextSystem: SystemStats = { ...system }
+        const shared = await readShared()
+        takeWeather(shared)
+        // Another band read the machine less than an interval ago: show that reading, do not take another.
+        const isShared =
+          isFresh(shared.at, at, refreshSeconds * 1000) && shared.hardware?.cpu !== undefined && shared.system !== undefined
+        if (isShared) {
+          hardware = shared.hardware
+          system = shared.system ?? system
+        } else {
+          let cpu: CpuReading | undefined
+          // The earlier readings the rates are changes between are the shared ones: whoever reads continues the others.
+          if (shared.stat) previousStat = shared.stat
+          if (shared.net) previousNet = shared.net
+          for (const [name, reading] of Object.entries(shared.npu ?? {})) previousNpu.set(name, reading)
+          const gpus: GpuReading[] = []
+          const npus: NpuReading[] = []
+          const nextSystem: SystemStats = { ...(shared.system ?? system) }
 
-        try {
-          const stat = await $.process.run(['cat', '/proc/stat'], { timeoutMs: 4000 })
-          const current = parseStat(stat.stdout)
-          if (current && previousStat) cpu = cpuUsage(previousStat, current)
-          previousStat = current
-        } catch {
-          previousStat = undefined
-        }
-
-        for (const binary of nvidiaBinary ? [nvidiaBinary] : NVIDIA_BINARIES) {
           try {
-            const smi = await $.process.run([binary, ...NVIDIA_ARGS], { timeoutMs: 4000 })
-            const found = smi.exitCode === 0 ? parseNvidia(smi.stdout) : []
-            if (found.length > 0) {
-              nvidiaBinary = binary
-              gpus.push(...found)
-              break
-            }
+            const stat = await $.process.run(['cat', '/proc/stat'], { timeoutMs: 4000 })
+            const current = parseStat(stat.stdout)
+            if (current && previousStat) cpu = cpuUsage(previousStat, current)
+            previousStat = current
           } catch {
-            // Not on this machine; try the next place.
+            previousStat = undefined
           }
-        }
 
-        try {
-          const cards = (await $.fs.list('/sys/class/drm')).filter(entry => /^card\d+$/.test(entry.name))
-          for (const card of cards) {
-            const dir = `/sys/class/drm/${card.name}/device`
-            const busy = await $.process.run(['cat', `${dir}/gpu_busy_percent`], { timeoutMs: 2000 })
-            if (busy.exitCode !== 0) continue
-            const used = await $.process.run(['cat', `${dir}/mem_info_vram_used`], { timeoutMs: 2000 })
-            const total = await $.process.run(['cat', `${dir}/mem_info_vram_total`], { timeoutMs: 2000 })
-            const amd = parseAmd(`AMD GPU (${card.name})`, busy.stdout, used.stdout, total.stdout)
-            if (amd) gpus.push(amd)
-          }
-        } catch {
-          // No DRM devices to read.
-        }
-
-        try {
-          const accels = (await $.fs.list('/sys/class/accel')).filter(entry => /^accel\d+$/.test(entry.name))
-          for (const accel of accels) {
-            const busy = await $.process.run(
-              ['cat', `/sys/class/accel/${accel.name}/device/npu_busy_time_us`],
-              { timeoutMs: 2000 },
-            )
-            const busyUs = Number(busy.stdout.trim())
-            if (busy.exitCode !== 0 || Number.isNaN(busyUs)) continue
-            const before = previousNpu.get(accel.name)
-            previousNpu.set(accel.name, { busyUs, at })
-            const util = npuUtil(before?.busyUs, busyUs, before ? at - before.at : 0)
-            if (util !== undefined) npus.push({ name: accel.name, util })
-          }
-        } catch {
-          // No NPU.
-        }
-
-        try {
-          const memory = await $.process.run(['cat', '/proc/meminfo'], { timeoutMs: 2000 })
-          const { ramPercent, swapPercent } = parseMeminfo(memory.stdout)
-          nextSystem.ramPercent = ramPercent
-          nextSystem.swapPercent = swapPercent
-        } catch {
-          nextSystem.ramPercent = undefined
-          nextSystem.swapPercent = undefined
-        }
-
-        try {
-          const disk = await $.process.run(['df', '-P', e.cwd], { timeoutMs: 3000 })
-          nextSystem.diskPercent = disk.exitCode === 0 ? parseDf(disk.stdout) : undefined
-        } catch {
-          nextSystem.diskPercent = undefined
-        }
-
-        try {
-          const totals = parseNetDev(
-            (await $.process.run(['cat', '/proc/net/dev'], { timeoutMs: 2000 })).stdout,
-          )
-          const rates = previousNet ? netRates(previousNet.totals, totals, at - previousNet.at) : undefined
-          previousNet = { totals, at }
-          if (rates) {
-            nextSystem.downBps = rates.down
-            nextSystem.upBps = rates.up
-            nextSystem.netPeakBps = Math.max(nextSystem.netPeakBps ?? NET_FLOOR_BPS, rates.down, rates.up)
-          }
-        } catch {
-          previousNet = undefined
-        }
-
-        if (sampleCount % SLOW_EVERY === 0) {
-          try {
-            const docker = await $.process.run(['docker', 'ps', '--format', '{{.Names}}\t{{.Networks}}'], {
-              timeoutMs: 3000,
-            })
-            nextSystem.dockers = docker.exitCode === 0 ? parseDockers(docker.stdout) : undefined
-            if (nextSystem.dockers && nextSystem.dockers.length > 0) {
-              try {
-                const [stats, inspected] = await Promise.all([
-                  $.process.run(['docker', 'stats', '--no-stream', '--format', '{{.Name}}\t{{.CPUPerc}}'], { timeoutMs: 8000 }),
-                  $.process.run(
-                    ['docker', 'inspect', '--format', '{{.Name}}\t{{len .HostConfig.DeviceRequests}}', ...nextSystem.dockers.map(c => c.name)],
-                    { timeoutMs: 5000 },
-                  ),
-                ])
-                const cpu = stats.exitCode === 0 ? parseDockerStats(stats.stdout) : new Map<string, number>()
-                const gpu = inspected.exitCode === 0 ? parseGpuContainers(inspected.stdout) : new Set<string>()
-                nextSystem.dockers = nextSystem.dockers.map(c => ({ ...c, cpu: cpu.get(c.name), gpu: gpu.has(c.name) }))
-              } catch {
-                // The bars stay empty: the list itself is still right.
+          for (const binary of nvidiaBinary ? [nvidiaBinary] : NVIDIA_BINARIES) {
+            try {
+              const smi = await $.process.run([binary, ...NVIDIA_ARGS], { timeoutMs: 4000 })
+              const found = smi.exitCode === 0 ? parseNvidia(smi.stdout) : []
+              if (found.length > 0) {
+                nvidiaBinary = binary
+                gpus.push(...found)
+                break
               }
+            } catch {
+              // Not on this machine; try the next place.
+            }
+          }
+
+          try {
+            const cards = (await $.fs.list('/sys/class/drm')).filter(entry => /^card\d+$/.test(entry.name))
+            for (const card of cards) {
+              const dir = `/sys/class/drm/${card.name}/device`
+              const busy = await $.process.run(['cat', `${dir}/gpu_busy_percent`], { timeoutMs: 2000 })
+              if (busy.exitCode !== 0) continue
+              const used = await $.process.run(['cat', `${dir}/mem_info_vram_used`], { timeoutMs: 2000 })
+              const total = await $.process.run(['cat', `${dir}/mem_info_vram_total`], { timeoutMs: 2000 })
+              const amd = parseAmd(`AMD GPU (${card.name})`, busy.stdout, used.stdout, total.stdout)
+              if (amd) gpus.push(amd)
             }
           } catch {
-            nextSystem.dockers = undefined
+            // No DRM devices to read.
           }
+
+          try {
+            const accels = (await $.fs.list('/sys/class/accel')).filter(entry => /^accel\d+$/.test(entry.name))
+            for (const accel of accels) {
+              const busy = await $.process.run(
+                ['cat', `/sys/class/accel/${accel.name}/device/npu_busy_time_us`],
+                { timeoutMs: 2000 },
+              )
+              const busyUs = Number(busy.stdout.trim())
+              if (busy.exitCode !== 0 || Number.isNaN(busyUs)) continue
+              const before = previousNpu.get(accel.name)
+              previousNpu.set(accel.name, { busyUs, at })
+              const util = npuUtil(before?.busyUs, busyUs, before ? at - before.at : 0)
+              if (util !== undefined) npus.push({ name: accel.name, util })
+            }
+          } catch {
+            // No NPU.
+          }
+
+          try {
+            const memory = await $.process.run(['cat', '/proc/meminfo'], { timeoutMs: 2000 })
+            const { ramPercent, swapPercent } = parseMeminfo(memory.stdout)
+            nextSystem.ramPercent = ramPercent
+            nextSystem.swapPercent = swapPercent
+          } catch {
+            nextSystem.ramPercent = undefined
+            nextSystem.swapPercent = undefined
+          }
+
+          try {
+            const disk = await $.process.run(['df', '-P', e.cwd], { timeoutMs: 3000 })
+            nextSystem.diskPercent = disk.exitCode === 0 ? parseDf(disk.stdout) : undefined
+          } catch {
+            nextSystem.diskPercent = undefined
+          }
+
+          try {
+            const totals = parseNetDev(
+              (await $.process.run(['cat', '/proc/net/dev'], { timeoutMs: 2000 })).stdout,
+            )
+            const rates = previousNet ? netRates(previousNet.totals, totals, at - previousNet.at) : undefined
+            previousNet = { totals, at }
+            if (rates) {
+              nextSystem.downBps = rates.down
+              nextSystem.upBps = rates.up
+              nextSystem.netPeakBps = Math.max(nextSystem.netPeakBps ?? NET_FLOOR_BPS, rates.down, rates.up)
+            }
+          } catch {
+            previousNet = undefined
+          }
+
+          const isSlow = at - (shared.slowAt ?? 0) >= SLOW_EVERY * refreshSeconds * 1000 - 100
+          if (isSlow) {
+            try {
+              const docker = await $.process.run(['docker', 'ps', '--format', '{{.Names}}\t{{.Networks}}'], {
+                timeoutMs: 3000,
+              })
+              nextSystem.dockers = docker.exitCode === 0 ? parseDockers(docker.stdout) : undefined
+              if (nextSystem.dockers && nextSystem.dockers.length > 0) {
+                try {
+                  const [stats, inspected] = await Promise.all([
+                    $.process.run(['docker', 'stats', '--no-stream', '--format', '{{.Name}}\t{{.CPUPerc}}'], { timeoutMs: 8000 }),
+                    $.process.run(
+                      ['docker', 'inspect', '--format', '{{.Name}}\t{{len .HostConfig.DeviceRequests}}', ...nextSystem.dockers.map(c => c.name)],
+                      { timeoutMs: 5000 },
+                    ),
+                  ])
+                  const cpu = stats.exitCode === 0 ? parseDockerStats(stats.stdout) : new Map<string, number>()
+                  const gpu = inspected.exitCode === 0 ? parseGpuContainers(inspected.stdout) : new Set<string>()
+                  nextSystem.dockers = nextSystem.dockers.map(c => ({ ...c, cpu: cpu.get(c.name), gpu: gpu.has(c.name) }))
+                } catch {
+                  // The bars stay empty: the list itself is still right.
+                }
+              }
+            } catch {
+              nextSystem.dockers = undefined
+            }
+          }
+
+          system = nextSystem
+          hardware = { cpu, gpus, npus }
+          await writeShared({
+            at,
+            hardware,
+            system,
+            stat: previousStat,
+            net: previousNet,
+            npu: Object.fromEntries(previousNpu),
+            slowAt: isSlow ? at : shared.slowAt,
+          })
+        }
+
+        // The repository is the one of this session's folder: read by each band for itself.
+        if (at - lastGitAt >= SLOW_EVERY * refreshSeconds * 1000 - 100) {
+          lastGitAt = at
           try {
             const status = await $.process.run(['git', 'status', '--porcelain=v1', '-b'], {
               cwd: e.cwd,
@@ -239,7 +312,6 @@ export const register: Register = on => {
             git = undefined
           }
         }
-        sampleCount += 1
 
         try {
           const detail = await $.session.usage({ breakdown: 'summary' })
@@ -256,8 +328,6 @@ export const register: Register = on => {
           // Keep the last breakdown.
         }
 
-        system = nextSystem
-        hardware = { cpu, gpus, npus }
       } finally {
         isSampling = false
       }

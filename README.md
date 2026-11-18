@@ -105,11 +105,13 @@ changes.
 **What runs on a timer**
 
 - **Every second:** the clock and the timer redraw, so the time and the pace tick stay live.
-- **Every 5 seconds** (`/band refresh`): the machine is sampled: `/proc/stat`, `/proc/meminfo`, `/proc/net/dev`,
-  `df`, `nvidia-smi` or the AMD and NPU files. Rates and utilisation are *changes* between two samples, so the very
-  first sample only primes them (the mod takes a second one a second later, so CPU appears soon).
-- **Every third sample:** the slow things: `docker ps`, `docker stats`, `docker inspect` and `git status`.
-- **Every 10 minutes:** the weather, from [Open-Meteo](https://open-meteo.com), with no key. The place is fixed
+- **Every 5 seconds** (`/band refresh`): the machine is read: `/proc/stat`, `/proc/meminfo`, `/proc/net/dev`,
+  `df`, `nvidia-smi` or the AMD and NPU files, by whichever band's turn comes first (see below). Rates and
+  utilisation are *changes* between two readings, so the very first reading only primes them (the mod takes a second
+  one a second later, so CPU appears soon).
+- **Every third interval:** the slow things: `docker ps`, `docker stats` and `docker inspect` (once for all bands),
+  and `git status` (each band, for its own folder).
+- **Every 10 minutes:** the weather (once for all bands), from [Open-Meteo](https://open-meteo.com), with no key. The place is fixed
   (Valencia), see [`widgets/weather.ts`](hooks/widgets/weather.ts) to change it.
 - **Every 8 seconds:** the plan limits are shared between every open band (see below).
 
@@ -118,11 +120,18 @@ idle session lags behind a busy one. Every band writes the limits it knows to `~
 reads the others', and each shows the highest reading of the current window (usage only grows until the window
 resets). A window that has already ended is dropped; a later reset means a new window.
 
+**The machine is read once, not once per session.** What belongs to the machine (CPU, GPU, memory, disk, network,
+containers and the weather) is shared through `~/.claude/side-band-state.json`: a band whose turn comes while another
+band's reading is younger than its refresh interval shows that reading instead of taking a new one, so every open
+session shows the same figures. What belongs to a session (its context, cost, tools, model and the repository of its
+folder) stays its own.
+
 **What leaves your machine.** Only the weather request to `api.open-meteo.com`, with the coordinates of the fixed
 place. Nothing about your session, files or machine is sent anywhere.
 
-**What it writes.** `~/.claude/side-band-limits.json` (the shared limits) and the mod's own store (whether the band
-is hidden, and the refresh interval). Nothing else.
+**What it writes.** `~/.claude/side-band-limits.json` (the shared limits), `~/.claude/side-band-state.json` (the
+shared machine readings and weather) and the mod's own store (whether the band is hidden, and the refresh interval).
+Nothing else.
 
 **The strip.** A docked band is a narrow column, so it stacks the groups. Where a pane cannot be docked (a terminal
 under 110 columns wide, such as half or a quarter of a screen, or a terminal that is not in fullscreen mode), the
