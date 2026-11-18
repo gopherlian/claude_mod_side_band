@@ -302,13 +302,10 @@ export const usageLines = (data: UsageData | undefined, columns: number, now?: n
       color: colorFor(data.contextPercent),
     },
     contextBar(data, columns),
+    ...compositionLegend(data.categories, columns).map(cells => ({ text: cells.map(cell => cell.text).join(''), cells })),
   ]
-  // Room to breathe: a blank row around the legend of the runs and between and after the plan windows.
-  const legend = compositionLegend(data.categories, columns).map(cells => ({ text: cells.map(cell => cell.text).join(''), cells }))
-  if (legend.length > 0) lines.push(blank(), ...legend)
-  const plan = windows(data.limits)
-  if (plan.length > 0) lines.push(blank())
-  plan.forEach(({ label, limit }) => lines.push(windowRow(label, limit, columns, now), blank()))
+
+  for (const { label, limit } of windows(data.limits)) lines.push(windowRow(label, limit, columns, now))
   // The tick is new to the eye: say what it is under the bars, only while one is drawn.
   if (lines.some(line => line.text.includes(MARK))) lines.push(...legendLines(columns, noted))
 

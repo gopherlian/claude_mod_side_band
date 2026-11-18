@@ -10,12 +10,9 @@ import {
   rule,
   softRule,
   titledRule,
-  usageLines as stackedLines,
+  usageLines,
 } from './usage'
 import type { UsageData } from './usage'
-
-/** The rows with something on them: the stacked band also leaves blank rows between its parts. */
-const usageLines = (...args: Parameters<typeof stackedLines>) => stackedLines(...args).filter(line => line.text.trim() !== '')
 
 const NOW = Date.parse('2026-11-16T10:00:00Z')
 const endsIn = (ms: number) => new Date(NOW + ms).toISOString()
@@ -341,17 +338,4 @@ test('in the footnote and the legend the tick is green and the (*) bright yellow
   const legend = usageLines(windows(), 32, NOW, true).slice(4)[0]!
 
   expect(legend.cells!.find(c => c.text === '(*)')).toEqual({ text: '(*)', color: 'yellowBright' })
-})
-
-test('a blank row sits under the context bar, under the legend of its runs, between the windows and after the last', () => {
-  const data = { ...windows(), contextWindow: 1_000_000, contextPercent: 14, categories: breakdown }
-  const rows = stackedLines(data, 28, NOW).map(l => (l.text.trim() === '' ? '' : l.text.slice(0, 5)))
-
-  expect(rows).toEqual(['Conte', '███▒░'.slice(0, 1).repeat(0) + rows[1]!, '', '■ msg', '▒ buf', '', 'Sessi', '', 'Weekl', '', '┃ tim'])
-})
-
-test('with no legend of runs the first blank row still follows the context bar', () => {
-  const rows = stackedLines(windows(), 28, NOW).map(l => (l.text.trim() === '' ? '' : l.text.slice(0, 5)))
-
-  expect(rows.slice(2, 5)).toEqual(['', 'Sessi', ''])
 })

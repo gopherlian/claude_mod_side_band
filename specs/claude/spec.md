@@ -20,10 +20,6 @@ are outside the window and SHALL NOT be drawn. Without the breakdown the bar is 
 colour, a short name and its tokens (`■ msgs 100k  ■ mcp 37k  ▒ buffer 33k  ■ sys 21k`), largest first, what does
 not fit left out. Free space is never listed as a consumer.
 
-**R1c (breathing room).** In the stacked band a blank row SHALL sit under the context bar (before the legend of its
-runs), under that legend, between one plan window and the next, and after the last window. The strip (compact form)
-has none.
-
 **R2.** The group SHALL draw one bar per plan window the session reports: `Session` (five hours) then `Weekly` (seven
 days), then any other window under its own name (a spend limit is `Spend`). With no reading yet the bar SHALL be
 empty and the number a dash.
