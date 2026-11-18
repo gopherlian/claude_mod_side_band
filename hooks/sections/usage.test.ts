@@ -7,7 +7,6 @@ import {
   formatTokens,
   meter,
   paceNote,
-  resetLines,
   rule,
   softRule,
   titledRule,
@@ -144,14 +143,25 @@ test('without the time, or without a valid end, a meter has no mark', () => {
   expect(usageLines(broken, 24, NOW).some(l => l.text.includes('┃'))).toBe(false)
 })
 
-test('each window gets a reset row: the symbol, the name of its meter and what is left', () => {
-  const rows = resetLines(windows(), 30, NOW)
+test('a window row ends with the time left, short and dim, where the bar keeps at least 8 cells', () => {
+  const rows = usageLines(windows(), 28, NOW).filter(l => /^(Session|Weekly)/.test(l.text))
 
-  expect(rows.map(r => r.text)).toEqual(['↻ Session  1h 9m', '↻ Weekly   3d 12h'])
-  expect(rows.every(r => r.dimColor === true)).toBe(true)
+  expect(rows[0]!.text).toMatch(/^Session [█░┃]{8}  41%   1h9m$/)
+  expect(rows[1]!.text).toMatch(/^Weekly  [█░┃]{8}  23%  3d12h$/)
+  for (const row of rows) {
+    expect(row.text).toHaveLength(28)
+    expect(row.cells!.map(cell => cell.text).join('')).toBe(row.text)
+    expect(row.cells!.at(-1)!.dimColor).toBe(true)
+    expect(row.cells!.at(-1)!.color).toBeUndefined()
+  }
 })
 
-test('a reset row is drawn only for a window that tells when it ends, and never overflows', () => {
+test('the time left is left out where the bar would be shorter than 8 cells, and for a window with no valid end', () => {
+  expect(usageLines(windows(), 27, NOW).find(l => l.text.startsWith('Session'))!.text).toHaveLength(27)
+  expect(usageLines(windows(), 27, NOW).find(l => l.text.startsWith('Session'))!.text).not.toMatch(/1h9m/)
+  expect(usageLines(windows(), 28, NOW).find(l => l.text.startsWith('Session'))!.text).toMatch(/1h9m$/)
+  expect(usageLines(windows(), 40, undefined).find(l => l.text.startsWith('Session'))!.text).not.toMatch(/1h9m/)
+
   const data: UsageData = {
     contextWindow: 200_000,
     limits: [
@@ -160,11 +170,59 @@ test('a reset row is drawn only for a window that tells when it ends, and never 
       { kind: 'spend_limit', percentUsed: 50, resetsAt: endsIn(2 * 3_600_000) },
     ],
   }
+  const rows = usageLines(data, 30, NOW)
+  expect(rows.find(l => l.text.startsWith('Session'))!.text).toBe(meter('Session', 41, 30))
+  expect(rows.find(l => l.text.startsWith('Weekly'))!.text).toBe(meter('Weekly', 23, 30))
+  expect(rows.find(l => l.text.startsWith('Spend'))!.text).toMatch(/ 50% +2h$/)
+})
 
-  expect(resetLines(data, 30, NOW).map(r => r.text)).toEqual(['↻ Spend    2h 0m'])
-  expect(resetLines(data, 10, NOW)[0].text).toBe('↻ Spend   ')
-  expect(resetLines(undefined, 30, NOW)).toEqual([])
-  expect(resetLines({ contextWindow: 200_000, limits: [] }, 30, NOW)).toEqual([])
+test('the bar of a window is shorter by what the time left takes, so the row never passes the band', () => {
+  for (let columns = 20; columns <= 44; columns++) {
+    for (const line of usageLines(windows(), columns, NOW)) expect(line.text.length).toBeLessThanOrEqual(columns)
+  }
+})
+
+const breakdown = [
+  { name: 'Messages', tokens: 100_000, kind: 'used' as const },
+  { name: 'MCP tools', tokens: 37_000, kind: 'used' as const },
+  { name: 'Autocompact buffer', tokens: 33_000, kind: 'buffer' as const },
+  { name: 'Free space', tokens: 830_000, kind: 'free' as const },
+]
+
+test('with the breakdown, the context bar is drawn in runs and keeps its number', () => {
+  const lines = usageLines({ ...windows(), contextTokens: 137_000, contextWindow: 1_000_000, contextPercent: 14, categories: breakdown }, 28, NOW)
+  const row = lines[1]!
+
+  expect(lines[0]!.text).toBe('Context 137k / 1.0M')
+  expect(row.text).toHaveLength(28)
+  expect(row.text.endsWith('  14%')).toBe(true)
+  expect(row.cells!.map(cell => cell.text).join('')).toBe(row.text)
+  expect(row.cells!.some(cell => cell.color === '#2b6cb0')).toBe(true)
+  expect(row.cells!.some(cell => cell.color === '#0f766e')).toBe(true)
+  expect(row.text).toMatch(/█+▒+░+ +14%$/)
+})
+
+test('the legend of the runs sits right under the context bar, before the plan windows', () => {
+  const lines = usageLines({ ...windows(), contextWindow: 1_000_000, contextPercent: 14, categories: breakdown }, 28, NOW)
+
+  expect(lines.slice(2, 4).map(l => l.text)).toEqual(['■ msgs 100k  ■ mcp 37k', '▒ buffer 33k'])
+  expect(lines[4]!.text.startsWith('Session')).toBe(true)
+})
+
+test('the number of the context bar warns from 70% and alarms from 85%, whatever the runs', () => {
+  const at = (contextPercent: number) =>
+    usageLines({ contextWindow: 1_000_000, contextPercent, limits: [], categories: breakdown }, 28)[1]!.cells!.at(-1)!.color
+
+  expect(at(60)).toBeUndefined()
+  expect(at(70)).toBe('yellow')
+  expect(at(85)).toBe('red')
+})
+
+test('without the breakdown the context bar is the plain one, as before', () => {
+  const lines = usageLines({ contextTokens: 10_000, contextWindow: 200_000, contextPercent: 5, limits: [] }, 30)
+
+  expect(lines[1]!.text).toBe(meter('', 5, 30))
+  expect(lines[1]!.cells).toBeUndefined()
 })
 
 test('the rule inside a group is fainter than the one between groups', () => {

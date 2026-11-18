@@ -1,4 +1,5 @@
 import type { GitStatus, Hardware, SystemStats } from '../monitor/types'
+import type { Category } from '../sections/context'
 import type { Line, UsageData } from '../sections/usage'
 import type { WeatherState } from '../widgets/types'
 
@@ -15,7 +16,10 @@ export type SessionStats = {
   /** Model id of the last request, when the display name is not known. */
   stepModel?: string
   effort?: string
-  categories?: { name: string; tokens: number }[]
+  /** What fills the context window, as the session reports it. */
+  categories?: Category[]
+  /** When each tool call of the last ten minutes started, oldest first; the tools chart is drawn from them. */
+  toolTimes?: number[]
 }
 
 /** Everything a group may draw from; each group reads only its own part. */

@@ -128,39 +128,82 @@ test('the outlook is always centered, on one row or split in two', () => {
   expect(onlyUv.find(l => l.text === 'UV 6')?.align).toBe('center')
 })
 
-test('the session group adds resets, duration, cost per hour, turn and tools', () => {
-  const lines = session.lines(
-    ctx({
-      usage: {
-        contextWindow: 200_000,
-        contextTokens: 50_000,
-        contextPercent: 25,
-        costUsd: 3,
-        startedAt: NOW - 3_600_000,
-        limits: [{ kind: 'five_hour', percentUsed: 10, resetsAt: new Date(NOW + 2 * 3_600_000).toISOString() }],
-      },
-      stats: {
-        toolCalls: 7,
-        activeTools: 1,
-        runningTool: 'Bash',
-        turnStartedAt: NOW - 42_000,
-        model: 'Sonnet',
-        effort: 'medium',
-        categories: [{ name: 'Messages', tokens: 30_000 }, { name: 'System tools', tokens: 12_000 }],
-      },
-    }),
-  ).map(l => l.text)
-  expect(lines).toContain('↻ Session  2h 0m')
-  expect(lines.some(l => l.startsWith('resets'))).toBe(false)
+const busy = (over: Partial<GroupContext> = {}) =>
+  ctx({
+    usage: {
+      contextWindow: 200_000,
+      contextTokens: 50_000,
+      contextPercent: 25,
+      costUsd: 3,
+      startedAt: NOW - 3_600_000,
+      limits: [{ kind: 'five_hour', percentUsed: 10, resetsAt: new Date(NOW + 2 * 3_600_000).toISOString() }],
+    },
+    stats: {
+      toolCalls: 7,
+      activeTools: 1,
+      runningTool: 'Bash',
+      turnStartedAt: NOW - 42_000,
+      toolTimes: [NOW - 30_000, NOW - 20_000, NOW - 5 * 60_000],
+      model: 'claude-sonnet-5-5',
+      effort: 'medium',
+      categories: [
+        { name: 'Messages', tokens: 30_000, kind: 'used' },
+        { name: 'System tools', tokens: 12_000, kind: 'used' },
+        { name: 'Autocompact buffer', tokens: 33_000, kind: 'buffer' },
+        { name: 'Free space', tokens: 125_000, kind: 'free' },
+      ],
+    },
+    columns: 30,
+    ...over,
+  })
+
+test('the session group draws the cost, the tools chart, the turn and the model, and no reset rows', () => {
+  const lines = session.lines(busy()).map(l => l.text)
+
+  expect(lines.some(l => l.startsWith('↻'))).toBe(false)
+  expect(lines.find(l => l.startsWith('Session'))).toMatch(/2h$/)
   expect(lines.find(l => l.startsWith('Session'))).toContain('┃')
-  expect(lines.indexOf('↻ Session  2h 0m')).toBeGreaterThan(lines.findIndex(l => l.startsWith('Weekly')))
-  expect(lines.indexOf('┃ time elapsed in the window')).toBeGreaterThan(lines.findIndex(l => l.startsWith('Weekly')))
-  expect(lines.indexOf('┃ time elapsed in the window')).toBeLessThan(lines.indexOf('↻ Session  2h 0m'))
+  expect(lines).toContain('┃ time elapsed in the window')
   expect(lines).toContain('1h00m · $3.00 · $3.00/h')
-  expect(lines).toContain('turn 0:42 · tools 7 · Bash')
-  expect(lines).toContain('messages 30k · system 12k')
-  expect(lines).toContain('Sonnet · medium')
+  expect(lines.find(l => l.startsWith('tools'))).toMatch(/^tools [·▂▃▄▅▆▇█]{10} 7 ▸ Bash$/)
+  expect(lines).toContain('turn 0:42')
+  expect(lines).toContain('Sonnet 5.5 ●●○○○ medium')
   expect(lines[lines.length - 2]).toBe('┈'.repeat(30))
+  expect(lines.every(l => l.length <= 30)).toBe(true)
+})
+
+test('what fills the context is drawn under the bar, never listing the free space or the reserve as a consumer', () => {
+  const lines = session.lines(busy()).map(l => l.text)
+
+  expect(lines.slice(2, 4)).toEqual(['▒ buffer 33k  ■ msgs 30k', '■ sys 12k'])
+  expect(lines.join('\n')).not.toMatch(/free|autocompact/i)
+})
+
+test('the cost is green and the effort pips are lit up to its level', () => {
+  const rows = session.lines(busy())
+  const cost = rows.find(l => l.text.startsWith('1h00m'))!
+  const model = rows.find(l => l.text.startsWith('Sonnet'))!
+
+  expect(cost.cells!.find(c => c.text === '$3.00')!.color).toBeDefined()
+  expect(cost.cells!.map(c => c.text).join('')).toBe(cost.text)
+  expect(model.cells!.map(c => c.text).join('')).toBe(model.text)
+  expect(model.cells!.some(c => c.text === '●●')).toBe(true)
+})
+
+test('the last turn is shown once it ends, and a quiet session has an empty chart', () => {
+  const rows = session
+    .lines(busy({ stats: { toolCalls: 0, activeTools: 0, lastTurnMs: 74_000 } }))
+    .map(l => l.text)
+
+  expect(rows).toContain('last 1:14')
+  expect(rows).toContain('tools ·········· 0')
+  expect(rows.some(l => l.startsWith('turn'))).toBe(false)
+})
+
+test('the cost per hour comes after three minutes of session', () => {
+  const young = session.lines(busy({ usage: { ...busy().usage!, startedAt: NOW - 60_000 } })).map(l => l.text)
+
+  expect(young).toContain('1m · $3.00')
 })
 
 const paced = (over: Partial<GroupContext> = {}) =>

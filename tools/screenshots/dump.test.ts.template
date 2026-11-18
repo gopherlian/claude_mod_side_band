@@ -31,8 +31,19 @@ const ctx = (columns: number): GroupContext => ({
   },
   stats: {
     toolCalls: 37, activeTools: 0, lastTurnMs: 74_000, model: 'Opus 5.5', effort: 'high',
+    toolTimes: [
+      NOW - 9 * 60_000, NOW - 8 * 60_000 - 20_000, NOW - 8 * 60_000 - 5_000, NOW - 6 * 60_000, NOW - 5 * 60_000 - 40_000,
+      NOW - 5 * 60_000 - 30_000, NOW - 5 * 60_000 - 10_000, NOW - 5 * 60_000, NOW - 3 * 60_000 - 30_000,
+      NOW - 2 * 60_000 - 50_000, NOW - 2 * 60_000 - 20_000, NOW - 60_000 - 40_000, NOW - 40_000, NOW - 25_000,
+    ],
     categories: [
-      { name: 'Messages', tokens: 148_000 }, { name: 'System prompt', tokens: 21_000 }, { name: 'Tools', tokens: 12_000 },
+      { name: 'System prompt', tokens: 6_000, kind: 'used' },
+      { name: 'System tools', tokens: 15_000, kind: 'used' },
+      { name: 'MCP tools', tokens: 37_000, kind: 'used' },
+      { name: 'Memory files', tokens: 4_000, kind: 'used' },
+      { name: 'Messages', tokens: 203_000, kind: 'used' },
+      { name: 'Free space', tokens: 702_000, kind: 'free' },
+      { name: 'Autocompact buffer', tokens: 33_000, kind: 'buffer' },
     ],
   },
   hardware: {

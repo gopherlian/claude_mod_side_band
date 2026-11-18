@@ -158,14 +158,19 @@ What this session and your plan are using.
 
 From top to bottom:
 
-1. **Context.** Tokens in the context window against its size, and a bar with the percent.
-2. **Session** and **Weekly.** The plan's five-hour and seven-day windows, each as a bar with the percent used (a
-   spend limit, when your plan has one, is drawn as **Spend**). The `┃` on each bar is the *pace tick*, see below.
-3. **The tick's legend** `┃ time elapsed in the window (*)`, and one `↻` row per window saying when it resets.
-4. **The session line:** how long it has run, what it has cost, and the cost per hour (shown after three minutes).
-5. **Activity:** the current turn's time, or the last one's, the number of tool calls, and the tool running now.
-6. **The three biggest consumers of context** (messages, system prompt, tools…).
-7. **The model and the effort level**, under a faint rule.
+1. **Context.** Tokens in the context window against its size, and a bar with the percent. The bar is drawn in
+   *runs*, one colour per consumer: messages (blue), system prompt and tools (violet), MCP tools (teal) and anything
+   else (amber), then the autocompact reserve hatched in grey `▒`, and the free space as the empty track. Under it, a
+   legend names the runs with their tokens (`■ msgs 203k  ■ mcp 37k`), largest first.
+2. **Session** and **Weekly.** The plan's five-hour and seven-day windows, each as a bar with the percent used and,
+   at the end of the row, the time left (`1h9m`, `3d12h`). A spend limit, when your plan has one, is drawn as
+   **Spend**. The `┃` on each bar is the *pace tick*, see below.
+3. **The tick's legend** `┃ time elapsed in the window (*)`.
+4. **The session line:** how long it has run, what it has cost (in green), and the cost per hour (after three minutes).
+5. **Tools:** a small chart of the tool calls of the last ten minutes (one cell a minute, `·` for a quiet one), the
+   total, and the tool running now. Then the current turn's time, or the last one's.
+6. **The model and the effort level**, under a faint rule: the model's short name and five pips filled up to the
+   effort (`Opus 5.5 ●●●○○ high`).
 
 Without a subscription that reports limits, the Session and Weekly bars are not drawn; if the session cannot report
 its usage at all the group says `Usage unavailable`.
@@ -219,7 +224,9 @@ the text wraps inside the frame.
 | Faint rules inside a group, the credit | dark orange `#b36200` |
 | The pace tick `┃` | green |
 | The `(*)` that points to the footnote | bright yellow |
-| Context, Session and Weekly bars | default, **yellow from 70%** and **red from 85%** of the window |
+| Session and Weekly bars, the Context label and percent | default, **yellow from 70%** and **red from 85%** of the window |
+| Context runs | messages blue `#2b6cb0` · system violet `#6b21a8` · MCP teal `#0f766e` · other amber `#8a6d0b` · reserve grey `#64748b` |
+| Cost · tools chart · effort pips | green `#68d391` · violet `#c084fc` · cyan `#4dd0e1` (faint `#4a5568`) |
 | CPU · GPU · VRAM · NPU | green `#2f855a` · blue `#2b6cb0` · cyan `#0e7490` · indigo `#4c51bf` |
 | RAM · Swap · Disk | purple `#6b21a8` · mustard `#8a6d0b` · teal `#0f766e` |
 | Down · Up | dark lime `#4d7c0f` · slate `#64748b` |

@@ -49,6 +49,11 @@ def glyph(ch, x, y, fg, bg):
         s.append(f'<rect x="{x:.1f}" y="{y+2}" width="{CW+.4}" height="{LH-4}" fill="{fg}"/>')
     elif ch == "░":
         s.append(f'<rect x="{x:.1f}" y="{y+2}" width="{CW+.4}" height="{LH-4}" fill="{fg}" opacity="0.22"/>')
+    elif ch == "▒":
+        s.append(f'<rect x="{x:.1f}" y="{y+2}" width="{CW+.4}" height="{LH-4}" fill="{fg}" opacity="0.55"/>')
+    elif ch in "▁▂▃▄▅▆▇":
+        h = (LH - 4) * ("▁▂▃▄▅▆▇".index(ch) + 1) / 8
+        s.append(f'<rect x="{x:.1f}" y="{y+LH-2-h:.1f}" width="{CW+.4}" height="{h:.1f}" fill="{fg}"/>')
     elif ch == "▀":
         s.append(f'<rect x="{x:.1f}" y="{y+2}" width="{CW+.4}" height="{(LH-4)/2}" fill="{fg}"/>')
         if bg:

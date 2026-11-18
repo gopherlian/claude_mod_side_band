@@ -71,3 +71,24 @@ test('what the call resolves to is handed back unchanged', async () => {
 
   expect(await trackTool(fresh(), 'Bash', async () => result)).toBe(result)
 })
+
+test('each call is remembered with its time, and the times older than the chart are forgotten', async () => {
+  const stats: SessionStats = { toolCalls: 0, activeTools: 0 }
+  const NOW = 100 * 60_000
+
+  await trackTool(stats, 'Read', async () => 1, NOW - 11 * 60_000)
+  await trackTool(stats, 'Bash', async () => 2, NOW - 60_000)
+  await trackTool(stats, 'Edit', async () => 3, NOW)
+
+  expect(stats.toolCalls).toBe(3)
+  expect(stats.toolTimes).toEqual([NOW - 60_000, NOW])
+})
+
+test('without a time a call is counted and nothing is charted', async () => {
+  const stats: SessionStats = { toolCalls: 0, activeTools: 0 }
+
+  await trackTool(stats, 'Read', async () => 1)
+
+  expect(stats.toolCalls).toBe(1)
+  expect(stats.toolTimes).toBeUndefined()
+})

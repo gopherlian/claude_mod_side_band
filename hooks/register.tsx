@@ -248,6 +248,7 @@ export const register: Register = on => {
             stats.categories = breakdown.categories.map(category => ({
               name: category.name,
               tokens: category.tokens,
+              kind: category.kind,
             }))
           }
         } catch {
@@ -338,7 +339,7 @@ export const register: Register = on => {
     return yield* next(e)
   })
 
-  on('tool.call', async ($, e, next) => trackTool(stats, e.tool, () => next(e)))
+  on('tool.call', async ($, e, next) => trackTool(stats, e.tool, () => next(e), await $.clock.now()))
 
   // `/band` toggles the band; `/band open` only shows it (what a new session
   // runs); `/band refresh <seconds>` sets how often the machine is read, live;

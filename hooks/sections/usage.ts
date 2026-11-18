@@ -1,5 +1,7 @@
 // The usage section: context of this session, plus what the account allows.
-import { formatRemaining } from '../format'
+import { formatLeft } from '../format'
+import { compositionCells, compositionLegend } from './context'
+import type { Category } from './context'
 import { wrap } from './wrap'
 
 export type UsageData = {
@@ -12,6 +14,8 @@ export type UsageData = {
   limits: { kind: string; percentUsed: number; resetsAt?: string }[]
   /** When the session began, in `$.clock.now()` milliseconds. */
   startedAt?: number
+  /** What fills the context window; with it the context bar is drawn in runs. */
+  categories?: Category[]
 }
 
 export type Line = {
@@ -212,19 +216,6 @@ export const meter = (
   return `${head}${mark === undefined ? drawn : withMark(drawn, mark)} ${number}`
 }
 
-/**
- * One dim row per window that says when it ends: `↻ Session  1h 23m`. They
- * come in the order of the meters and carry the same names.
- */
-export const resetLines = (data: UsageData | undefined, columns: number, now: number): Line[] =>
-  windows(data?.limits ?? []).flatMap(({ label, limit }) => {
-    const ends = endsAt(limit)
-
-    return ends === undefined
-      ? []
-      : [{ text: `↻ ${label.padEnd(LABEL_WIDTH)} ${formatRemaining(ends - now)}`.slice(0, columns), dimColor: true }]
-  })
-
 const PACE_NOTE = `If ${MARK} is inside the fill, you spend faster than time passes; beyond it, you are under pace.`
 
 /**
@@ -244,6 +235,57 @@ export const paceNote = (data: UsageData | undefined, columns: number, now?: num
   )
 }
 
+/** The time left at the end of a window's row, right-aligned in this many cells. */
+const LEFT_WIDTH = 6
+/** The time left is drawn only while the bar keeps this many cells. */
+const MIN_BAR_WITH_LEFT = 8
+
+/**
+ * One plan window: its label, a bar with the tick of its time, the percent and,
+ * where the bar keeps at least 8 cells, the time left, short and dim.
+ */
+const windowRow = (label: string, limit: Limit | undefined, columns: number, now: number | undefined): Line => {
+  const percent = limit?.percentUsed
+  const ends = endsAt(limit)
+  const left = ends !== undefined && now !== undefined ? formatLeft(ends - now) : undefined
+  const room = columns - LABEL_WIDTH - 1 - PERCENT_WIDTH
+  const withLeft = left !== undefined && room - (LEFT_WIDTH + 1) >= MIN_BAR_WITH_LEFT
+  const base: Line = {
+    text: meter(label, percent, withLeft ? columns - LEFT_WIDTH - 1 : columns, elapsedShare(limit, now)),
+    color: colorFor(percent),
+    dimColor: percent === undefined,
+  }
+  const marked = withMarks(base)
+  if (!withLeft) return marked
+
+  const tail = ` ${left.padStart(LEFT_WIDTH)}`
+
+  return {
+    ...marked,
+    text: marked.text + tail,
+    cells: [...(marked.cells ?? [{ text: marked.text, color: base.color, dimColor: base.dimColor }]), { text: tail, dimColor: true }],
+  }
+}
+
+/**
+ * The context bar. With the breakdown it is drawn in runs, one colour per
+ * consumer, and its number carries the warning colour; without it, the plain bar.
+ */
+const contextBar = (data: UsageData, columns: number): Line => {
+  const runs = compositionCells(data.categories, Math.max(4, columns - 1 - PERCENT_WIDTH))
+  if (!runs) {
+    return {
+      text: meter('', data.contextPercent, columns),
+      color: colorFor(data.contextPercent),
+      dimColor: data.contextPercent === undefined,
+    }
+  }
+  const number = ` ${(data.contextPercent === undefined ? '—' : `${Math.round(data.contextPercent)}%`).padStart(PERCENT_WIDTH)}`
+  const cells = [...runs, { text: number, color: colorFor(data.contextPercent) }]
+
+  return { text: cells.map(cell => cell.text).join(''), cells }
+}
+
 /**
  * The lines of the section, each at most `columns` cells wide. Given `now`,
  * the plan meters carry a tick for how much of their window has gone by, and
@@ -259,23 +301,18 @@ export const usageLines = (data: UsageData | undefined, columns: number, now?: n
       text: `Context ${tokens} / ${formatTokens(data.contextWindow)}`,
       color: colorFor(data.contextPercent),
     },
-    {
-      text: meter('', data.contextPercent, columns),
-      color: colorFor(data.contextPercent),
-      dimColor: data.contextPercent === undefined,
-    },
+    contextBar(data, columns),
+    ...compositionLegend(data.categories, columns).map(cells => ({ text: cells.map(cell => cell.text).join(''), cells })),
   ]
 
-  for (const { label, limit } of windows(data.limits)) {
-    const percent = limit?.percentUsed
-    lines.push({
-      text: meter(label, percent, columns, elapsedShare(limit, now)),
-      color: colorFor(percent),
-      dimColor: percent === undefined,
-    })
-  }
+  for (const { label, limit } of windows(data.limits)) lines.push(windowRow(label, limit, columns, now))
   // The tick is new to the eye: say what it is under the bars, only while one is drawn.
   if (lines.some(line => line.text.includes(MARK))) lines.push(...legendLines(columns, noted))
 
-  return lines.map(line => withMarks({ ...line, text: line.text.slice(0, columns) }))
+  // A row that passes the band is cut and drawn plain: its cells no longer add up to its text.
+  return lines.map(line =>
+    line.text.length <= columns && (line.cells || !line.text.includes(MARK))
+      ? line
+      : withMarks({ ...line, text: line.text.slice(0, columns), cells: undefined }),
+  )
 }

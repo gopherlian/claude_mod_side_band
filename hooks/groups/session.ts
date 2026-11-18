@@ -1,8 +1,22 @@
-// The Claude session: context, plan windows, time, cost, turn, tools.
+// The Claude session: context, plan windows, time, cost, tools, turn, model.
 import { formatClock, formatDuration } from '../format'
-import { formatTokens, paceNote, resetLines, softRule, usageLines } from '../sections/usage'
-import type { Line } from '../sections/usage'
+import { effortCells, modelName, toolSpark } from '../sections/stats'
+import { paceNote, softRule, usageLines } from '../sections/usage'
+import type { Cell, Line } from '../sections/usage'
 import type { Group, GroupContext } from './types'
+
+/** The cost stands out in green, the lighter shade of the CPU bar. */
+const COST_COLOR = '#68d391'
+/** The tools chart borrows the violet of the RAM bar. */
+const SPARK_COLOR = '#c084fc'
+const SPARK_WIDTH = 10
+
+/** A row drawn from cells; where it would pass `columns` it is cut and drawn plain and dim. */
+const row = (cells: Cell[], columns: number): Line => {
+  const text = cells.map(cell => cell.text).join('')
+
+  return text.length <= columns ? { text, cells } : { text: text.slice(0, columns), dimColor: true }
+}
 
 export const session: Group = {
   id: 'session',
@@ -10,44 +24,57 @@ export const session: Group = {
   priority: 1,
   footnote: (ctx: GroupContext): Line[] => paceNote(ctx.usage, ctx.columns, ctx.now),
   lines: (ctx: GroupContext): Line[] => {
-    const lines = usageLines(ctx.usage, ctx.columns, ctx.now, ctx.noted)
     const { usage, stats } = ctx
-    const dim = (text: string) => lines.push({ text: text.slice(0, ctx.columns), dimColor: true })
-
-    lines.push(...resetLines(usage, ctx.columns, ctx.now))
+    const lines = usageLines(usage && { ...usage, categories: stats.categories }, ctx.columns, ctx.now, ctx.noted)
 
     if (usage?.startedAt !== undefined) {
       const elapsed = ctx.now - usage.startedAt
-      const parts = [formatDuration(elapsed)]
+      const cells: Cell[] = [{ text: formatDuration(elapsed) }]
       if (usage.costUsd !== undefined) {
-        parts.push(`$${usage.costUsd.toFixed(2)}`)
-        if (elapsed >= 3 * 60_000) parts.push(`$${(usage.costUsd / (elapsed / 3_600_000)).toFixed(2)}/h`)
+        cells.push({ text: ' · ', dimColor: true }, { text: `$${usage.costUsd.toFixed(2)}`, color: COST_COLOR })
+        if (elapsed >= 3 * 60_000) {
+          cells.push({ text: ` · $${(usage.costUsd / (elapsed / 3_600_000)).toFixed(2)}/h`, dimColor: true })
+        }
       }
-      dim(parts.join(' · '))
+      lines.push(row(cells, ctx.columns))
     }
 
-    const activity = [
+    // The tool calls of the last ten minutes as a chart, the total, and the tool running now.
+    const count = String(stats.toolCalls)
+    const spark = toolSpark(
+      stats.toolTimes ?? [],
+      ctx.now,
+      Math.min(SPARK_WIDTH, Math.max(0, ctx.columns - 7 - count.length)),
+    )
+    const room = ctx.columns - (6 + spark.length + 1 + count.length) - 3
+    const running = stats.runningTool && room > 0 ? ` ▸ ${stats.runningTool.slice(0, room)}` : ''
+    lines.push(
+      row(
+        [
+          { text: 'tools ', dimColor: true },
+          { text: spark, color: SPARK_COLOR },
+          { text: ` ${count}` },
+          ...(running ? [{ text: running, dimColor: true }] : []),
+        ],
+        ctx.columns,
+      ),
+    )
+
+    const turn =
       stats.turnStartedAt !== undefined
         ? `turn ${formatClock(ctx.now - stats.turnStartedAt)}`
         : stats.lastTurnMs !== undefined
           ? `last ${formatClock(stats.lastTurnMs)}`
-          : '',
-      `tools ${stats.toolCalls}`,
-      stats.runningTool ?? '',
-    ].filter(Boolean)
-    dim(activity.join(' · '))
+          : ''
+    if (turn) lines.push({ text: turn.slice(0, ctx.columns), dimColor: true })
 
-    const top = [...(stats.categories ?? [])]
-      .filter(category => category.tokens > 0)
-      .sort((a, b) => b.tokens - a.tokens)
-      .slice(0, 3)
-      .map(category => `${category.name.split(/\s+/)[0].toLowerCase()} ${formatTokens(category.tokens)}`)
-    if (top.length > 0) dim(top.join(' · '))
     // The model and how hard it thinks, apart from the rest.
     const model = stats.model ?? stats.stepModel
     if (model) {
       lines.push(softRule(ctx.columns))
-      dim([model, stats.effort].filter(Boolean).join(' · '))
+      lines.push(
+        row([{ text: modelName(model) }, ...(stats.effort ? [{ text: ' ' }, ...effortCells(stats.effort)] : [])], ctx.columns),
+      )
     }
 
     return lines
