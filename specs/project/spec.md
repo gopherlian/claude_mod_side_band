@@ -4,12 +4,11 @@ The Project group, titled `Project`. Priority 2.
 
 ## Requirements
 
-**R1.** Inside a git repository the group SHALL draw, on one row, the branch name and, dim after ` · `, `clean` or the
-number of changed files (`3 changed`), followed by `↑n` commits to push and `↓n` to pull when there are any. Where
-the row is wider than the band, the state goes on a row of its own under the branch. In the strip the column is always
-two rows.
+**R1.** Inside a git repository the group SHALL draw the branch name, and under it, dim, `clean` or the number of
+changed files (`3 changed`), followed by `↑n` commits to push and `↓n` to pull when there are any.
 
-- *Given* branch `US-593` with 3 changed files and 2 commits to push, *Then* the row is `US-593 · 3 changed ↑2`.
+- *Given* branch `US-593` with 3 changed files and 2 commits to push, *Then* the rows are `US-593` and
+  `3 changed · ↑2`.
 
 **R2.** Outside a git repository the group SHALL NOT appear.
 

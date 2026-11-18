@@ -4,8 +4,8 @@ The Claude group, titled `Claude`: this session and the plan.
 
 ## Requirements
 
-**R1.** The group SHALL start with one row: `Context`, a bar of the window and the percent used
-(`Context ███▒──────  26%`).
+**R1.** The group SHALL start with `Context <used> / <window>` (for example `Context 265k / 1.0M`) and a bar with the
+percent used.
 
 **R1a (composition).** Where the session reports what fills the context, the bar SHALL be drawn in runs, one per
 consumer in proportion to its tokens: messages blue, system (the prompt and the tools) violet, MCP tools teal, anything
@@ -16,7 +16,9 @@ are outside the window and SHALL NOT be drawn. Without the breakdown the bar is 
 - *Given* messages 100k, MCP tools 37k, a 33k reserve and 830k free in a 1.0M window, *Then* the bar has a blue run, a
   teal run, a grey hatched run and the empty track, and its number is the percent used.
 
-**R1b (removed).** There is no legend of the runs: their colours are those of the README's colour guide.
+**R1b (legend).** Under the bar, up to two rows SHALL name the runs: a square `■` (`▒` for the reserve) in the run's
+colour, a short name and its tokens (`■ msgs 100k  ■ mcp 37k  ▒ buffer 33k  ■ sys 21k`), largest first, what does
+not fit left out. Free space is never listed as a consumer.
 
 **R2.** The group SHALL draw one bar per plan window the session reports: `Session` (five hours) then `Weekly` (seven
 days), then any other window under its own name (a spend limit is `Spend`). With no reading yet the bar SHALL be
@@ -43,25 +45,23 @@ pace.
 has no footnote, a one-row legend follows them: `┃ time elapsed in the window`, or `┃ time elapsed` when that does not
 fit, and nothing where neither fits. The `┃` is green.
 
-**R6.** When rows are left, the footnote SHALL explain the tick in the longest of these wordings that fits on one row:
-`┃ marks the time gone · fill past it: over pace`, `fill past ┃ (time) = over pace`, `fill past ┃ = over pace`;
-where none fits, the last one wrapped. The `┃` is green and the rest dim. There is no `(*)`.
+**R6.** When rows are left, the footnote SHALL be the sentence `If ┃ is inside the fill, you spend faster than time
+passes; beyond it, you are under pace.` wrapped to the band, the `┃` green and the rest dim. There is no `(*)`.
 
-**R6a (removed).** There is no faint rule inside the group.
+**R6a.** A faint rule SHALL separate the legend of the context runs from the plan windows (stacked band).
 
 **R7 (removed).** There is no `↻` row: each window carries its own time left (R2a).
 
-**R8.** Right after the plan windows, with no rule between, the group SHALL draw:
+**R8.** After the plan windows, under a faint rule (stacked band only), the group SHALL draw:
 
 - how long the session has run, its cost, in green, and, after three minutes, the cost per hour, dim
   (`1h35m · $4.82 · $3.04/h`);
-- the model by its short name (`claude-sonnet-5-5` is `Sonnet 5.5`) and the effort as five pips filled up to its
-  level, then its word (`Opus 5.5 ●●●○○ high`): low 1, medium 2, high 3, xhigh 4, max 5; then, dim and where it fits on
-  the row, the current turn's time or the last one's (`· turn 0:42`, `· last 1:14`). With no model known, the turn
-  alone;
 - `tools <chart> <count>`: a chart of the tool calls of the last ten minutes, one cell a minute, oldest on the left,
   `·` for a quiet minute and `▂▃▄▅▆▇█` by how busy it was, scaled to the busiest minute; then the total, then the tool
-  running now (`▸ Bash`).
+  running now (`▸ Bash`);
+- the current turn's time or the last one's, dim (`turn 0:42`, `last 1:14`);
+- under a faint rule, the model by its short name (`claude-sonnet-5-5` is `Sonnet 5.5`) and the effort as five pips
+  filled up to its level, then its word (`Opus 5.5 ●●●○○ high`): low 1, medium 2, high 3, xhigh 4, max 5.
 
 **R9.** When the session cannot report its usage the group SHALL say `Usage unavailable`. Without a subscription
 that reports limits, the plan bars SHALL NOT be drawn.

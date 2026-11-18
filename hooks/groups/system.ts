@@ -1,9 +1,10 @@
-// The machine: percent bars for CPU, GPU, memory and disk, then the network and the containers.
+// The machine: percent bars for CPU, GPU, memory and disk, then rates and counts.
 import { formatRate } from '../format'
 import { dockerLines } from '../sections/docker'
-import { compactMeter, rateMeter } from '../sections/monitor'
+import { compactMeter, meterLine, monitorLines, rateLine } from '../sections/monitor'
 import { RESOURCE_TEXT_COLORS } from '../sections/palette'
 import type { Resource } from '../sections/palette'
+import { softRule } from '../sections/usage'
 import type { Cell, Line } from '../sections/usage'
 import type { Group, GroupContext } from './types'
 
@@ -33,77 +34,32 @@ const percents = (ctx: GroupContext): { label: string; percent: number; resource
 
 const joined = (cells: Cell[]): Line => ({ text: cells.map(cell => cell.text).join(''), cells })
 
-/** Below this many cells a half row would leave its bar too short to read, so each resource takes a row. */
-const MIN_PAIR_COLUMNS = 31
-
-/** The percent meters: two to a row where the band is wide enough, else one to a row. */
-const meterRows = (ctx: GroupContext, isPaired: boolean): Line[] => {
-  const meters = percents(ctx)
-  const left = Math.floor((ctx.columns - 1) / 2)
-  if (!isPaired) return meters.map(m => joined(compactMeter(m.label, m.percent, ctx.columns, m.resource)))
-
-  const lines: Line[] = []
-  for (let i = 0; i < meters.length; i += 2) {
-    const a = meters[i]!
-    const b = meters[i + 1]
-    lines.push(
-      joined(
-        b
-          ? [
-              ...compactMeter(a.label, a.percent, left, a.resource),
-              { text: ' ' },
-              ...compactMeter(b.label, b.percent, ctx.columns - left - 1, b.resource),
-            ]
-          : compactMeter(a.label, a.percent, ctx.columns, a.resource),
-      ),
-    )
-  }
-
-  return lines
-}
-
-/** The network rates on one row: as two small bars where they fit, against the highest rate seen, else as text. */
-const netRow = (ctx: GroupContext, withBars: boolean): Line | undefined => {
-  const s = ctx.system
-  if (s.downBps === undefined || s.upBps === undefined) return undefined
-  if (!withBars) {
-    return joined([
-      { text: `↓ ${formatRate(s.downBps)}`, color: RESOURCE_TEXT_COLORS.down },
-      { text: '  ' },
-      { text: `↑ ${formatRate(s.upBps)}`, color: RESOURCE_TEXT_COLORS.up },
-    ])
-  }
-  const peak = s.netPeakBps ?? Math.max(s.downBps, s.upBps)
-  const left = Math.floor((ctx.columns - 1) / 2)
-
-  return joined([
-    ...rateMeter('↓', s.downBps, peak, left, 'down'),
-    { text: ' ' },
-    ...rateMeter('↑', s.upBps, peak, ctx.columns - left - 1, 'up'),
-  ])
-}
-
-/** `docker · 3 running`, dim. */
-const dockerCount = (ctx: GroupContext, dockers: unknown[]): Line => ({
-  text: (dockers.length === 0 ? 'docker · none running' : `docker · ${dockers.length} running`).slice(0, ctx.columns),
-  dimColor: true,
-})
-
 export const system: Group = {
   id: 'system',
   label: 'System',
   priority: 3,
-  // Stacked: the meters, two to a row where they fit, the network on one row, then the containers.
   lines: (ctx: GroupContext): Line[] => {
+    const lines = monitorLines(ctx.hardware, ctx.columns)
     const s = ctx.system
-    const isPaired = ctx.columns >= MIN_PAIR_COLUMNS
     const gpus = ctx.hardware?.gpus ?? []
     const gpuUtil = gpus.length > 0 ? Math.max(...gpus.map(g => g.util)) : undefined
-    const net = netRow(ctx, isPaired)
-    const lines = [...meterRows(ctx, isPaired), ...(net ? [net] : [])]
 
+    if (s.ramPercent !== undefined) lines.push(meterLine('RAM', s.ramPercent, ctx.columns, 'ram'))
+    if (s.swapPercent !== undefined) lines.push(meterLine('Swap', s.swapPercent, ctx.columns, 'swap'))
+    if (s.diskPercent !== undefined) lines.push(meterLine('Disk', s.diskPercent, ctx.columns, 'disk'))
+    if (s.downBps !== undefined && s.upBps !== undefined) {
+      const peak = s.netPeakBps ?? Math.max(s.downBps, s.upBps)
+      if (lines.length > 0) lines.push(softRule(ctx.columns))
+      lines.push(rateLine('Down', s.downBps, peak, ctx.columns, 'down'))
+      lines.push(rateLine('Up', s.upBps, peak, ctx.columns, 'up'))
+    }
     if (s.dockers !== undefined) {
-      lines.push(dockerCount(ctx, s.dockers), ...dockerLines(s.dockers, ctx.columns, MAX_DOCKERS, gpuUtil))
+      if (lines.length > 0) lines.push(softRule(ctx.columns))
+      lines.push({
+        text: (s.dockers.length === 0 ? 'docker · none running' : `docker · ${s.dockers.length} running`).slice(0, ctx.columns),
+        dimColor: true,
+      })
+      lines.push(...dockerLines(s.dockers, ctx.columns, MAX_DOCKERS, gpuUtil))
     }
 
     return lines
@@ -114,12 +70,39 @@ export const system: Group = {
     max: 40,
     lines: (ctx: GroupContext): Line[] => {
       const s = ctx.system
-      const net = netRow(ctx, false)
-      const lines = [
-        ...meterRows(ctx, true),
-        ...(net ? [net] : []),
-        ...(s.dockers !== undefined ? [dockerCount(ctx, s.dockers)] : []),
-      ]
+      const lines: Line[] = []
+      const meters = percents(ctx)
+      const left = Math.floor((ctx.columns - 1) / 2)
+      for (let i = 0; i < meters.length; i += 2) {
+        const a = meters[i]!
+        const b = meters[i + 1]
+        lines.push(
+          joined(
+            b
+              ? [
+                  ...compactMeter(a.label, a.percent, left, a.resource),
+                  { text: ' ' },
+                  ...compactMeter(b.label, b.percent, ctx.columns - left - 1, b.resource),
+                ]
+              : compactMeter(a.label, a.percent, ctx.columns, a.resource),
+          ),
+        )
+      }
+      if (s.downBps !== undefined && s.upBps !== undefined) {
+        lines.push(
+          joined([
+            { text: `↓ ${formatRate(s.downBps)}`, color: RESOURCE_TEXT_COLORS.down },
+            { text: '  ' },
+            { text: `↑ ${formatRate(s.upBps)}`, color: RESOURCE_TEXT_COLORS.up },
+          ]),
+        )
+      }
+      if (s.dockers !== undefined) {
+        lines.push({
+          text: (s.dockers.length === 0 ? 'docker · none running' : `docker · ${s.dockers.length} running`).slice(0, ctx.columns),
+          dimColor: true,
+        })
+      }
 
       return lines.slice(0, ctx.budget ?? Number.POSITIVE_INFINITY)
     },

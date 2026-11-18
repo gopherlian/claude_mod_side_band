@@ -1,5 +1,5 @@
 // What fills the context window, drawn: a run of colour per consumer, then the reserve, then the free track.
-import { TRACK } from './usage'
+import { TRACK, formatTokens } from './usage'
 import type { Cell } from './usage'
 
 /** One row of the breakdown the session reports. `deferred` rows are tools loaded on demand: outside the window. */
@@ -20,6 +20,8 @@ export const ROLE_COLORS: Record<Role, string> = {
 
 /** The compaction reserve: what the window keeps back before the session compacts itself. */
 export const BUFFER_COLOR = '#64748b'
+
+const ROLE_NAMES: Record<Role, string> = { messages: 'msgs', system: 'sys', mcp: 'mcp', other: 'other' }
 
 /** Which run a consumer belongs to, told by its name. */
 export const roleOf = (name: string): Role => {
@@ -91,4 +93,42 @@ export const compositionCells = (categories: Category[] | undefined, width: numb
         ? { text: '▒'.repeat(count), color: BUFFER_COLOR }
         : { text: '█'.repeat(count), color: ROLE_COLORS[key] }
   })
+}
+
+const LEGEND_GAP = '  '
+const LEGEND_ROWS = 2
+
+/**
+ * Up to two rows that name the runs of the bar: a square in the run's colour,
+ * its short name and its tokens, largest first. What does not fit is left out.
+ */
+export const compositionLegend = (categories: Category[] | undefined, columns: number): Cell[][] => {
+  const items = shares(categories)
+    .filter((share): share is Share & { key: Role | 'buffer' } => share.key !== 'free')
+    .sort((a, b) => b.tokens - a.tokens)
+    .map(share => {
+      const words = ` ${share.key === 'buffer' ? 'buffer' : ROLE_NAMES[share.key]} ${formatTokens(share.tokens)}`
+
+      return {
+        width: 1 + words.length,
+        cells: [
+          share.key === 'buffer' ? { text: '▒', color: BUFFER_COLOR } : { text: '■', color: ROLE_COLORS[share.key] },
+          { text: words, dimColor: true },
+        ] as Cell[],
+      }
+    })
+
+  const rows: { width: number; cells: Cell[] }[] = []
+  for (const item of items) {
+    const fits = (row: { width: number }) => row.width + LEGEND_GAP.length + item.width <= columns
+    const row = rows.find(fits)
+    if (row) {
+      row.cells.push({ text: LEGEND_GAP }, ...item.cells)
+      row.width += LEGEND_GAP.length + item.width
+    } else if (rows.length < LEGEND_ROWS && item.width <= columns) {
+      rows.push({ width: item.width, cells: [...item.cells] })
+    }
+  }
+
+  return rows.map(row => row.cells)
 }

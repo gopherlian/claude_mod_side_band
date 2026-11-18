@@ -1,9 +1,8 @@
 import { expect, test } from 'claude-code/testing'
 
-import { formatRate } from '../format'
-import { compactMeter, rateMeter } from '../sections/monitor'
+import { monitorLines } from '../sections/monitor'
 import { RESOURCE_COLORS, RESOURCE_TEXT_COLORS } from '../sections/palette'
-import { bar } from '../sections/usage'
+import { meter } from '../sections/usage'
 import { cpuUsage, parseStat } from './cpu'
 import { parseAmd, parseNvidia } from './gpu'
 import { npuUtil } from './npu'
@@ -43,38 +42,74 @@ test('an npu needs two samples and is clamped', () => {
   expect(npuUtil(0, 99_000_000, 5000)).toBe(100)
 })
 
-test('a small meter is the name, a bar in the resource colour and the number, as wide as asked', () => {
-  const cells = compactMeter('CPU', 20, 20, 'cpu')
+test('what is not detected is hidden, and nothing detected hides the section', () => {
+  expect(monitorLines(undefined, 30)).toEqual([])
+  expect(monitorLines({ gpus: [], npus: [] }, 30)).toEqual([])
 
-  expect(cells).toEqual([
-    { text: 'CPU  ', color: RESOURCE_TEXT_COLORS.cpu },
-    { text: bar(20, 11), color: RESOURCE_COLORS.cpu },
-    { text: ' 20%', color: RESOURCE_TEXT_COLORS.cpu },
+  const texts = monitorLines({ cpu: { total: 20, cores: [] }, gpus: [], npus: [] }, 30).map(l => l.text)
+  expect(texts).toEqual([meter('CPU', 20, 30)])
+})
+
+test('the monitor is only percent bars: no cores, names, GB, temperature or footer', () => {
+  const lines = monitorLines(
+    {
+      cpu: { total: 10, cores: Array.from({ length: 18 }, (_, i) => i * 5) },
+      gpus: [{ name: 'RTX', util: 90, memUsedMb: 4096, memTotalMb: 8192, temp: 61 }],
+      npus: [{ name: 'NPU', util: 5 }],
+    },
+    30,
+  )
+  expect(lines.map(l => l.text)).toEqual([
+    meter('CPU', 10, 30),
+    meter('GPU', 90, 30),
+    meter('VRAM', 50, 30),
+    meter('NPU', 5, 30),
   ])
-  expect(cells.map(c => c.text).join('')).toHaveLength(20)
+  expect(lines[1].color).toBe(RESOURCE_COLORS.gpu)
 })
 
-test('a numbered name is kept whole, and the bar gives way', () => {
-  const cells = compactMeter('VRAM0', 50, 20, 'vram')
-
-  expect(cells[0]!.text).toBe('VRAM0 ')
-  expect(cells.map(c => c.text).join('')).toHaveLength(20)
+test('several gpus are told apart by number', () => {
+  const lines = monitorLines(
+    {
+      gpus: [
+        { name: 'A', util: 1 },
+        { name: 'B', util: 2 },
+      ],
+      npus: [],
+    },
+    30,
+  ).map(l => l.text)
+  expect(lines).toEqual([meter('GPU0', 1, 30), meter('GPU1', 2, 30)])
 })
 
-test('a rate meter is an arrow, a bar scaled to the peak and the rate', () => {
-  const cells = rateMeter('↓', 524288, 1048576, 20, 'down')
+test('every resource bar has its own colour: CPU and GPU keep their own, never the separators orange', () => {
+  const lines = monitorLines(
+    {
+      cpu: { total: 20, cores: [] },
+      gpus: [{ name: 'g', util: 50, memUsedMb: 1, memTotalMb: 2 }],
+      npus: [{ name: 'n', util: 5 }],
+    } as never,
+    30,
+  )
 
-  expect(cells).toEqual([
-    { text: '↓ ', color: RESOURCE_TEXT_COLORS.down },
-    { text: bar(50, 10), color: RESOURCE_COLORS.down },
-    { text: ` ${formatRate(524288).padStart(7)}`, color: RESOURCE_TEXT_COLORS.down },
+  expect(lines.map(l => l.color)).toEqual([
+    RESOURCE_COLORS.cpu,
+    RESOURCE_COLORS.gpu,
+    RESOURCE_COLORS.vram,
+    RESOURCE_COLORS.npu,
   ])
-  expect(rateMeter('↑', 10, 0, 20, 'up')[1]!.text).toBe(bar(0, 10))
-})
-
-test('every resource bar has its own colour, never the separators orange', () => {
   expect(new Set(Object.values(RESOURCE_COLORS)).size).toBe(Object.values(RESOURCE_COLORS).length)
   expect(Object.values(RESOURCE_COLORS)).not.toContain('#ff8c00')
+})
+
+test('the label and the percent are a lighter shade of the resource colour and the bar keeps the darker one', () => {
+  const line = monitorLines({ cpu: { total: 20, cores: [] }, gpus: [], npus: [] }, 30)[0]!
+  const cells = line.cells!
+
+  expect(cells.map(c => c.text).join('')).toBe(line.text)
+  expect(cells[0]).toEqual({ text: 'CPU     ', color: RESOURCE_TEXT_COLORS.cpu })
+  expect(cells[1]!.color).toBe(RESOURCE_COLORS.cpu)
+  expect(cells[2]).toEqual({ text: '  20%', color: RESOURCE_TEXT_COLORS.cpu })
 })
 
 test('every resource has a lighter text colour of its own, none orange', () => {

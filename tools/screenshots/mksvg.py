@@ -117,5 +117,22 @@ svg("project", d["project"], W, "The project group")
 svg("system", d["system"], W, "The system group")
 svg("overview", d["overview"], W, "The whole band")
 svg("strip", d["strip"], 99, "The strip: the groups side by side")
-svg("credit", d["credit"], W, "The credit")
+# The credit at a band wide enough (76 columns) for the name and the email to share a row.
+DARK, BRIGHT = "#b36200", "#ff8c00"
+inner = 72
+first = "© 2026 Alberto Rodriguez Baixauli │ a@webtory.es"
+lic = "GNU GPL v3 or later"
+def row(text):
+    pad = (inner - len(text)) // 2
+    t = " " * pad + text + " " * (inner - pad - len(text))
+    at = t.find("a@webtory.es")
+    cells = [{"text": "┊ ", "color": DARK}]
+    if at >= 0:
+        cells += [{"text": t[:at], "color": DARK}, {"text": "a@webtory.es", "color": BRIGHT}, {"text": t[at+12:], "color": DARK}]
+    else:
+        cells += [{"text": t, "color": DARK}]
+    cells += [{"text": " ┊", "color": DARK}]
+    return {"text": "", "cells": cells}
+credit = [{"text": "╭" + "┈" * (inner + 2) + "╮", "color": DARK}, row(first), row(lic), {"text": "╰" + "┈" * (inner + 2) + "╯", "color": DARK}]
+svg("credit", credit, inner + 4, "The credit")
 print("ok")

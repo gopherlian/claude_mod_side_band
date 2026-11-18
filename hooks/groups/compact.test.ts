@@ -134,16 +134,13 @@ test('the compact Project column is the branch and its state, hidden outside a r
 test('the time column is shaped to its rows: big clock with room, text without, outlook only where rows are left', () => {
   const rows = (budget: number, columns = 26) => texts(time.strip!.lines(ctx({ columns, budget })))
 
-  // The outlook keeps to one row: where both halves do not fit, today's goes and the sky's is left out.
-  expect(rows(8)).toHaveLength(7)
+  expect(rows(8)).toHaveLength(8)
   expect(rows(8)[0]).toMatch(/^┏━+┓$/)
   expect(rows(8).join('\n')).toMatch(/[█▀▄]/)
-  expect(rows(8).at(-1)).toEqual(expect.stringContaining('rain 8%'))
-  expect(rows(8).join('\n')).not.toMatch(/UV 3/)
+  expect(rows(8).slice(-2)).toEqual([expect.stringContaining('rain 8%'), expect.stringContaining('UV 3')])
 
   expect(rows(5)).toHaveLength(5)
-  expect(rows(4)).toHaveLength(4)
-  expect(rows(4).join('\n')).not.toMatch(/[█▀▄]/)
+  expect(rows(5).join('\n')).not.toMatch(/[█▀▄]/)
   expect(rows(3)).toHaveLength(3)
   expect(rows(3).join('\n')).not.toMatch(/rain/)
   for (const budget of [3, 4, 5, 6, 7, 8]) {

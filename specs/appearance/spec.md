@@ -5,8 +5,8 @@ The rules every group follows. If a change breaks one of these, it changes this 
 ## Requirements
 
 **R1.** Separators SHALL be orange: the heavy rule that opens a group (`━━ Claude ━━━…`) in bright orange `#ff8c00`;
-the faint rules before the footnote, before the credit and between networks of containers (`┈┈┈`), and the bars
-between the columns of the strip (`┊`), in dark orange `#b36200`.
+the faint rules inside a group, before the footnote and before the credit (`┈┈┈`), and the bars between the columns of
+the strip (`┊`), in dark orange `#b36200`.
 
 **R2.** A text that is drawn with a colour SHALL NOT also be dimmed: on the terminal, dimming replaces the colour
 with the theme's dim one. Where a row needs two looks, it SHALL be drawn in cells, runs of text each with its own
@@ -20,13 +20,10 @@ inside keeps its own colours.
 
 **R5.** The pace tick `┃` SHALL be green wherever it is drawn (bars, legend, footnote).
 
-**R6.** The credit SHALL have no frame. Its facts, `© 2026 Alberto Rodriguez Baixauli`, `a@webtory.es` and `GNU GPL
-v3 or later`, SHALL be packed as many to a row as fit, ` · ` between them, each row centred. A fact wider than the band
-wraps, and the rows it wraps onto take nothing more. The name, the separators and the license SHALL be dark orange
-`#b36200`; the email bright orange `#ff8c00`, and whole.
-
-- *Given* a band 43 columns wide, *Then* the credit reads `© 2026 Alberto Rodriguez Baixauli` and, under it,
-  `a@webtory.es · GNU GPL v3 or later`.
+**R6.** The credit SHALL sit in a faint dark-orange frame (`╭┈┈╮ ┊ ╰┈┈╯`), centred like the time: first row
+`© 2026 Alberto Rodriguez Baixauli │ a@webtory.es`, second row `GNU GPL v3 or later`. The name, the bar and the
+license SHALL be dark orange `#b36200`; the email bright orange `#ff8c00`. Where a row is wider than the frame it
+SHALL wrap, each row centred, and the email SHALL stay whole.
 
 **R7.** The system palette SHALL be muted and dark. Bar colour / text colour:
 

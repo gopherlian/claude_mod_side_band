@@ -159,20 +159,13 @@ docked pane nothing is dropped, because it scrolls.
 
 If rows are left after the groups, the footnote goes at the foot, and then the credit, each whole or not at all.
 
-**Compact by design.** The stacked band has no blank rows: a titled orange rule is all that sets a group apart. The
-meters go two to a row where the band is at least 31 columns wide, and every bar is a solid gauge that ends in eighths
-of a cell over a thin track (`████▎─────`), so a glance is enough. The band asks for 1/12 of the window; if you once
-dragged the dock wider, Claude Code keeps that width (`pluginPanes.dockColumns` in `~/.claude.json`): drag its edge
-back to make it narrower.
-
 ## The groups
 
 ### 1. Time
 
-The time in a big font, centred in a heavy orange frame, with one row under it of the temperature, the sky, the
-place, how it feels, the humidity, the wind and the date, as many as fit. Under the frame, dimmed and centred, today's
-outlook on one row (high and low and chance of rain; UV index, sunrise and sunset where they fit). While a countdown
-is running, `Timer mm:ss` closes the group.
+The time in a big font, centred in a heavy orange frame, with the temperature, the sky, the place, how it feels, the
+humidity, the wind and the date centred under it. Under the frame, dimmed and centred, today's outlook (high and low,
+chance of rain, UV index, sunrise and sunset). While a countdown is running, `Timer mm:ss` closes the group.
 
 <p align="center"><img src="docs/img/time.svg" alt="The time group"></p>
 
@@ -187,18 +180,19 @@ What this session and your plan are using.
 
 From top to bottom:
 
-1. **Context.** One row: the label, a bar of the context window and the percent used. The bar is drawn in *runs*,
-   one colour per consumer: messages (blue), system prompt and tools (violet), MCP tools (teal) and anything else
-   (amber), then the autocompact reserve hatched in grey `▒`, and the free space as the thin track (see the
-   [colour guide](#colour-guide)).
+1. **Context.** Tokens in the context window against its size, and a bar with the percent. The bar is drawn in
+   *runs*, one colour per consumer: messages (blue), system prompt and tools (violet), MCP tools (teal) and anything
+   else (amber), then the autocompact reserve hatched in grey `▒`, and the free space as the thin track `─`. Under it, a
+   legend names the runs with their tokens (`■ msgs 203k  ■ mcp 37k`), largest first.
 2. **Session** and **Weekly.** The plan's five-hour and seven-day windows, each as a bar with the percent used and,
    at the end of the row, the time left (`1h9m`, `3d12h`). A spend limit, when your plan has one, is drawn as
    **Spend**. The `┃` on each bar is the *pace tick*, see below.
-3. **The session line:** how long it has run, what it has cost (in green), and the cost per hour (after three minutes).
-4. **The model and the effort level:** the model's short name and five pips filled up to the effort
-   (`Opus 5.5 ●●●○○ high`), then, where it fits, the current turn's time or the last one's.
+3. **A faint rule** between the legend of the context runs and the bars, and another before the session's facts.
+4. **The session line:** how long it has run, what it has cost (in green), and the cost per hour (after three minutes).
 5. **Tools:** a small chart of the tool calls of the last ten minutes (one cell a minute, `·` for a quiet one), the
-   total, and the tool running now.
+   total, and the tool running now. Then the current turn's time, or the last one's.
+6. **The model and the effort level**, under a faint rule: the model's short name and five pips filled up to the
+   effort (`Opus 5.5 ●●●○○ high`).
 
 Without a subscription that reports limits, the Session and Weekly bars are not drawn; if the session cannot report
 its usage at all the group says `Usage unavailable`.
@@ -206,21 +200,20 @@ its usage at all the group says `Usage unavailable`.
 **The pace tick.** The bar fills as you use the window. The green `┃` marks how much of the window's *time* has
 gone by. If the tick is *inside* the fill, you are spending faster than time passes and may run out before the
 window resets; beyond the fill, you are under pace. In the example above, Session has used 41% of its tokens but
-77% of its time has gone by: comfortably under pace. The footnote at the foot of the band says this in one row
-(`fill past ┃ = over pace`); it only appears when the band has rows to spare. (The strip has no footnote, so there a one-row legend,
+77% of its time has gone by: comfortably under pace. The footnote at the foot of the band says this in a
+sentence; it only appears when the band has rows to spare. (The strip has no footnote, so there a one-row legend,
 `┃ time elapsed in the window`, stands under the bars.)
 
 ### 3. Project
 
-Where the repository you are working in stands, on one row: the branch, and `clean` or the number of changed files,
-with `↑n` commits to push and `↓n` to pull (`US-593 · 3 changed ↑2`). The group does not appear outside a git
-repository.
+Where the repository you are working in stands: the branch, and `clean` or the number of changed files, with `↑n`
+commits to push and `↓n` to pull. The group does not appear outside a git repository.
 
 <p align="center"><img src="docs/img/project.svg" alt="The project group"></p>
 
 ### 4. System
 
-What the machine is doing, one meter per resource, two to a row where the band is wide enough. Each resource has its own colour (see the
+What the machine is doing, one bar per resource. Each resource has its own colour (see the
 [colour guide](#colour-guide)); the bar is the darker shade and its name and number are a lighter shade of the same
 colour so they read well.
 
@@ -228,9 +221,8 @@ colour so they read well.
 
 - **CPU, GPU, VRAM, NPU:** utilisation in percent. With several GPUs they are numbered (`GPU0`, `VRAM0`…).
 - **RAM, Swap, Disk:** memory in use, swap in use, and the disk the session's working directory is on.
-- **↓ ↑:** network rates on one row, as two small bars where the band is wide enough, as text where it is not. A
-  network bar has no fixed top speed, so it is scaled to the highest rate seen since the mod loaded (never below
-  1 MB/s, so a trickle does not look full).
+- **Down, Up:** network rates. A network bar has no fixed top speed, so it is scaled to the highest rate seen since
+  the mod loaded (never below 1 MB/s, so a trickle does not look full).
 - **Docker:** one bar per running container, then its name. The bar has two halves: the top half is the container's
   CPU (green) and the bottom half the GPU (blue). Docker does not split a GPU between containers, so a container
   that asked for a GPU shows the GPU's whole utilisation. Containers that share a network (directly or through
@@ -243,14 +235,15 @@ credit:
 
 <p align="center"><img src="docs/img/credit.svg" alt="The credit"></p>
 
-It has no frame: the name, the email and the license, as many to a centred row as fit.
+It is one centred row in a faint orange frame when the band is wide enough (about 76 columns); in a narrower band
+the text wraps inside the frame.
 
 ## Colour guide
 
 | What | Colour |
 | --- | --- |
 | Separators between groups, the group names, the time frame | bright orange `#ff8c00` |
-| Faint rules (footnote, credit, container networks), the credit | dark orange `#b36200` |
+| Faint rules inside a group, the credit | dark orange `#b36200` |
 | The pace tick `┃` | green |
 | Session and Weekly bars, the Context label and percent | default, **yellow from 70%** and **red from 85%** of the window |
 | Context runs | messages blue `#2b6cb0` · system violet `#6b21a8` · MCP teal `#0f766e` · other amber `#8a6d0b` · reserve grey `#64748b` |

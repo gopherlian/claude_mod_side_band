@@ -40,9 +40,9 @@ test('a meter can carry a mark where the time of its window stands', () => {
 test('the plan meters are marked where their time stands; the context and the rest are not', () => {
   const lines = usageLines(windows(), 24, NOW).map(l => l.text)
 
-  expect(lines[0]).not.toContain('┃')
-  expect(lines[1]).toBe('Session ████▌───┃──  41%')
-  expect(lines[2]).toBe('Weekly  ██▌──┃─────  23%')
+  expect(lines[1]).not.toContain('┃')
+  expect(lines[2]).toBe('Session ████▌───┃──  41%')
+  expect(lines[3]).toBe('Weekly  ██▌──┃─────  23%')
 
   const spend = usageLines(
     { contextWindow: 200_000, limits: [{ kind: 'spend_limit', percentUsed: 50, resetsAt: endsIn(3_600_000) }] },
@@ -52,20 +52,22 @@ test('the plan meters are marked where their time stands; the context and the re
   expect(spend.some(t => t.startsWith('Spend') && !t.includes('┃'))).toBe(true)
 })
 
-test('the stacked section is the context row and a row per window, no legend: the footnote explains the tick', () => {
+test('the stacked section has no legend row under the meters: the footnote explains the tick', () => {
   const lines = usageLines(windows(), 30, NOW)
 
-  expect(lines.map(l => l.text.slice(0, 7))).toEqual(['Context', 'Session', 'Weekly '])
+  expect(lines.map(l => l.text.slice(0, 7))).toEqual(['Context', lines[1]!.text.slice(0, 7), 'Session', 'Weekly '])
   expect(lines.some(l => l.text.includes('time elapsed') || l.text.includes('(*)'))).toBe(false)
 })
 
-test('the pace note is the longest wording that fits on one row, else the shortest wrapped', () => {
-  const note = (columns: number) => paceNote(windows(), columns, NOW).map(l => l.text)
+test('the pace note says how to read the tick, wrapped to the band, with no mark in front', () => {
+  const note = paceNote(windows(), 30, NOW).map(l => l.text)
 
-  expect(note(50)).toEqual(['┃ marks the time gone · fill past it: over pace'])
-  expect(note(30)).toEqual(['fill past ┃ (time) = over pace'])
-  expect(note(24)).toEqual(['fill past ┃ = over pace'])
-  expect(note(20)).toEqual(['fill past ┃ = over', 'pace'])
+  expect(note.length).toBeGreaterThan(1)
+  expect(note[0]!.startsWith('If ┃ is inside')).toBe(true)
+  expect(note.join(' ')).toBe(
+    'If ┃ is inside the fill, you spend faster than time passes; beyond it, you are under pace.',
+  )
+  expect(note.every(text => text.length <= 30)).toBe(true)
   expect(paceNote(windows(), 30, NOW).every(l => l.dimColor === true)).toBe(true)
 })
 
@@ -84,7 +86,7 @@ test('a short faint rule sets the footnotes apart from the band', () => {
 })
 
 test('with no tick on the meters there is no pace note', () => {
-  expect(usageLines(windows(), 30)).toHaveLength(3)
+  expect(usageLines(windows(), 30)).toHaveLength(4)
   expect(paceNote({ contextWindow: 200_000, limits: [{ kind: 'spend_limit', percentUsed: 50, resetsAt: endsIn(3_600_000) }] }, 30, NOW)).toEqual([])
 })
 
@@ -144,28 +146,28 @@ const breakdown = [
   { name: 'Free space', tokens: 830_000, kind: 'free' as const },
 ]
 
-test('with the breakdown, the context bar is drawn in runs beside its label and keeps its number', () => {
+test('with the breakdown, the context bar is drawn in runs and keeps its number', () => {
   const lines = usageLines({ ...windows(), contextTokens: 137_000, contextWindow: 1_000_000, contextPercent: 14, categories: breakdown }, 28, NOW)
-  const row = lines[0]!
+  const row = lines[1]!
 
-  expect(row.text.startsWith('Context ')).toBe(true)
+  expect(lines[0]!.text).toBe('Context 137k / 1.0M')
   expect(row.text).toHaveLength(28)
   expect(row.text.endsWith('  14%')).toBe(true)
   expect(row.cells!.map(cell => cell.text).join('')).toBe(row.text)
   expect(row.cells!.some(cell => cell.color === '#2b6cb0')).toBe(true)
   expect(row.cells!.some(cell => cell.color === '#0f766e')).toBe(true)
-  expect(row.text).toMatch(/^Context █+▒+─+ +14%$/)
+  expect(row.text).toMatch(/█+▒+─+ +14%$/)
 })
 
-test('no legend of the runs and no rule: the plan windows follow the context row', () => {
+test('the legend of the runs sits right under the context bar, before the plan windows', () => {
   const lines = usageLines({ ...windows(), contextWindow: 1_000_000, contextPercent: 14, categories: breakdown }, 28, NOW)
 
-  expect(lines.map(l => l.text.slice(0, 7))).toEqual(['Context', 'Session', 'Weekly '])
+  expect(lines.slice(2, 4).map(l => l.text)).toEqual(['■ msgs 100k  ■ mcp 37k', '▒ buffer 33k'])
 })
 
 test('the number of the context bar warns from 70% and alarms from 85%, whatever the runs', () => {
   const at = (contextPercent: number) =>
-    usageLines({ contextWindow: 1_000_000, contextPercent, limits: [], categories: breakdown }, 28)[0]!.cells!.at(-1)!.color
+    usageLines({ contextWindow: 1_000_000, contextPercent, limits: [], categories: breakdown }, 28)[1]!.cells!.at(-1)!.color
 
   expect(at(60)).toBeUndefined()
   expect(at(70)).toBe('yellow')
@@ -175,8 +177,8 @@ test('the number of the context bar warns from 70% and alarms from 85%, whatever
 test('without the breakdown the context bar is the plain one, as before', () => {
   const lines = usageLines({ contextTokens: 10_000, contextWindow: 200_000, contextPercent: 5, limits: [] }, 30)
 
-  expect(lines[0]!.text).toBe('Context ' + meter('', 5, 22))
-  expect(lines[0]!.cells!.map(cell => cell.text)).toEqual(['Context ', meter('', 5, 22)])
+  expect(lines[1]!.text).toBe(meter('', 5, 30))
+  expect(lines[1]!.cells).toBeUndefined()
 })
 
 test('the rule inside a group is fainter than the one between groups', () => {
@@ -220,7 +222,7 @@ test('the bar fills in proportion', () => {
   expect(bar(-5, 3)).toBe('───')
 })
 
-test('the fill ends in eighths of a cell, and the bar keeps its width', () => {
+test('the fill ends in eighths of a cell over a thin track, and the bar keeps its width', () => {
   expect(bar(43, 10)).toBe('████▎─────')
   expect(bar(1, 10)).toBe('▏─────────')
   expect(bar(99, 10)).toBe('█████████▉')
@@ -238,10 +240,11 @@ test('an API account shows empty plan meters; a plan fills them', () => {
     { contextTokens: 87_000, contextWindow: 200_000, contextPercent: 43, costUsd: 2.3, limits: [] },
     30,
   ).map(l => l.text)
-  expect(api[0]).toBe('Context ' + meter('', 43, 22))
-  expect(api[1]).toBe(meter('Session', undefined, 30))
-  expect(api[2]).toBe(meter('Weekly', undefined, 30))
-  expect(api.length).toBe(3)
+  expect(api[0]).toBe('Context 87k / 200k')
+  expect(api[1]).toBe(meter('', 43, 30))
+  expect(api[2]).toBe(meter('Session', undefined, 30))
+  expect(api[3]).toBe(meter('Weekly', undefined, 30))
+  expect(api.length).toBe(4)
 
   const plan = usageLines(
     {
@@ -255,8 +258,8 @@ test('an API account shows empty plan meters; a plan fills them', () => {
     },
     30,
   ).map(l => l.text)
-  expect(plan[1]).toBe(meter('Session', 23.4, 30))
-  expect(plan[2]).toBe(meter('Weekly', 41, 30))
+  expect(plan[2]).toBe(meter('Session', 23.4, 30))
+  expect(plan[3]).toBe(meter('Weekly', 41, 30))
 })
 
 test('a window at 85% or more is red, with the number still readable', () => {
@@ -270,16 +273,16 @@ test('a window at 85% or more is red, with the number still readable', () => {
 })
 
 test('before the first answer the context is a dash and lines never overflow', () => {
-  expect(usageLines({ contextWindow: 200_000, limits: [] }, 30)[0]!.text).toMatch(/^Context ─+    —$/)
   const lines = usageLines({ contextWindow: 200_000, limits: [] }, 12)
+  expect(lines[0].text.startsWith('Context —')).toBe(true)
   for (const line of lines) expect(line.text.length).toBeLessThanOrEqual(12)
 })
 
 test('the tick is green on every meter that has one, and nothing else on the row changes colour', () => {
   const lines = usageLines(windows(), 24, NOW)
 
-  expect(lines[0]!.cells!.some(cell => cell.color === 'green')).toBe(false)
-  for (const line of lines.slice(1, 3)) {
+  expect(lines[1].cells).toBeUndefined()
+  for (const line of lines.slice(2, 4)) {
     const green = line.cells!.filter(cell => cell.color === 'green')
     expect(green).toEqual([{ text: '┃', color: 'green' }])
     expect(line.cells!.map(cell => cell.text).join('')).toBe(line.text)
@@ -294,4 +297,11 @@ test('in the footnote the tick is green and the rest stays dim', () => {
   expect(cells.filter(c => c.color === 'green')).toEqual([{ text: '┃', color: 'green' }])
   expect(cells.filter(c => c.color === undefined).every(c => c.dimColor === true)).toBe(true)
   expect(note.map(l => (l.cells ?? [l]).map(c => c.text).join(''))).toEqual(note.map(l => l.text))
+})
+
+test('a faint rule sets the legend of the context runs apart from the plan windows', () => {
+  const lines = usageLines({ ...windows(), contextWindow: 1_000_000, contextPercent: 14, categories: breakdown }, 28, NOW)
+
+  expect(lines[4]).toEqual(softRule(28))
+  expect(lines[5]!.text.startsWith('Session')).toBe(true)
 })

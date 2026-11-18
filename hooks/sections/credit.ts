@@ -1,7 +1,9 @@
 import { centered } from '../layout'
+import { FAINT_LOOK, FRAME_COLUMNS, frameLines } from './frame'
 import { RULE_COLOR, SOFT_RULE_COLOR } from './usage'
 import type { Cell, Line } from './usage'
 import { wrap } from './wrap'
+
 /** Who wrote the mod. */
 export const AUTHOR = {
   name: 'Alberto Rodriguez Baixauli',
@@ -16,42 +18,25 @@ export const LICENSE = {
 
 const YEAR = 2026
 
-/** Between two facts on one row. */
-const SEPARATOR = ' · '
-
-/** The facts of the credit, in order. */
-const FACTS = [`© ${YEAR} ${AUTHOR.name}`, AUTHOR.email, LICENSE.name]
-
-/** The facts packed into rows of at most `columns`, ` · ` between two that share a row; a longer one wraps. */
-const pack = (columns: number): string[] => {
-  const rows: string[] = []
-  // A row that holds part of a wrapped fact takes nothing more.
-  let isOpen = false
-  for (const fact of FACTS) {
-    const last = rows[rows.length - 1]
-    if (isOpen && last !== undefined && last.length + SEPARATOR.length + fact.length <= columns) {
-      rows[rows.length - 1] = last + SEPARATOR + fact
-    } else {
-      const wrapped = wrap(fact, columns)
-      rows.push(...wrapped)
-      isOpen = wrapped.length === 1
-    }
-  }
-
-  return rows
-}
+/** Between the name and the email. */
+const SEPARATOR = ' │ '
 
 /**
- * The credit that closes the band, with no frame: the name, the email and the
- * license, as many to a row as fit, ` · ` between them, each row centred. Everything is dark orange
- * but the email, which is bright orange, the two oranges of the separators.
- * Where a row is wider than the band it wraps, each row centred, and a word wider
- * still is cut, so no row passes `columns`.
+ * The credit that closes the band, in a faint frame like the rule between the
+ * elements of a group: the author's name, a vertical bar and the email on one
+ * row, the license alone on the row below it, both centered in the frame like the
+ * time. The name, the bar and the license are dark orange and the email bright
+ * orange, the two oranges of the separators. Where a row is wider than the frame
+ * it wraps, each row centered, and a word wider still is cut, so no row passes
+ * `columns`. Nothing where the band has no room for a frame.
  */
 export const creditLines = (columns: number): Line[] => {
-  if (columns < 1) return []
+  const inner = columns - FRAME_COLUMNS
+  if (inner < 1) return []
 
-  const rows = pack(columns).map(row => centered(row, columns))
+  const rows = [`© ${YEAR} ${AUTHOR.name}${SEPARATOR}${AUTHOR.email}`, LICENSE.name]
+    .flatMap(fact => wrap(fact, inner))
+    .map(row => centered(row, inner))
 
   // Only the email is bright; everything else on the row is dark orange.
   const paint = (text: string): Cell[] => {
@@ -65,5 +50,5 @@ export const creditLines = (columns: number): Line[] => {
     ].filter(cell => cell.text !== '')
   }
 
-  return rows.map(text => ({ text, cells: paint(text) }))
+  return frameLines(rows, columns, FAINT_LOOK, paint)
 }

@@ -1,4 +1,6 @@
-// A frame of box-drawing characters around rows of text: heavy and orange, around the time.
+// A frame of box-drawing characters around rows of text: heavy and orange around the
+// time, faint and dark orange around the credit.
+import { SOFT_RULE_COLOR } from './usage'
 import type { Cell, Line } from './usage'
 
 /** What the frame takes off the width inside it: two edges and a space beside each. */
@@ -13,10 +15,14 @@ export type Glyphs = { tl: string; tr: string; bl: string; br: string; h: string
 /** Heavy lines, as the frame of the time. */
 export const HEAVY: Glyphs = { tl: '┏', tr: '┓', bl: '┗', br: '┛', h: '━', v: '┃' }
 
+/** Faint dashes, as the rule between the elements of a group. */
+export const FAINT: Glyphs = { tl: '╭', tr: '╮', bl: '╰', br: '╯', h: '┈', v: '┊' }
+
 /** How a frame looks: its characters and the colour of its edges and sides. */
 export type Look = { glyphs: Glyphs; color: string }
 
 export const HEAVY_LOOK: Look = { glyphs: HEAVY, color: FRAME_COLOR }
+export const FAINT_LOOK: Look = { glyphs: FAINT, color: SOFT_RULE_COLOR }
 
 const edge = (left: string, right: string, fill: string, columns: number): string =>
   left + fill.repeat(Math.max(0, columns - 2)) + right

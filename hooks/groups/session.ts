@@ -1,7 +1,7 @@
-// The Claude session: context, plan windows, time, cost, model, tools.
+// The Claude session: context, plan windows, time, cost, tools, turn, model.
 import { formatClock, formatDuration } from '../format'
 import { effortCells, modelName, toolSpark } from '../sections/stats'
-import { compactUsageLines, paceNote, usageLines } from '../sections/usage'
+import { compactUsageLines, paceNote, softRule, usageLines } from '../sections/usage'
 import type { Cell, Line } from '../sections/usage'
 import type { Group, GroupContext } from './types'
 
@@ -59,28 +59,25 @@ const toolsRow = (ctx: GroupContext): Line => {
 }
 
 /** The current turn's time, or the last one's; nothing before the first turn. */
-const turnText = (ctx: GroupContext): string => {
+const turnRow = (ctx: GroupContext): Line | undefined => {
   const { stats } = ctx
+  const turn =
+    stats.turnStartedAt !== undefined
+      ? `turn ${formatClock(ctx.now - stats.turnStartedAt)}`
+      : stats.lastTurnMs !== undefined
+        ? `last ${formatClock(stats.lastTurnMs)}`
+        : ''
 
-  return stats.turnStartedAt !== undefined
-    ? `turn ${formatClock(ctx.now - stats.turnStartedAt)}`
-    : stats.lastTurnMs !== undefined
-      ? `last ${formatClock(stats.lastTurnMs)}`
-      : ''
+  return turn ? { text: turn.slice(0, ctx.columns), dimColor: true } : undefined
 }
 
-/** The model by its short name and how hard it thinks, as pips; then the turn's time, dim, where it fits. */
+/** The model by its short name and how hard it thinks, as pips. */
 const modelRow = (ctx: GroupContext): Line | undefined => {
   const { stats } = ctx
   const model = stats.model ?? stats.stepModel
-  const turn = turnText(ctx)
-  if (!model) return turn ? { text: turn.slice(0, ctx.columns), dimColor: true } : undefined
+  if (!model) return undefined
 
-  const cells: Cell[] = [{ text: modelName(model) }, ...(stats.effort ? [{ text: ' ' }, ...effortCells(stats.effort)] : [])]
-  const width = cells.reduce((sum, cell) => sum + cell.text.length, 0)
-  if (turn && width + 3 + turn.length <= ctx.columns) cells.push({ text: ` · ${turn}`, dimColor: true })
-
-  return row(cells, ctx.columns)
+  return row([{ text: modelName(model) }, ...(stats.effort ? [{ text: ' ' }, ...effortCells(stats.effort)] : [])], ctx.columns)
 }
 
 const present = (lines: (Line | undefined)[]): Line[] => lines.filter((line): line is Line => line !== undefined)
@@ -90,14 +87,17 @@ export const session: Group = {
   label: 'Claude',
   priority: 1,
   footnote: (ctx: GroupContext): Line[] => paceNote(ctx.usage, ctx.columns, ctx.now),
-  // The context and plan bars, then the cost, the model and the tools: no rule between them, the bars set
-  // themselves apart.
   lines: (ctx: GroupContext): Line[] => {
     const { usage, stats } = ctx
+    const model = modelRow(ctx)
+    const facts = present([costRow(ctx), toolsRow(ctx), turnRow(ctx)])
 
     return [
       ...usageLines(usage && { ...usage, categories: stats.categories }, ctx.columns, ctx.now),
-      ...present([costRow(ctx), modelRow(ctx), toolsRow(ctx)]),
+      // A faint rule sets the bars apart from the session's facts.
+      ...(usage && facts.length > 0 ? [softRule(ctx.columns)] : []),
+      ...facts,
+      ...(model ? [softRule(ctx.columns), model] : []),
     ]
   },
   // In the strip the same facts in fewer rows, the ones that matter most first.
