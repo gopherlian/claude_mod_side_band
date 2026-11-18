@@ -6,9 +6,15 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-18
+
 ### Changed
 - Every bar is a solid gauge that ends in eighths of a cell over a thin track (`████▎─────`) instead of a hatched
   `░` block.
+
+### Added
+- The README explains how to set the dock to the 32 columns the band is designed for, by dragging its edge or in
+  `~/.claude.json` (`pluginPanes.dockColumns`), once per machine.
 
 ## [1.1.0] - 2026-11-18
 
