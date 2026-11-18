@@ -61,7 +61,7 @@ test('the compact Claude column: context on one row, the windows, the legend, th
   const rows = texts(session.strip!.lines(ctx()))
 
   expect(rows).toHaveLength(7)
-  expect(rows[0]).toMatch(/^Context [█▒░]+ +17%$/)
+  expect(rows[0]).toMatch(/^Context [█▒─]+ +17%$/)
   expect(rows[1]).toMatch(/^Session .* 18% +2h30m$/)
   expect(rows[2]).toMatch(/^Weekly .* 17% +1d4h$/)
   expect(rows[3]).toBe('┃ time elapsed in the window')
@@ -94,9 +94,9 @@ test('the compact System column puts two resources on a row, then the network, t
   const rows = texts(system.strip!.lines(ctx({ columns: 29 })))
 
   expect(rows).toHaveLength(5)
-  expect(rows[0]).toMatch(/^CPU  [█░]{5} +2% GPU  [█░]{5} +0%$/)
-  expect(rows[1]).toMatch(/^VRAM [█░]{5} +8% RAM  [█░]{5} +17%$/)
-  expect(rows[2]).toMatch(/^Swap [█░]{5} +0% Disk [█░]{5} +6%$/)
+  expect(rows[0]).toMatch(/^CPU  [█▏▎▍▌▋▊▉─]{5} +2% GPU  [█▏▎▍▌▋▊▉─]{5} +0%$/)
+  expect(rows[1]).toMatch(/^VRAM [█▏▎▍▌▋▊▉─]{5} +8% RAM  [█▏▎▍▌▋▊▉─]{5} +17%$/)
+  expect(rows[2]).toMatch(/^Swap [█▏▎▍▌▋▊▉─]{5} +0% Disk [█▏▎▍▌▋▊▉─]{5} +6%$/)
   expect(rows[3]).toBe('↓ 833B/s  ↑ 800B/s')
   expect(rows[4]).toBe('docker · none running')
 })
@@ -134,13 +134,16 @@ test('the compact Project column is the branch and its state, hidden outside a r
 test('the time column is shaped to its rows: big clock with room, text without, outlook only where rows are left', () => {
   const rows = (budget: number, columns = 26) => texts(time.strip!.lines(ctx({ columns, budget })))
 
-  expect(rows(8)).toHaveLength(8)
+  // The outlook keeps to one row: where both halves do not fit, today's goes and the sky's is left out.
+  expect(rows(8)).toHaveLength(7)
   expect(rows(8)[0]).toMatch(/^┏━+┓$/)
   expect(rows(8).join('\n')).toMatch(/[█▀▄]/)
-  expect(rows(8).slice(-2)).toEqual([expect.stringContaining('rain 8%'), expect.stringContaining('UV 3')])
+  expect(rows(8).at(-1)).toEqual(expect.stringContaining('rain 8%'))
+  expect(rows(8).join('\n')).not.toMatch(/UV 3/)
 
   expect(rows(5)).toHaveLength(5)
-  expect(rows(5).join('\n')).not.toMatch(/[█▀▄]/)
+  expect(rows(4)).toHaveLength(4)
+  expect(rows(4).join('\n')).not.toMatch(/[█▀▄]/)
   expect(rows(3)).toHaveLength(3)
   expect(rows(3).join('\n')).not.toMatch(/rain/)
   for (const budget of [3, 4, 5, 6, 7, 8]) {

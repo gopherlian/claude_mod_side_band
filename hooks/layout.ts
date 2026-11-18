@@ -9,10 +9,6 @@ const BAND_DIVISOR = 12
 /** Content columns the band never asks for fewer than: the framed big clock needs 21. */
 const MIN_CONTENT = 28
 
-/** Most the band's content may take of the screen height: 3/40 (7.5%). */
-const HEIGHT_NUM = 3
-const HEIGHT_DEN = 40
-
 /** The engine clamps a docked pane to at least 24 columns and at most 45%. */
 const MIN_COLUMNS = 24
 const MAX_SHARE = 0.45
@@ -40,10 +36,6 @@ export const dockColumns = (total: number): number => {
 
   return Math.min(wanted, ceiling)
 }
-
-/** Rows the content may take on a screen `total` rows tall (at least one). */
-export const maxRows = (total: number): number =>
-  Math.max(1, Math.floor((total * HEIGHT_NUM) / HEIGHT_DEN))
 
 /**
  * Rows the groups may fill. A docked pane scrolls (the wheel, the arrows when

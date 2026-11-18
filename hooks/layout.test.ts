@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import { bigText } from './bigdigits'
-import { PADDING_X, compose, dockColumns, fit, maxRows, rowBudget } from './layout'
+import { PADDING_X, compose, dockColumns, fit, rowBudget } from './layout'
 
 const chunks = [
   { text: '18°C', rank: 0 },
@@ -10,12 +10,6 @@ const chunks = [
   { text: '14:32:07', rank: 3, big: '14:32' },
   { text: 'Mon 16 Nov', rank: 4 },
 ]
-
-test('the content never takes more than 3/40 of the height, at least one row', () => {
-  expect(maxRows(24)).toBe(1)
-  expect(maxRows(40)).toBe(3)
-  expect(maxRows(100)).toBe(7)
-})
 
 test('with one row the most important chunks stay, in display order', () => {
   expect(fit(chunks, 24, 1)).toEqual(['18°C · Clear · Madrid'])

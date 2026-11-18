@@ -6,6 +6,16 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- The docked band takes about half the rows: no blank rows between groups, no faint rules inside Claude and System,
+  `Context` and its bar on one row with no legend of the runs, the model row carries the turn's time, the branch and
+  its state share a row, the weather text and the outlook take one row each, the footnote is one short row and the
+  credit has no frame.
+- System meters go two to a row where the band is at least 31 columns wide, and the network is one row of two small
+  bars.
+- Every bar is a solid gauge that ends in eighths of a cell over a thin track (`████▎─────`) instead of a hatched
+  `░` block.
+
 ## [1.1.0] - 2026-11-18
 
 ### Changed

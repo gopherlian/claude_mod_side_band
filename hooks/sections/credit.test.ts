@@ -3,43 +3,36 @@ import { expect, test } from 'claude-code/testing'
 import { AUTHOR, LICENSE, creditLines } from './credit'
 import { RULE_COLOR, SOFT_RULE_COLOR } from './usage'
 
-test('the credit sits in a faint frame: name and email split by a bar, the license alone below, both centered', () => {
-  const lines = creditLines(80)
-  const inner = (line: { text: string }) => line.text.slice(2, -2)
-  const first = `© 2026 ${AUTHOR.name} │ ${AUTHOR.email}`
+test('the credit has no frame: the name, the email and the license, as many to a row as fit, each row centred', () => {
   const lead = (text: string) => text.length - text.trimStart().length
+  const name = `© 2026 ${AUTHOR.name}`
+  const rest = `${AUTHOR.email} · ${LICENSE.name}`
 
-  expect(lines.map(line => line.text.length)).toEqual([80, 80, 80, 80])
-  expect(lines[0]!.text).toBe('╭' + '┈'.repeat(78) + '╮')
-  expect(lines[3]!.text).toBe('╰' + '┈'.repeat(78) + '╯')
-  expect(inner(lines[1]!).trim()).toBe(first)
-  expect(inner(lines[2]!).trim()).toBe(LICENSE.name)
-  expect(lead(inner(lines[1]!))).toBe(Math.floor((76 - first.length) / 2))
-  expect(lead(inner(lines[2]!))).toBe(Math.floor((76 - LICENSE.name.length) / 2))
-  expect(lines[2]!.text).not.toContain('│')
-  expect(lines[1]!.text.startsWith('┊ ') && lines[1]!.text.endsWith(' ┊')).toBe(true)
+  expect(creditLines(80).map(line => line.text.trim())).toEqual([`${name} · ${rest}`])
+  const lines = creditLines(43)
+  expect(lines.map(line => line.text.trim())).toEqual([name, rest])
+  expect(lead(lines[0]!.text)).toBe(Math.floor((43 - name.length) / 2))
+  expect(lead(lines[1]!.text)).toBe(Math.floor((43 - rest.length) / 2))
+  expect(lines.some(line => /[╭╮╰╯┊]/.test(line.text))).toBe(false)
   expect(AUTHOR.name).toBe('Alberto Rodriguez Baixauli')
   expect(AUTHOR.email).toBe('a@webtory.es')
   expect(LICENSE.name).toBe('GNU GPL v3 or later')
 })
 
-test('the frame, the name, the bar and the license are dark orange and only the email is bright orange', () => {
-  const lines = creditLines(80)
-  const row = lines[1]!.cells!
+test('the name, the separators and the license are dark orange and only the email is bright orange', () => {
+  const lines = creditLines(43)
+  const cells = lines.flatMap(line => line.cells!)
 
-  expect(lines[0]!.color).toBe(SOFT_RULE_COLOR)
-  expect(lines[3]!.color).toBe(SOFT_RULE_COLOR)
-  expect(lines[2]!.cells!.every(cell => cell.color === SOFT_RULE_COLOR)).toBe(true)
-  expect(row.filter(cell => cell.color === RULE_COLOR)).toEqual([{ text: AUTHOR.email, color: RULE_COLOR }])
-  expect(row.filter(cell => cell.color !== RULE_COLOR).every(cell => cell.color === SOFT_RULE_COLOR)).toBe(true)
-  expect(row.map(cell => cell.text).join('')).toBe(lines[1]!.text)
+  expect(cells.filter(cell => cell.color === RULE_COLOR)).toEqual([{ text: AUTHOR.email, color: RULE_COLOR }])
+  expect(cells.filter(cell => cell.color !== RULE_COLOR).every(cell => cell.color === SOFT_RULE_COLOR)).toBe(true)
+  for (const line of lines) expect(line.cells!.map(cell => cell.text).join('')).toBe(line.text)
   expect(lines.some(line => line.dimColor)).toBe(false)
 })
 
-test('in a narrow band the row wraps inside the frame and the email stays whole and bright', () => {
-  const lines = creditLines(30)
+test('in a narrow band a wrapped name takes nothing more on its rows, and the email stays whole and bright', () => {
+  const lines = creditLines(28)
 
-  expect(lines.every(line => line.text.length === 30)).toBe(true)
+  expect(lines.map(line => line.text.trim())).toEqual(['© 2026 Alberto Rodriguez', 'Baixauli', AUTHOR.email, LICENSE.name])
   expect(lines.flatMap(line => line.cells ?? []).filter(cell => cell.color === RULE_COLOR)).toEqual([
     { text: AUTHOR.email, color: RULE_COLOR },
   ])

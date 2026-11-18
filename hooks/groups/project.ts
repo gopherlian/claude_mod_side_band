@@ -19,11 +19,24 @@ const rows = (ctx: GroupContext, join: string): Line[] => {
   ]
 }
 
+/**
+ * Stacked: the branch and its state on one row (`US-593 · 3 changed ↑2`), the state dim; on two rows where
+ * one is too narrow for both.
+ */
+const oneRow = (ctx: GroupContext): Line[] => {
+  const [branch, state] = rows(ctx, ' ')
+  if (!branch || !state) return []
+  const text = `${branch.text} · ${state.text}`
+  if (text.length > ctx.columns) return [branch, state]
+
+  return [{ text, cells: [{ text: branch.text }, { text: ` · ${state.text}`, dimColor: true }] }]
+}
+
 export const project: Group = {
   id: 'project',
   label: 'Project',
   priority: 2,
-  lines: ctx => rows(ctx, ' · '),
+  lines: oneRow,
   // In the strip the column is 12 cells: `3 changed ↑2` fits, with the dots it would not.
   strip: { min: 12, max: 24, lines: ctx => rows(ctx, ' ') },
 }

@@ -19,7 +19,13 @@ of content and never more than 45% of the window, with 2 columns of padding on e
 - *Given* it was never hidden, *When* a session starts, *Then* the band is open.
 
 **R3.** The band SHALL draw its groups in this order, top to bottom: Time, Claude, Project, System. Every group
-after the first SHALL be preceded by a blank row and a titled rule (`━━ Claude ━━━…`); the Time group has no title.
+after the first SHALL be preceded by a titled rule (`━━ Claude ━━━…`) and no blank row: the band is drawn as compact
+as it can be read. The Time group has no title.
+
+**R3a (compact).** The stacked band SHALL take about half the rows it once did: no blank rows anywhere, no faint rule
+inside the Claude and System groups, two meters to a row where the band is wide enough (see
+[system](../system/spec.md) R1), the branch and its state on one row, and one row each for the weather text and the
+outlook.
 
 **R4.** When a docked band has fewer rows than its groups need, it SHALL scroll (mouse wheel; arrow keys while it
 has focus) and SHALL NOT drop any group. Where it cannot scroll, it SHALL drop whole groups, highest priority
@@ -29,11 +35,10 @@ dropped.
 - *Given* a band that cannot scroll and has room for Time and Claude only, *Then* Project and System are absent
   and Claude is drawn whole.
 
-**R5.** A group with no lines SHALL NOT appear, and SHALL NOT leave a rule or a blank row behind.
+**R5.** A group with no lines SHALL NOT appear, and SHALL NOT leave a rule behind.
 
 **R6.** When rows are left after the groups, the band SHALL draw, in this order, each whole or not at all: the
-footnotes of the groups shown (after a blank row and a short faint rule), then the credit (after a blank row and a
-short faint rule). They SHALL NOT take the place of a group. In the strip (R13) there is no footnote, and the credit
+footnotes of the groups shown (after a short faint rule), then the credit (after a short faint rule). They SHALL NOT take the place of a group. In the strip (R13) there is no footnote, and the credit
 follows the columns after a blank row, where the pane has rows left for all of it.
 
 **R13 (strip).** Where the pane is not docked (it sits inline above the prompt, or as a widget), the band SHALL draw
@@ -47,7 +52,8 @@ space on each side.
 **R15 (compact forms).** In the strip each group SHALL draw a compact form, its rows in order of importance so that
 cutting at the bottom always leaves something whole:
 
-- Time: the frame with the big clock and the weather text, then the outlook and the timer; the frame is never cut.
+- Time: the frame with the big clock and the weather text, then the outlook (one row) and the timer; the frame is
+  never cut.
 - Claude: `Context` and its bar on one row, `Session`, `Weekly`, the legend of the tick, the cost row, the model row, the
   tools row.
 - Project: the branch and its state (`3 changed ↑2`).

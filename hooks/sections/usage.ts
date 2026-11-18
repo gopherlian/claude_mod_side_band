@@ -1,6 +1,6 @@
 // The usage section: context of this session, plus what the account allows.
 import { formatLeft } from '../format'
-import { compositionCells, compositionLegend } from './context'
+import { compositionCells } from './context'
 import type { Category } from './context'
 import { wrap } from './wrap'
 
@@ -140,10 +140,19 @@ export const formatTokens = (n: number): string =>
 export const colorFor = (percent: number | undefined): string | undefined =>
   percent === undefined ? undefined : percent >= 85 ? 'red' : percent >= 70 ? 'yellow' : undefined
 
-export const bar = (percent: number, width: number): string => {
-  const filled = Math.round((Math.min(100, Math.max(0, percent)) / 100) * width)
+/** The empty part of a bar: a thin line, so the fill reads as a solid gauge over it. */
+export const TRACK = '─'
 
-  return '█'.repeat(filled) + '░'.repeat(width - filled)
+/** The last cell of a fill, by eighths: the bar moves one eighth of a cell at a time. */
+const EIGHTHS = ['', '▏', '▎', '▍', '▌', '▋', '▊', '▉']
+
+/** A bar `width` cells long: whole blocks, an eighth-step block where the fill ends, then the track. */
+export const bar = (percent: number, width: number): string => {
+  const eighths = Math.round((Math.min(100, Math.max(0, percent)) / 100) * width * 8)
+  const full = Math.floor(eighths / 8)
+  const part = full < width ? (EIGHTHS[eighths % 8] ?? '') : ''
+
+  return '█'.repeat(full) + part + TRACK.repeat(width - full - (part ? 1 : 0))
 }
 
 /** What the tick means, longest wording first; the row takes the first that fits the band. */
@@ -194,22 +203,24 @@ export const meter = (
   const head = label ? label.padEnd(LABEL_WIDTH) : ''
   const width = Math.max(4, columns - head.length - 1 - PERCENT_WIDTH)
   const number = (percent === undefined ? '—' : `${Math.round(percent)}%`).padStart(PERCENT_WIDTH)
-  const drawn = percent === undefined ? '░'.repeat(width) : bar(percent, width)
+  const drawn = percent === undefined ? TRACK.repeat(width) : bar(percent, width)
 
   return `${head}${mark === undefined ? drawn : withMark(drawn, mark)} ${number}`
 }
 
-const PACE_NOTE = `If ${MARK} is inside the fill, you spend faster than time passes; beyond it, you are under pace.`
+/** How to read the tick, longest wording first; the footnote takes the first that fits the band, else wraps the last. */
+const PACE_NOTE = [`${MARK} marks the time gone · fill past it: over pace`, `fill past ${MARK} (time) = over pace`, `fill past ${MARK} = over pace`]
 
 /**
- * How to read the tick, wrapped to the band, the tick green and the rest dim.
- * Nothing while no bar carries a tick. It is long, so it is drawn only where
- * the band has rows to spare.
+ * How to read the tick, the tick green and the rest dim: the longest wording
+ * that fits on one row, or the shortest wrapped. Nothing while no bar carries a tick.
  */
 export const paceNote = (data: UsageData | undefined, columns: number, now?: number): Line[] => {
   if (!usageLines(data, columns, now).some(line => line.text.includes(MARK))) return []
 
-  return wrap(PACE_NOTE, columns).map(text => withMarks({ text, dimColor: true }))
+  const one = PACE_NOTE.find(wording => wording.length <= columns)
+
+  return (one ? [one] : wrap(PACE_NOTE[PACE_NOTE.length - 1]!, columns)).map(text => withMarks({ text, dimColor: true }))
 }
 
 /** The time left at the end of a window's row, right-aligned in this many cells. */
@@ -264,41 +275,12 @@ const contextBar = (data: UsageData, columns: number): Line => {
 }
 
 /**
- * The lines of the section, each at most `columns` cells wide. Given `now`,
- * the plan meters carry a tick for how much of their window has gone by; the
- * footnote (`paceNote`) explains how to read it.
+ * The plan and the context in as few rows as they can take, each at most
+ * `columns` cells wide: `Context` and its bar on one row, then a row per plan
+ * window. Given `now`, the plan bars carry a tick for how much of their window
+ * has gone by; the footnote (`paceNote`) explains how to read it.
  */
 export const usageLines = (data: UsageData | undefined, columns: number, now?: number): Line[] => {
-  if (!data) return [{ text: 'Usage unavailable', dimColor: true }]
-
-  const tokens = data.contextTokens === undefined ? '—' : formatTokens(data.contextTokens)
-  const lines: Line[] = [
-    {
-      text: `Context ${tokens} / ${formatTokens(data.contextWindow)}`,
-      color: colorFor(data.contextPercent),
-    },
-    contextBar(data, columns),
-  ]
-  // A faint rule sets the legend of the runs apart from the plan windows.
-  const legend = compositionLegend(data.categories, columns).map(cells => ({ text: cells.map(cell => cell.text).join(''), cells }))
-  lines.push(...legend)
-  if (legend.length > 0) lines.push(softRule(columns))
-
-  for (const { label, limit } of windows(data.limits)) lines.push(windowRow(label, limit, columns, now))
-
-  // A row that passes the band is cut and drawn plain: its cells no longer add up to its text.
-  return lines.map(line =>
-    line.text.length <= columns && (line.cells || !line.text.includes(MARK))
-      ? line
-      : withMarks({ ...line, text: line.text.slice(0, columns), cells: undefined }),
-  )
-}
-
-/**
- * The plan and the context in as few rows as they can take: `Context` and its
- * bar on one row, a row per plan window, and the legend of the tick.
- */
-export const compactUsageLines = (data: UsageData | undefined, columns: number, now?: number): Line[] => {
   if (!data) return [{ text: 'Usage unavailable', dimColor: true }]
 
   const bar = contextBar(data, Math.max(1, columns - LABEL_WIDTH))
@@ -310,7 +292,16 @@ export const compactUsageLines = (data: UsageData | undefined, columns: number, 
     },
     ...windows(data.limits).map(({ label: name, limit }) => windowRow(name, limit, columns, now)),
   ]
-  if (lines.some(line => line.text.includes(MARK))) lines.push(...legendLines(columns).map(withMarks))
 
-  return lines
+  // A row that passes the band is cut and drawn plain: its cells no longer add up to its text.
+  return lines.map(line =>
+    line.text.length <= columns ? line : withMarks({ ...line, text: line.text.slice(0, columns), cells: undefined }),
+  )
+}
+
+/** The same rows for the strip, which has no footnote: the legend of the tick follows them. */
+export const compactUsageLines = (data: UsageData | undefined, columns: number, now?: number): Line[] => {
+  const lines = usageLines(data, columns, now)
+
+  return lines.some(line => line.text.includes(MARK)) ? [...lines, ...legendLines(columns).map(withMarks)] : lines
 }

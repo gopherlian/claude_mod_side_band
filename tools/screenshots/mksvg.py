@@ -47,6 +47,11 @@ def glyph(ch, x, y, fg, bg):
     mx, my = x + CW / 2, y + LH / 2
     if ch == "█":
         s.append(f'<rect x="{x:.1f}" y="{y+2}" width="{CW+.4}" height="{LH-4}" fill="{fg}"/>')
+    elif ch in "▏▎▍▌▋▊▉":
+        w = CW * ("▏▎▍▌▋▊▉".index(ch) + 1) / 8
+        s.append(f'<rect x="{x:.1f}" y="{y+2}" width="{w:.1f}" height="{LH-4}" fill="{fg}"/>')
+    elif ch == "─":
+        s.append(f'<line x1="{x:.1f}" y1="{my}" x2="{x+CW+.4:.1f}" y2="{my}" stroke="{fg}" stroke-width="1.2" opacity="0.7"/>')
     elif ch == "░":
         s.append(f'<rect x="{x:.1f}" y="{y+2}" width="{CW+.4}" height="{LH-4}" fill="{fg}" opacity="0.22"/>')
     elif ch == "▒":
@@ -112,22 +117,5 @@ svg("project", d["project"], W, "The project group")
 svg("system", d["system"], W, "The system group")
 svg("overview", d["overview"], W, "The whole band")
 svg("strip", d["strip"], 99, "The strip: the groups side by side")
-# The credit at a band wide enough (76 columns) for the name and the email to share a row.
-DARK, BRIGHT = "#b36200", "#ff8c00"
-inner = 72
-first = "© 2026 Alberto Rodriguez Baixauli │ a@webtory.es"
-lic = "GNU GPL v3 or later"
-def row(text):
-    pad = (inner - len(text)) // 2
-    t = " " * pad + text + " " * (inner - pad - len(text))
-    at = t.find("a@webtory.es")
-    cells = [{"text": "┊ ", "color": DARK}]
-    if at >= 0:
-        cells += [{"text": t[:at], "color": DARK}, {"text": "a@webtory.es", "color": BRIGHT}, {"text": t[at+12:], "color": DARK}]
-    else:
-        cells += [{"text": t, "color": DARK}]
-    cells += [{"text": " ┊", "color": DARK}]
-    return {"text": "", "cells": cells}
-credit = [{"text": "╭" + "┈" * (inner + 2) + "╮", "color": DARK}, row(first), row(lic), {"text": "╰" + "┈" * (inner + 2) + "╯", "color": DARK}]
-svg("credit", credit, inner + 4, "The credit")
+svg("credit", d["credit"], W, "The credit")
 print("ok")
