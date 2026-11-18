@@ -6,6 +6,8 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-18
+
 ### Changed
 - Every resource of the System group has an icon before its name: `▦` CPU, `▣` GPU, `▤` VRAM, `◈` NPU, `≡` RAM,
   `⇄` Swap, `◉` Disk, and the arrows `↓` Down and `↑` Up for the network.
