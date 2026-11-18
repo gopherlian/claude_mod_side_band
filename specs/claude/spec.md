@@ -45,8 +45,8 @@ pace.
 has no footnote, a one-row legend follows them: `┃ time elapsed in the window`, or `┃ time elapsed` when that does not
 fit, and nothing where neither fits. The `┃` is green.
 
-**R6.** When rows are left, the footnote SHALL be the sentence `If ┃ is inside the fill, you spend faster than time
-passes; beyond it, you are under pace.` wrapped to the band, the `┃` green and the rest dim. There is no `(*)`.
+**R6.** When rows are left, the footnote SHALL be the sentence `┃ inside the fill: over pace; beyond it: under pace.`
+wrapped to the band, the `┃` green and the rest dim. There is no `(*)`.
 
 **R6a.** A faint rule SHALL separate the legend of the context runs from the plan windows (stacked band).
 

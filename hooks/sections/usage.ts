@@ -85,6 +85,8 @@ const elapsedShare = (limit: Limit | undefined, now: number | undefined): number
  */
 export const RULE_COLOR = '#ff8c00'
 export const SOFT_RULE_COLOR = '#b36200'
+/** The separator inside a group, darker still: it should be seen only when looked for. */
+export const INNER_RULE_COLOR = '#7a4300'
 
 /** The heavy line that opens a group. Inside a group, `softRule` is used. */
 export const rule = (columns: number): Line => ({
@@ -93,12 +95,13 @@ export const rule = (columns: number): Line => ({
 })
 
 /**
- * A faint line between blocks inside a group. Its dashes carry less ink than
- * the solid `rule` that opens a group, so the two are not taken for each other.
+ * A discreet line between blocks inside a group: spaced dots in a dark orange,
+ * far less ink than the solid `rule` that opens a group, and unlike the thin
+ * track `─` of the bars.
  */
 export const softRule = (columns: number): Line => ({
-  text: '┈'.repeat(columns),
-  color: SOFT_RULE_COLOR,
+  text: Array.from({ length: columns }, (_, i) => (i % 2 === 0 ? '·' : ' ')).join(''),
+  color: INNER_RULE_COLOR,
 })
 
 /**
@@ -208,7 +211,7 @@ export const meter = (
   return `${head}${mark === undefined ? drawn : withMark(drawn, mark)} ${number}`
 }
 
-const PACE_NOTE = `If ${MARK} is inside the fill, you spend faster than time passes; beyond it, you are under pace.`
+const PACE_NOTE = `${MARK} inside the fill: over pace; beyond it: under pace.`
 
 /**
  * How to read the tick, wrapped to the band, the tick green and the rest dim.

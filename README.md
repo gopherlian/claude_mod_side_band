@@ -247,15 +247,16 @@ credit:
 
 <p align="center"><img src="docs/img/credit.svg" alt="The credit"></p>
 
-It is one centred row in a faint orange frame when the band is wide enough (about 76 columns); in a narrower band
-the text wraps inside the frame.
+It has no frame: one centred row for the name and the email, another for the license; in a narrow band the text
+wraps, each row centred.
 
 ## Colour guide
 
 | What | Colour |
 | --- | --- |
 | Separators between groups, the group names, the time frame | bright orange `#ff8c00` |
-| Faint rules inside a group, the credit | dark orange `#b36200` |
+| Short rules before the footnote and the credit, the credit | dark orange `#b36200` |
+| Rules inside a group (`· · · ·`) | darker orange `#7a4300` |
 | The pace tick `┃` | green |
 | Session and Weekly bars, the Context label and percent | default, **yellow from 70%** and **red from 85%** of the window |
 | Context runs | messages blue `#2b6cb0` · system violet `#6b21a8` · MCP teal `#0f766e` · other amber `#8a6d0b` · reserve grey `#64748b` |

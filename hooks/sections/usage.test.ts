@@ -62,11 +62,7 @@ test('the stacked section has no legend row under the meters: the footnote expla
 test('the pace note says how to read the tick, wrapped to the band, with no mark in front', () => {
   const note = paceNote(windows(), 30, NOW).map(l => l.text)
 
-  expect(note.length).toBeGreaterThan(1)
-  expect(note[0]!.startsWith('If ┃ is inside')).toBe(true)
-  expect(note.join(' ')).toBe(
-    'If ┃ is inside the fill, you spend faster than time passes; beyond it, you are under pace.',
-  )
+  expect(note).toEqual(['┃ inside the fill: over pace;', 'beyond it: under pace.'])
   expect(note.every(text => text.length <= 30)).toBe(true)
   expect(paceNote(windows(), 30, NOW).every(l => l.dimColor === true)).toBe(true)
 })
@@ -184,8 +180,9 @@ test('without the breakdown the context bar is the plain one, as before', () => 
 test('the rule inside a group is fainter than the one between groups', () => {
   const soft = softRule(12)
 
-  expect(soft.text).toBe('┈'.repeat(12))
-  expect(soft.color).toBe('#b36200')
+  expect(soft.text).toBe('· '.repeat(6))
+  expect(soft.color).toBe('#7a4300')
+  expect(softRule(5).text).toBe('· · ·')
   expect(rule(12).color).toBe('#ff8c00')
   expect(soft.text).not.toBe(rule(12).text)
   expect(rule(12).text).toBe('━'.repeat(12))

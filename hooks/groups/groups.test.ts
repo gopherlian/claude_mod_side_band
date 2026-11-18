@@ -168,7 +168,7 @@ test('the session group draws the cost, the tools chart, the turn and the model,
   expect(lines.find(l => l.startsWith('tools'))).toMatch(/^tools [·▂▃▄▅▆▇█]{10} 7 ▸ Bash$/)
   expect(lines).toContain('turn 0:42')
   expect(lines).toContain('Sonnet 5.5 ●●○○○ medium')
-  expect(lines[lines.length - 2]).toBe('┈'.repeat(30))
+  expect(lines[lines.length - 2]).toBe('· '.repeat(15))
   expect(lines.every(l => l.length <= 30)).toBe(true)
 })
 
@@ -220,7 +220,7 @@ const paced = (over: Partial<GroupContext> = {}) =>
 test('the session group has a footnote that explains the tick', () => {
   const note = session.footnote!(paced()).map(l => l.text)
 
-  expect(note[0]).toMatch(/^If ┃ is inside the fill/)
+  expect(note[0]).toMatch(/^┃ inside the fill/)
   expect(session.footnote!(ctx())).toEqual([])
 })
 
@@ -245,7 +245,7 @@ test('the stacked band has no legend row of the tick and no (*): only the footno
 
   expect(texts.some(t => t.startsWith('┃ time elapsed'))).toBe(false)
   expect(texts.some(t => t.includes('(*)'))).toBe(false)
-  expect(texts.some(t => t.startsWith('If ┃ is inside'))).toBe(true)
+  expect(texts.some(t => t.startsWith('┃ inside the fill'))).toBe(true)
 })
 
 test('a footnote never costs a widget a row: what drops is what dropped without it', () => {
@@ -298,15 +298,15 @@ test('the system group adds memory, disk, network and docker to the bars', () =>
   expect(texts).toContain(down)
   expect(texts).toContain(rateLine('Up', 2048, 1048576, 30).text)
   expect(down).toBe('Down    ' + '█'.repeat(7) + '─'.repeat(7) + '  512K/s')
-  expect(texts[texts.indexOf(down) - 1]).toBe('┈'.repeat(30))
+  expect(texts[texts.indexOf(down) - 1]).toBe('· '.repeat(15))
   expect(texts.some(t => t.includes('↓') || t.includes('↑'))).toBe(false)
   expect(texts).toContain('docker · 2 running')
   expect(texts).toContain(containerLine('api', 30).text)
   expect(texts).toContain(containerLine('db', 30).text)
   expect(texts.some(t => t.startsWith('●'))).toBe(false)
   // One network: the only inner separators are the two before the network and docker blocks.
-  expect(texts.filter(t => t.startsWith('┈')).length).toBe(2)
-  expect(texts[texts.indexOf('docker · 2 running') - 1]).toBe('┈'.repeat(30))
+  expect(texts.filter(t => t.startsWith('· ·')).length).toBe(2)
+  expect(texts[texts.indexOf('docker · 2 running') - 1]).toBe('· '.repeat(15))
   expect(texts.some(t => t.startsWith('Swap'))).toBe(false)
 })
 
@@ -374,7 +374,7 @@ test('every separator inside a group is the faint one, so none is mistaken for a
   const texts = arrange(rich, 200).map(l => l.text)
 
   // Claude after the bars and before the model, System before the network and docker blocks, docker between networks.
-  expect(texts.filter(t => /^┈+$/.test(t)).length).toBe(5)
+  expect(texts.filter(t => /^(· )+$/.test(t)).length).toBe(5)
   expect(texts.filter(t => t.startsWith('━━ ')).length).toBe(3)
   expect(texts.filter(t => /^━+$/.test(t))).toEqual([])
   expect(texts.some(t => t.startsWith('┄'))).toBe(false)
