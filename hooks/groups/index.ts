@@ -3,7 +3,7 @@ import { session } from './session'
 import { system } from './system'
 import { time } from './time'
 import type { Group, GroupContext } from './types'
-import { blank, rule, titledRule } from '../sections/usage'
+import { blank, rule, softRule, titledRule } from '../sections/usage'
 import type { Line } from '../sections/usage'
 
 /** Display order, top to bottom. Add a theme by appending it. */
@@ -12,8 +12,8 @@ export const groups: Group[] = [time, session, project, system]
 /** Between two groups: a blank row, then the rule that names the second. */
 const SEPARATOR_ROWS = 2
 
-/** Before the footnotes: a blank row. */
-const FOOTNOTE_SEPARATOR_ROWS = 1
+/** Around the footnotes: the faint grey rule above them and the orange rule, untitled, below them. */
+const FOOTNOTE_SEPARATOR_ROWS = 2
 
 /** Before the credit: a blank row. */
 const CREDIT_SEPARATOR_ROWS = 1
@@ -22,9 +22,9 @@ const CREDIT_SEPARATOR_ROWS = 1
  * The lines to draw in `available` rows: every group with something to show,
  * a blank row and a rule between them, dropping whole groups (highest
  * priority number first) until it fits. The first group always stays. Then,
- * if rows are left, the footnotes of the groups shown go at the foot, after a
- * blank row: whole or not at all, so they never cost a group
- * its place.
+ * if rows are left, the footnotes of the groups shown go at the foot, between
+ * the faint grey rule of a group's inside and the orange rule of a group's
+ * name, untitled: whole or not at all, so they never cost a group its place.
  * Last of all goes `credit`, after its own blank row, on the
  * same terms: whole or not at all, never at the cost of a group or a note.
  */
@@ -54,7 +54,7 @@ export const arrange = (
     if (i > 0) out.push(blank(), item.group.label ? titledRule(item.group.label, ctx.columns) : rule(ctx.columns))
     out.push(...item.lines)
   })
-  if (noted) out.push(blank(), ...notes.flat())
+  if (noted) out.push(softRule(ctx.columns), ...notes.flat(), rule(ctx.columns))
   if (credit.length > 0 && available - out.length >= credit.length + CREDIT_SEPARATOR_ROWS) {
     out.push(blank(), ...credit)
   }

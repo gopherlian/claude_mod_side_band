@@ -7,7 +7,8 @@ The rules every group follows. If a change breaks one of these, it changes this 
 **R1.** The separators between groups SHALL be orange: the heavy rule that opens a group (`━━ Claude ━━━…`) in bright
 orange `#ff8c00`, and the bars between the columns of the strip (`┊`) in dark orange `#b36200`. The rules inside a
 group SHALL be a thin line across the band (`────`) in a very faint grey `#3a3a3a`, seen only when looked for. The
-footnote and the credit are set apart by a blank row alone, with no rule.
+footnote sits between that faint grey rule, above it, and the orange rule of a group's name with no title (`━━━━`),
+below it; the credit is set apart by a blank row alone.
 
 **R2.** A text that is drawn with a colour SHALL NOT also be dimmed: on the terminal, dimming replaces the colour
 with the theme's dim one. Where a row needs two looks, it SHALL be drawn in cells, runs of text each with its own

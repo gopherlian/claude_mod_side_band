@@ -6,6 +6,9 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- The footnote sits between a faint grey rule above it and an untitled orange rule below it.
+
 ### Added
 - `/band demo` turns a demonstration on or off: the band draws every element with made-up readings that move, so all
   of it can be seen working on any machine. It lasts for the session and is never shared.

@@ -5,6 +5,7 @@ import { formatShortTime } from '../widgets/clock'
 import { containerLine } from '../sections/docker'
 import { rateLine } from '../sections/monitor'
 import { creditLines } from '../sections/credit'
+import { rule, softRule } from '../sections/usage'
 import { arrange, groups } from './index'
 import { project } from './project'
 import { session } from './session'
@@ -226,16 +227,17 @@ test('the session group has a footnote that explains the tick', () => {
 
 const bare = () => groups.map(group => ({ ...group, footnote: undefined }))
 
-test('footnotes go at the foot after a blank row, with no rule, whole, only where rows are left over', () => {
+test('footnotes go at the foot between a faint grey rule and an untitled orange one, whole, only where rows are left over', () => {
   const c = paced()
   const note = session.footnote!(c)
   const full = arrange(c, 500)
   const without = arrange(c, 500, bare())
 
   expect(note.length).toBeGreaterThan(1)
-  expect(full.slice(-note.length)).toEqual(note)
-  expect(full.slice(-note.length - 1, -note.length)).toEqual([{ text: ' ' }])
-  expect(full.length).toBe(without.length + note.length + 1)
+  expect(full.slice(-note.length - 2)).toEqual([softRule(30), ...note, rule(30)])
+  expect(rule(30).text).toBe('━'.repeat(30))
+  expect(softRule(30).color).toBe('#3a3a3a')
+  expect(full.length).toBe(without.length + note.length + 2)
   expect(arrange(c, full.length)).toEqual(full)
   expect(arrange(c, full.length - 1)).toEqual(without)
 })
@@ -260,9 +262,9 @@ test('a footnote never costs a widget a row: what drops is what dropped without 
       expect(withNote).toEqual(without)
       continue
     }
-    expect(withNote.length).toBe(without.length + note.length + 1)
+    expect(withNote.length).toBe(without.length + note.length + 2)
     expect(withNote.slice(0, without.length)).toEqual(without)
-    expect(withNote.slice(without.length)).toEqual([{ text: ' ' }, ...note])
+    expect(withNote.slice(without.length)).toEqual([softRule(40), ...note, rule(40)])
   }
 })
 
@@ -275,8 +277,9 @@ test('a group that was dropped leaves its footnote out too', () => {
     ' ',
     '━'.repeat(30),
     'dropped',
-    ' ',
+    '─'.repeat(30),
     'its note',
+    '━'.repeat(30),
   ])
   expect(arrange(ctx(), 1, [kept, dropped]).map(l => l.text)).toEqual(['kept'])
 })

@@ -170,7 +170,8 @@ docked pane nothing is dropped, because it scrolls.
 | 2 | Project | third |
 | 3 | System | first |
 
-If rows are left after the groups, the footnote goes at the foot, and then the credit, each whole or not at all.
+If rows are left after the groups, the footnote goes at the foot, between a faint grey rule and an orange one, and then
+the credit, each whole or not at all.
 
 ## The groups
 
