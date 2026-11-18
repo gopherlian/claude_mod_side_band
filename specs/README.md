@@ -14,7 +14,7 @@ specs/
 
 | Capability | What it specifies |
 | --- | --- |
-| [band](band/spec.md) | The pane: width, rows, which groups are dropped, footnote and credit, what it reads and writes |
+| [band](band/spec.md) | The pane: width, rows, the stacked and the side-by-side (strip) layouts, which groups are dropped, footnote and credit, what it reads and writes |
 | [commands](commands/spec.md) | `/band`, `/band open`, `/band refresh`, `/band timer` |
 | [time](time/spec.md) | The time group: big clock, weather, date, timer |
 | [claude](claude/spec.md) | The Claude group: context, plan windows, the pace tick, activity, model |

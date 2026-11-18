@@ -25,6 +25,18 @@ export const meterLine = (label: string, percent: number, columns: number, resou
 const LABEL_WIDTH = 8
 const RATE_WIDTH = 7
 
+/** A meter small enough to share a row: a 4-cell name, the bar, then the number, `width` cells in all. */
+export const compactMeter = (label: string, percent: number, width: number, resource: Resource): Cell[] => {
+  const name = `${label.slice(0, 4).padEnd(4)} `
+  const number = `${Math.round(percent)}%`.padStart(4)
+
+  return [
+    { text: name, color: RESOURCE_TEXT_COLORS[resource] },
+    { text: bar(percent, Math.max(2, width - name.length - number.length)), color: RESOURCE_COLORS[resource] },
+    { text: number, color: RESOURCE_TEXT_COLORS[resource] },
+  ]
+}
+
 /**
  * A bar for a rate: full at `peakBps`, the rate written at its right. There is
  * no fixed top speed to measure against, so the scale is the highest seen.

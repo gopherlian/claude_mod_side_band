@@ -3,6 +3,7 @@
 
 import { test } from 'claude-code/testing'
 import { arrange, groups } from './groups/index'
+import { arrangeStrip } from './groups/strip'
 import { creditLines } from './sections/credit'
 import type { GroupContext } from './groups/types'
 
@@ -70,5 +71,9 @@ test('dump', () => {
   out.footnote = groups.flatMap(g => g.footnote?.(c) ?? [])
   out.credit = creditLines(COLUMNS)
   out.overview = arrange(c, 500, groups, creditLines(COLUMNS))
+  // The strip: where the pane is not docked, 99 columns across (a half-screen terminal) and 8 rows.
+  out.strip = arrangeStrip({ ...c, columns: 99 }, 8, groups)
+  out.stripNarrow = arrangeStrip({ ...c, columns: 80 }, 8, groups)
+  out.stripShort = arrangeStrip({ ...c, columns: 99 }, 5, groups)
   throw new Error('DUMPSTART' + JSON.stringify(out) + 'DUMPEND')
 })

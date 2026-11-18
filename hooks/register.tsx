@@ -2,8 +2,9 @@ import type { Register } from 'claude-code'
 
 import { formatClock } from './format'
 import { arrange, groups } from './groups'
+import { arrangeStrip } from './groups/strip'
 import type { GroupContext, SessionStats } from './groups/types'
-import { PADDING_X, dockColumns, rowBudget } from './layout'
+import { PADDING_X, STRIP_PADDING_X, STRIP_ROWS, dockColumns, rowBudget } from './layout'
 import { LIMITS_SYNC_MS, limitsPath, mergeLimits, parseLimits } from './limits'
 import type { Limit } from './limits'
 import { cpuUsage, parseStat } from './monitor/cpu'
@@ -355,6 +356,7 @@ export const register: Register = on => {
         id: PANE,
         title: TITLE,
         columns: dockColumns(e.presentation?.columns ?? 100),
+        rows: STRIP_ROWS,
       })
 
       return { text: '' }
@@ -421,6 +423,7 @@ export const register: Register = on => {
       id: PANE,
       title: TITLE,
       columns: dockColumns(e.presentation?.columns ?? 100),
+      rows: STRIP_ROWS,
     })
 
     return { text: 'Side band shown. /band hides it.' }
@@ -428,7 +431,10 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const { Box, Text } = $.ui.resolve(e)
-    const columns = Math.max(1, e.props.bodyColumns - PADDING_X * 2)
+    // Docked, the groups are stacked in a narrow column; anywhere else (inline above the prompt,
+    // a widget) the pane is short and wide, so they stand side by side.
+    const isStrip = e.props.placement !== 'dock'
+    const columns = Math.max(1, e.props.bodyColumns - (isStrip ? STRIP_PADDING_X : PADDING_X) * 2)
     const rows = e.viewport?.rows ?? 24
     const now = await $.clock.now()
 
@@ -447,15 +453,14 @@ export const register: Register = on => {
       usage = undefined
     }
 
-    const lines = arrange(
-      { now, columns, rows, weather, usage, stats, hardware, system, git, timerEndsAt },
-      rowBudget(e.props.placement, e.props.scroll?.bodyRows, rows),
-      groups,
-      creditLines(columns),
-    )
+    const context = { now, columns, rows, weather, usage, stats, hardware, system, git, timerEndsAt }
+    const budget = rowBudget(e.props.placement, e.props.scroll?.bodyRows, rows)
+    const lines = isStrip
+      ? arrangeStrip(context, budget, groups, creditLines(columns))
+      : arrange(context, budget, groups, creditLines(columns))
 
     return (
-      <Box flexDirection="column" paddingX={PADDING_X}>
+      <Box flexDirection="column" paddingX={isStrip ? STRIP_PADDING_X : PADDING_X}>
         {lines.map(line => {
           const text = line.cells ? (
             <Box flexDirection="row">

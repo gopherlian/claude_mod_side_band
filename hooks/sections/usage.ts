@@ -316,3 +316,24 @@ export const usageLines = (data: UsageData | undefined, columns: number, now?: n
       : withMarks({ ...line, text: line.text.slice(0, columns), cells: undefined }),
   )
 }
+
+/**
+ * The plan and the context in as few rows as they can take: `Context` and its
+ * bar on one row, a row per plan window, and the legend of the tick.
+ */
+export const compactUsageLines = (data: UsageData | undefined, columns: number, now?: number): Line[] => {
+  if (!data) return [{ text: 'Usage unavailable', dimColor: true }]
+
+  const bar = contextBar(data, Math.max(1, columns - LABEL_WIDTH))
+  const label: Cell = { text: 'Context'.padEnd(LABEL_WIDTH), color: colorFor(data.contextPercent) }
+  const lines: Line[] = [
+    {
+      text: label.text + bar.text,
+      cells: [label, ...(bar.cells ?? [{ text: bar.text, color: bar.color, dimColor: bar.dimColor }])],
+    },
+    ...windows(data.limits).map(({ label: name, limit }) => windowRow(name, limit, columns, now)),
+  ]
+  if (lines.some(line => line.text.includes(MARK))) lines.push(...legendLines(columns, false).map(withMarks))
+
+  return lines
+}

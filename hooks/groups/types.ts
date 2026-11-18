@@ -39,6 +39,19 @@ export type GroupContext = {
   timerEndsAt?: number
   /** This group's footnote is going to be drawn: point to it. Set by `arrange` alone. */
   noted?: boolean
+  /** In the strip: the rows this column may fill, its title not counted. Absent where the band is stacked. */
+  budget?: number
+}
+
+/** The compact form of a group, for the strip: a column that is `min` to `max` cells wide. */
+export type Strip = {
+  min: number
+  max: number
+  /**
+   * The rows of the column, `ctx.columns` wide and at most `ctx.budget` tall, most important first, so that
+   * cutting at the bottom always leaves something whole.
+   */
+  lines: (ctx: GroupContext) => Line[]
 }
 
 /**
@@ -56,4 +69,6 @@ export type Group = {
    * is shown and rows are left over, so it never takes the place of a widget.
    */
   footnote?: (ctx: GroupContext) => Line[]
+  /** How the group draws as a column of the strip; a group without it is left out of the strip. */
+  strip?: Strip
 }

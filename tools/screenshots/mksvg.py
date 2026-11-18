@@ -111,6 +111,7 @@ svg("claude", d["session"] + [{"text": " "}] + d["footnote"], W, "The Claude gro
 svg("project", d["project"], W, "The project group")
 svg("system", d["system"], W, "The system group")
 svg("overview", d["overview"], W, "The whole band")
+svg("strip", d["strip"], 99, "The strip: the groups side by side")
 # The credit at a band wide enough (76 columns) for the name and the email to share a row.
 DARK, BRIGHT = "#b36200", "#ff8c00"
 inner = 72

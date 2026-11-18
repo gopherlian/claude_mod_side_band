@@ -22,6 +22,12 @@ const SEPARATOR = ' · '
 /** Cells of breathing room on each side, inside the band. */
 export const PADDING_X = 2
 
+/** The same in the strip, where every cell across is worth keeping. */
+export const STRIP_PADDING_X = 1
+
+/** Body rows the band asks for when it opens inline: what the tallest column of the strip needs. */
+export const STRIP_ROWS = 8
+
 /**
  * Body columns to request from `$.ui.open` for a screen `total` cells wide:
  * the band's 1/12 for its content (never under `MIN_CONTENT`), plus the padding

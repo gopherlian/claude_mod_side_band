@@ -33,7 +33,40 @@ dropped.
 
 **R6.** When rows are left after the groups, the band SHALL draw, in this order, each whole or not at all: the
 footnotes of the groups shown (after a blank row and a short faint rule), then the credit (after a blank row and a
-short faint rule). They SHALL NOT take the place of a group.
+short faint rule). They SHALL NOT take the place of a group. In the strip (R13) there is no footnote, and the credit
+follows the columns after a blank row, where the pane has rows left for all of it.
+
+**R13 (strip).** Where the pane is not docked (it sits inline above the prompt, or as a widget), the band SHALL draw
+its groups side by side, as columns, in the order Time, Claude, Project, System, instead of stacked. A docked band
+keeps stacking them (R3).
+
+**R14 (columns).** Each column starts with its group's titled rule (`━━ Claude ━━━`) on its first row; the Time group
+has none, its frame stands there. A faint dark-orange `┊` SHALL separate a column from the next on every row, with a
+space on each side.
+
+**R15 (compact forms).** In the strip each group SHALL draw a compact form, its rows in order of importance so that
+cutting at the bottom always leaves something whole:
+
+- Time: the frame with the big clock and the weather text, then the outlook and the timer; the frame is never cut.
+- Claude: `Context` and its bar on one row, `Session`, `Weekly`, the tick's legend, the cost row, the model row, the
+  tools row.
+- Project: the branch and its state (`3 changed ↑2`).
+- System: two resources a row (`CPU`/`GPU`, `VRAM`/`RAM`, `Swap`/`Disk`; a resource that is not there leaves no
+  gap), the network rates on one row (`↓ 833B/s  ↑ 800B/s`), then `docker · 3 running`.
+
+**R16 (width).** A column has a least and a most width (Time 22 to 34, Claude 28 to 40, Project 12 to 24, System 28 to
+40) and columns are 3 cells apart. Where they do not all fit, the group with the highest priority number SHALL be
+dropped whole, as in R4; Time is never dropped. Width left over SHALL be shared among the columns, up to their most.
+
+- *Given* a strip 99 columns wide, *Then* all four groups are drawn.
+- *Given* a strip 80 columns wide, *Then* System is dropped and the rest is drawn.
+- *Given* a strip 40 columns wide, *Then* only Time is drawn.
+
+**R17 (height).** The strip SHALL NOT be taller than the rows the pane has; a column that is taller is cut at the
+bottom. The Time column is shaped to the rows instead: the big clock three rows tall where it can be, a short one with
+two, the time first as text with one, and the outlook and the timer where rows are left.
+
+**R18 (opening).** The band SHALL ask for 8 body rows when it opens, what the tallest column needs.
 
 **R7.** The band SHALL redraw every second so the clock, the timer and the pace tick stay live.
 

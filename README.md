@@ -124,7 +124,20 @@ place. Nothing about your session, files or machine is sent anywhere.
 **What it writes.** `~/.claude/side-band-limits.json` (the shared limits) and the mod's own store (whether the band
 is hidden, and the refresh interval). Nothing else.
 
-**How rows are shared out.** Each group has a priority. When there are fewer rows than groups need, whole groups are
+**The strip.** A docked band is a narrow column, so it stacks the groups. Where a pane cannot be docked (a terminal
+under 110 columns wide, such as half or a quarter of a screen, or a terminal that is not in fullscreen mode), the
+engine seats it inline above the prompt: short and wide. There the band draws the groups **side by side**, left to
+right, each one compact:
+
+<p align="center"><img src="docs/img/strip.svg" alt="The strip: the groups side by side"></p>
+
+The columns need 99 columns across to show all four groups. Fewer than that and whole groups are dropped, System
+first, then Project, then Claude; the time always stays. Width left over is shared among the columns. The strip is
+never taller than the rows the pane has, and a column that is taller is cut at the bottom, the least important row
+first. The band asks for 8 rows when it opens, which is what the tallest column needs. It has no footnote; the
+credit follows the columns where there are rows for all of it.
+
+**How rows are shared out in a docked band.** Each group has a priority. When there are fewer rows than groups need, whole groups are
 dropped, the highest priority number first, so the band never shows half a group. The time group always stays. In a
 docked pane nothing is dropped, because it scrolls.
 
@@ -253,7 +266,7 @@ specs/                 what the band must do: one spec per capability, and chang
 .claude-plugin/        plugin.json and marketplace.json
 hooks/
   register.tsx         the hooks module: events, timers, sampling, the /band command, the pane
-  groups/              one file per group (time, session, project, system) and the layout that shares rows
+  groups/              one file per group (time, session, project, system), the stacked layout and the strip
   sections/            what a group is made of: usage bars, monitor bars, docker, frame, credit, palette
   monitor/             parsers for /proc, nvidia-smi, AMD and NPU files, df, docker and git output
   widgets/             clock, date and weather
@@ -264,7 +277,7 @@ docs/img/              the screenshots (generated: they are redrawn with every v
 ```
 
 Adding a group is adding a file in `hooks/groups/` that exports a `Group` (an `id`, an optional `label`, a
-`priority` and a `lines(ctx)` function) and appending it to the list in `hooks/groups/index.ts`, after writing its
+`priority`, a `lines(ctx)` function and, to be in the strip, a compact `strip` form with its least and most width) and appending it to the list in `hooks/groups/index.ts`, after writing its
 spec in `specs/`. Every group reads only its own part of the context. Every file has a test beside it; a change to
 what is drawn changes its test.
 

@@ -26,6 +26,9 @@ const PANE = {
   },
 } as const
 
+/** What the band last asked `$.ui.open` for. */
+let opened: Record<string, unknown> = {}
+
 type Drawn = { type: string; props?: Record<string, unknown>; children?: (Drawn | string)[] }
 
 /** The element that holds the Text with these words: where that line sits. */
@@ -49,7 +52,11 @@ const draw = async (
 ) => {
   // Nothing sits beneath the mod: each hook here stands for the engine.
   on('command.register', () => ({ value: { command: 'band' } }))
-  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.open', (_, e) => {
+    opened = e as unknown as Record<string, unknown>
+
+    return { value: { isPlaced: true } }
+  })
   on('http.fetch', () => ({ value: { ok: true, status: 200, text: WEATHER } }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('store.get', () => ({ value: undefined }))
@@ -101,10 +108,51 @@ test('a docked band in a short window keeps every group, to be scrolled', async 
   expect(holderOf(tree, /Claude/)).toBeDefined()
 })
 
-test('a band that cannot scroll still drops groups to fit its rows', async ($, on) => {
+test('a docked band stacks its groups in one column', async ($, on) => {
+  const tree = await draw($, on, 104, { scroll: { offset: 0, bodyRows: 60 } })
+
+  expect(holderOf(tree, /━━ Claude/)?.props?.flexDirection).toBe('column')
+  expect(holderOf(tree, /━━ Claude/)).toBe(holderOf(tree, /┏━/))
+})
+
+test('where the pane is not docked the groups stand side by side, on the same rows', async ($, on) => {
+  const tree = await draw($, on, 104, { placement: 'inline', scroll: { offset: 0, bodyRows: 8 } })
+
+  expect(holderOf(tree, /━━ Claude/)?.props?.flexDirection).toBe('row')
+  expect(holderOf(tree, /━━ Claude/)).toBe(holderOf(tree, /┏━/))
+})
+
+test('a widget is drawn as the strip too', async ($, on) => {
+  const tree = await draw($, on, 104, { placement: 'widget', scroll: { offset: 0, bodyRows: 8 } })
+
+  expect(holderOf(tree, /━━ Claude/)).toBe(holderOf(tree, /┏━/))
+})
+
+test('a strip too narrow for two columns draws the time alone', async ($, on) => {
   const tree = await draw($, on, 40, { placement: 'inline', scroll: { offset: 0, bodyRows: 5 } })
 
   expect(holderOf(tree, /Claude/)).toBeUndefined()
+  expect(holderOf(tree, /┏━/)).toBeDefined()
+})
+
+test('the strip is as tall as the rows the pane has and no taller', async ($, on) => {
+  const tree = await draw($, on, 104, { placement: 'inline', scroll: { offset: 0, bodyRows: 6 } })
+  const rows = (tree.children ?? []).filter(child => typeof child !== 'string')
+
+  expect(rows.length).toBeLessThanOrEqual(6)
+})
+
+test('a band opened by the command asks for the strip rows and a twelfth of the width', async ($, on) => {
+  await draw($, on, 40)
+  await $.command.run({
+    command: 'band',
+    args: 'open',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: true, columns: 212 },
+  })
+
+  expect(opened.rows).toBe(8)
+  expect(opened.columns).toBe(28 + 4)
 })
 
 /** Every line of text in the drawn tree. */
