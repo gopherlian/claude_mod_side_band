@@ -3,8 +3,11 @@ import { bigText } from './bigdigits'
 import type { BigHeight } from './bigdigits'
 import type { Chunk } from './widgets/types'
 
-/** The band takes 1/6 of the window width. */
-const BAND_DIVISOR = 6
+/** The band asks for 1/12 of the window width: half of what it once took. */
+const BAND_DIVISOR = 12
+
+/** Content columns the band never asks for fewer than: the framed big clock needs 21. */
+const MIN_CONTENT = 28
 
 /** Most the band's content may take of the screen height: 3/40 (7.5%). */
 const HEIGHT_NUM = 3
@@ -21,13 +24,15 @@ export const PADDING_X = 2
 
 /**
  * Body columns to request from `$.ui.open` for a screen `total` cells wide:
- * the band's 1/6 for its content, plus the padding on both sides.
+ * the band's 1/12 for its content (never under `MIN_CONTENT`), plus the padding
+ * on both sides, never past the 45% the engine allows. A request only: a width
+ * the person resized the dock to wins.
  */
 export const dockColumns = (total: number): number => {
-  const wanted = Math.round(total / BAND_DIVISOR)
-  const ceiling = Math.floor(total * MAX_SHARE)
+  const wanted = Math.max(MIN_CONTENT, Math.round(total / BAND_DIVISOR)) + PADDING_X * 2
+  const ceiling = Math.max(MIN_COLUMNS, Math.floor(total * MAX_SHARE))
 
-  return Math.max(MIN_COLUMNS, Math.min(wanted, ceiling)) + PADDING_X * 2
+  return Math.min(wanted, ceiling)
 }
 
 /** Rows the content may take on a screen `total` rows tall (at least one). */

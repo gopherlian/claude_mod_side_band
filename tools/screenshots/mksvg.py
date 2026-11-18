@@ -100,7 +100,7 @@ def svg(name, lines, width, title=None):
         f'<rect width="{w}" height="{h}" rx="8" fill="{BG}"/>' + "".join(body) + "</svg>"
     )
 
-W = 40
+W = d.get("columns", 40)
 svg("time", d["time"], W, "The time group")
 svg("claude", d["session"] + [{"text": " "}] + d["footnote"], W, "The Claude group and its footnote")
 svg("project", d["project"], W, "The project group")

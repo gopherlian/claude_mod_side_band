@@ -67,7 +67,7 @@ export const register: Register = on => {
     })
     // On by default; only an explicit /band hide is remembered. Opened through
     // our own command, so the engine stamps the window width on it: a plain
-    // open would take the engine's default share, wider than 1/6.
+    // open would take the engine's default share, far wider than 1/12.
     if (!(await $.store.get('isHidden'))) {
       void $.command
         .run({ command: 'band', args: 'open' })
@@ -343,7 +343,7 @@ export const register: Register = on => {
   // `/band` toggles the band; `/band open` only shows it (what a new session
   // runs); `/band refresh <seconds>` sets how often the machine is read, live;
   // `/band timer <minutes>|off` runs a countdown. The dock takes its width in
-  // absolute columns, so 1/6 of the window is asked for from the width the
+  // absolute columns, so 1/12 of the window is asked for from the width the
   // engine stamps on the command, never from inside a render: each open draws
   // again. Hiding is remembered.
   on('command.run', { command: 'band' }, async ($, e) => {

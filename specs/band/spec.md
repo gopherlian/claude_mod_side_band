@@ -4,11 +4,14 @@ The pane as a whole: how wide it is, what it shows when rows run short, what it 
 
 ## Requirements
 
-**R1.** The band SHALL be a docked pane that takes one sixth of the window width, never fewer than 24 columns of
-content and never more than 45% of the window, with 2 columns of padding on each side.
+**R1.** The band SHALL be a docked pane that asks for one twelfth of the window width, never fewer than 28 columns
+of content and never more than 45% of the window, with 2 columns of padding on each side.
 
-- *Given* a window 180 columns wide, *When* the band opens, *Then* its content is 30 columns wide.
-- *Given* a window 100 columns wide, *When* the band opens, *Then* its content is 24 columns wide.
+- *Given* a window 400 columns wide, *When* the band opens, *Then* its content is 33 columns wide.
+- *Given* a window 212 columns wide, *When* the band opens, *Then* its content is 28 columns wide.
+
+**R1a.** The width is a request: where the person has resized the dock, the engine keeps that width
+(`pluginPanes.dockColumns` in `~/.claude.json`) and it wins. The band SHALL draw itself in whatever width it is given.
 
 **R2.** The band SHALL open by itself when a session starts, unless the user hid it with `/band`.
 

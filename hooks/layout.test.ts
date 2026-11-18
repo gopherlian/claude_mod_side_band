@@ -85,10 +85,19 @@ test('without the option nothing is stacked or centered', () => {
   expect(compose(chunks, 50, 6)[0].startsWith(bigText('14:32', 3)[0])).toBe(true)
 })
 
-test('the band asks for 1/6 of the window plus the padding on both sides', () => {
-  expect(dockColumns(240)).toBe(40 + PADDING_X * 2)
-  expect(dockColumns(180)).toBe(30 + PADDING_X * 2)
-  expect(dockColumns(100)).toBe(24 + PADDING_X * 2)
+test('the band asks for 1/12 of the window plus the padding on both sides', () => {
+  expect(dockColumns(480)).toBe(40 + PADDING_X * 2)
+  expect(dockColumns(400)).toBe(33 + PADDING_X * 2)
+})
+
+test('the band never asks for fewer than 28 columns of content, enough for the framed big clock', () => {
+  expect(dockColumns(212)).toBe(28 + PADDING_X * 2)
+  expect(dockColumns(180)).toBe(28 + PADDING_X * 2)
+  expect(dockColumns(110)).toBe(28 + PADDING_X * 2)
+})
+
+test('the band never asks for more than 45% of the window', () => {
+  expect(dockColumns(60)).toBe(Math.floor(60 * 0.45))
 })
 
 test('a docked band scrolls, so it may draw every row it has', () => {

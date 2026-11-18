@@ -78,9 +78,13 @@ The band opens by itself when a session starts. One command controls it:
 
 When the countdown ends the band shows `Timer done` in green and raises a `Timer done` toast.
 
-**Size.** The band takes one sixth of the window width (never less than 24 columns, never more than 45% of the
-window). It is a docked pane: when the window is too short for every group it scrolls with the mouse wheel, or
-with the arrow keys while it has focus.
+**Size.** The band asks for one twelfth of the window width (never fewer than 28 columns of content, never more
+than 45% of the window). It is a docked pane: when the window is too short for every group it scrolls with the mouse
+wheel, or with the arrow keys while it has focus.
+
+> **The band is wider than that?** The engine remembers the width the dock was last resized to (it is kept in
+> `~/.claude.json`, under `pluginPanes.dockColumns`) and uses it instead of what a mod asks for. Resize the dock once,
+> to the width you want, and the engine keeps that one.
 
 ## How it works
 

@@ -6,6 +6,9 @@ import { arrange, groups } from './groups/index'
 import { creditLines } from './sections/credit'
 import type { GroupContext } from './groups/types'
 
+/** Content columns of the docked band the screenshots show: what it asks for on a normal window. */
+const COLUMNS = 28
+
 const NOW = Date.parse('2026-11-17T17:16:20')
 const endsIn = (ms: number) => new Date(NOW + ms).toISOString()
 
@@ -50,11 +53,11 @@ const ctx = (columns: number): GroupContext => ({
 })
 
 test('dump', () => {
-  const out: Record<string, unknown> = {}
-  const c = ctx(40)
+  const out: Record<string, unknown> = { columns: COLUMNS }
+  const c = ctx(COLUMNS)
   for (const g of groups) out[g.id] = g.lines({ ...c, noted: true })
   out.footnote = groups.flatMap(g => g.footnote?.(c) ?? [])
-  out.credit = creditLines(40)
-  out.overview = arrange(c, 500, groups, creditLines(40))
+  out.credit = creditLines(COLUMNS)
+  out.overview = arrange(c, 500, groups, creditLines(COLUMNS))
   throw new Error('DUMPSTART' + JSON.stringify(out) + 'DUMPEND')
 })
