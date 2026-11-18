@@ -78,7 +78,7 @@ The band opens by itself when a session starts. One command controls it:
 | `/band timer off` | Clears it. |
 | `/band demo` | Turns a demonstration on or off: every element of the band with made-up readings that move (containers, GPU, plan windows, a timer…), to see it all working on any machine. For this session only; nothing is shared or saved. |
 
-When the countdown ends the band shows `Timer done` in green and raises a `Timer done` toast.
+When the countdown ends the band shows `⧗ Timer done` in green and raises a `Timer done` toast.
 
 **Size.** The band asks for one twelfth of the window width (never fewer than 28 columns of content, never more
 than 45% of the window). It is a docked pane: when the window is too short for every group it scrolls with the mouse
@@ -178,7 +178,7 @@ If rows are left after the groups, the credit goes at the foot, right under an o
 
 The time in a big font, centred in a heavy orange frame, with the temperature, the sky, the place, how it feels, the
 humidity, the wind and the date centred under it. Under the frame, dimmed and centred, today's outlook: the icon, then high and
-low, chance of rain and the UV index (`☁  · ↑24° ↓15° · rain 3% · UV 3`). While a countdown is running, `Timer mm:ss` closes the group.
+low, chance of rain and the UV index (`☁  · ↑24° ↓15° · rain 3% · UV 3`). While a countdown is running, `⧗ Timer mm:ss`, centred, closes the group.
 
 <p align="center"><img src="docs/img/time.svg" alt="The time group"></p>
 

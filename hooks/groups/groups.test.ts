@@ -48,7 +48,7 @@ test('the time, temperature and place sit inside a frame; the outlook and timer 
 
   const after = texts.slice(bottom + 1)
   expect(after.some(t => t.includes('rain 30%'))).toBe(true)
-  expect(after).toContain('Timer 1:02')
+  expect(after).toContain('⧗ Timer 1:02')
   expect(inside).not.toContain('rain')
   expect(inside).not.toContain('Timer')
 })
@@ -69,8 +69,17 @@ test('the time group shows the outlook and a running timer', () => {
   const texts = time.lines(ctx({ timerEndsAt: NOW + 62_000 })).map(l => l.text)
   expect(texts).toContain('↑24° ↓15° · rain 30% · UV 6')
   expect(texts.join('\n')).not.toMatch(/07:12|18:44/)
-  expect(texts).toContain('Timer 1:02')
-  expect(time.lines(ctx({ timerEndsAt: NOW - 1 })).some(l => l.text === 'Timer done')).toBe(true)
+  expect(texts).toContain('⧗ Timer 1:02')
+  expect(time.lines(ctx({ timerEndsAt: NOW - 1 })).some(l => l.text === '⧗ Timer done')).toBe(true)
+})
+
+test('the timer row is centred and led by an hourglass that is not an emoji', () => {
+  const running = time.lines(ctx({ timerEndsAt: NOW + 62_000 })).at(-1)!
+  const done = time.lines(ctx({ timerEndsAt: NOW - 1 })).at(-1)!
+
+  expect(running).toEqual({ text: '⧗ Timer 1:02', align: 'center' })
+  expect(done).toEqual({ text: '⧗ Timer done', color: 'green', align: 'center' })
+  expect(/\p{Extended_Pictographic}/u.test('⧗')).toBe(false)
 })
 
 const withIcon = (over: Partial<GroupContext> = {}) =>

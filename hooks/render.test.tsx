@@ -283,7 +283,7 @@ test('/band demo draws every element with made-up readings, and turns off again'
 
   expect(((await run('demo')) as { text?: string }).text).toBe('Demo on: the band shows made-up readings. /band demo turns it off.')
   const demo = await mount()
-  for (const words of [/model-service/, /docker · 3 running/, /^▣ GPU /, /^▤ VRAM /, /^Session /, /^Weekly /, /━━ Project/, /^Timer /, / msgs 203k/]) {
+  for (const words of [/model-service/, /docker · 3 running/, /^▣ GPU /, /^▤ VRAM /, /^Session /, /^Weekly /, /━━ Project/, /⧗ Timer /, / msgs 203k/]) {
     expect(holderOf(demo, words)).toBeDefined()
   }
 

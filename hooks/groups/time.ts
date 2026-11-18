@@ -73,12 +73,19 @@ const outlookLines = (ctx: GroupContext): Line[] => {
   })
 }
 
-/** The countdown, while one runs. */
+/** The icon of the countdown: an hourglass Unicode does not count as an emoji, so it takes one cell on any terminal. */
+const TIMER_ICON = '⧗'
+
+/** The countdown, while one runs: centred, led by its icon. */
 const timerLine = (ctx: GroupContext): Line[] => {
   if (ctx.timerEndsAt === undefined) return []
   const left = ctx.timerEndsAt - ctx.now
 
-  return [left > 0 ? { text: `Timer ${formatClock(left)}` } : { text: 'Timer done', color: 'green' }]
+  return [
+    left > 0
+      ? { text: `${TIMER_ICON} Timer ${formatClock(left)}`, align: 'center' }
+      : { text: `${TIMER_ICON} Timer done`, color: 'green', align: 'center' },
+  ]
 }
 
 export const time: Group = {

@@ -23,6 +23,8 @@ index takes a row of its own, centred, uncut.
 
 **R4.** While the weather is loading the group SHALL show `weather…`; when it fails, `no weather`.
 
-**R5.** While a countdown runs the group SHALL end with `Timer mm:ss`; at zero, `Timer done` in green.
+**R5.** While a countdown runs the group SHALL end with `⧗ Timer mm:ss`, centred; at zero, `⧗ Timer done` in green. The
+hourglass `⧗` is a one-cell symbol Unicode does not count as an emoji (`⏱`, `⌛` and `⏳` are, and a terminal may draw
+them two cells wide).
 
 **R6.** When no rows are left under the time, the weather items SHALL stay beside the big time rather than be lost.

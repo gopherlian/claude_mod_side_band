@@ -9,6 +9,7 @@ All notable changes to this mod are written here. The format follows
 ### Changed
 - Every resource of the System group has an icon before its name: `▦` CPU, `▣` GPU, `▤` VRAM, `◈` NPU, `≡` RAM,
   `⇄` Swap, `◉` Disk, and the arrows `↓` Down and `↑` Up for the network.
+- The timer row is centred and led by an hourglass: `⧗ Timer 29:13`.
 
 ## [1.3.1] - 2026-11-18
 
