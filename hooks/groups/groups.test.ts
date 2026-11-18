@@ -352,7 +352,7 @@ test('every group but the time one is named, on the line that separates it from 
     '━━ System',
   ])
   expect(texts.every(t => t.length <= 30)).toBe(true)
-  expect(lines.filter(l => l.text.startsWith('━━ ')).every(l => l.color === '#c06a00')).toBe(true)
+  expect(lines.filter(l => l.text.startsWith('━━ ')).every(l => l.color === '#a05800')).toBe(true)
   // Each boundary is a blank row and then the rule that names the section.
   const own = groups.reduce((sum, g) => sum + g.lines(full).length, 0)
   expect(lines.length).toBe(own + 6)

@@ -9,8 +9,8 @@ All notable changes to this mod are written here. The format follows
 ### Changed
 - The footnote sits between a faint grey rule above it and an untitled orange rule below it, and the credit follows
   that rule at once.
-- The oranges are darker: `#c06a00` for the rules, the group names, the clock's frame and the email (was `#ff8c00`),
-  `#8a4c00` for the credit and the strip's bars (was `#b36200`).
+- The oranges are darker: `#a05800` for the rules, the group names, the clock's frame and the email (was `#ff8c00`),
+  `#744000` for the credit and the strip's bars (was `#b36200`).
 
 ### Added
 - `/band demo` turns a demonstration on or off: the band draws every element with made-up readings that move, so all

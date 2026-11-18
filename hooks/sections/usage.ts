@@ -83,8 +83,8 @@ const elapsedShare = (limit: Limit | undefined, now: number | undefined): number
  * The separators are orange. `dimColor` would replace the colour with the theme's
  * dim one, so the faint rules take a darker orange instead of being dimmed.
  */
-export const RULE_COLOR = '#c06a00'
-export const SOFT_RULE_COLOR = '#8a4c00'
+export const RULE_COLOR = '#a05800'
+export const SOFT_RULE_COLOR = '#744000'
 /** The separator inside a group: a very faint grey, seen only when looked for. */
 export const INNER_RULE_COLOR = '#3a3a3a'
 

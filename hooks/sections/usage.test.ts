@@ -173,7 +173,7 @@ test('the rule inside a group is fainter than the one between groups', () => {
 
   expect(soft.text).toBe('─'.repeat(12))
   expect(soft.color).toBe('#3a3a3a')
-  expect(rule(12).color).toBe('#c06a00')
+  expect(rule(12).color).toBe('#a05800')
   expect(soft.text).not.toBe(rule(12).text)
   expect(rule(12).text).toBe('━'.repeat(12))
 })
@@ -183,7 +183,7 @@ test('a titled rule carries the name of the section and fills the width', () => 
 
   expect(line.text).toBe('━━ Claude ' + '━'.repeat(20))
   expect(line.text.length).toBe(30)
-  expect(line.color).toBe('#c06a00')
+  expect(line.color).toBe('#a05800')
 })
 
 test('a titled rule never overflows a narrow band', () => {

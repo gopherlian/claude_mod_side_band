@@ -5,7 +5,7 @@ The rules every group follows. If a change breaks one of these, it changes this 
 ## Requirements
 
 **R1.** The separators between groups SHALL be orange: the heavy rule that opens a group (`━━ Claude ━━━…`) in bright
-orange `#c06a00`, and the bars between the columns of the strip (`┊`) in dark orange `#8a4c00`. The rules inside a
+orange `#a05800`, and the bars between the columns of the strip (`┊`) in dark orange `#744000`. The rules inside a
 group SHALL be a thin line across the band (`────`) in a very faint grey `#3a3a3a`, seen only when looked for. The
 footnote sits between that faint grey rule, above it, and the orange rule of a group's name with no title (`━━━━`),
 below it. The credit follows that orange rule at once; with no footnote, it is set apart by a blank row.
@@ -25,7 +25,7 @@ inside keeps its own colours.
 
 **R6.** The credit SHALL be one row, centred like the time, with no frame, no name and no bar:
 `© 2026 a@webtory.es  GNU/GPL` (two spaces before the license), 28 cells, so it fits the band it is designed for. The
-year and the license SHALL be dark orange `#8a4c00`; the email bright orange `#c06a00`. Where the row is wider than the
+year and the license SHALL be dark orange `#744000`; the email bright orange `#a05800`. Where the row is wider than the
 band it SHALL wrap, each row centred, and the email SHALL stay whole.
 
 **R7.** The system palette SHALL be muted and dark. Bar colour / text colour:
