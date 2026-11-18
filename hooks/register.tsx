@@ -35,6 +35,8 @@ import type {
 import { isFresh, mergeShared, parseShared, sharedPath } from './shared'
 import type { Shared } from './shared'
 import { trackTool } from './tools'
+import { PUBLISHED_MANIFEST_URL, UPDATE_EVERY_MS, checkForUpdate } from './update'
+import type { UpdateState } from './update'
 import type { WeatherState } from './widgets/types'
 import { DEFAULT_PLACE, parseWeather, weatherUrl } from './widgets/weather'
 
@@ -65,6 +67,8 @@ export const register: Register = on => {
   let timerNotified = false
   /** While on, the band draws the demonstration's made-up readings; for this session only. */
   let isDemo = false
+  /** Which version of the mod runs, and what became of a newer one; read at session start. */
+  let update: UpdateState | undefined
 
   on('session.start', async ($, e, next) => {
     await $.command.register({
@@ -375,6 +379,37 @@ export const register: Register = on => {
       $.ui.invalidate('ui.render')
     }
 
+    // Looks for a newer version of the mod and installs it where it can (specs/update).
+    const lookForUpdate = async () => {
+      const home = (await $.env.get('HOME').catch(() => undefined)) ?? ''
+      const root = $.plugin.root
+      const found = await checkForUpdate({
+        root,
+        home,
+        readLocal: () => $.fs.read(`${root}/.claude-plugin/plugin.json`),
+        fetchPublished: async () => {
+          const got = await $.http.fetch(PUBLISHED_MANIFEST_URL)
+          if (!got.ok) throw new Error(`update HTTP ${got.status}`)
+
+          return got.text
+        },
+        hasGit: () => $.fs.exists(`${root}/.git`),
+        run: async argv => {
+          const done = await $.process.run(argv, { timeoutMs: 120_000 })
+
+          return { exitCode: done.exitCode, stdout: done.stdout }
+        },
+      })
+      // Once installed, the new version waits for a reload: a later check, which reads it as current, keeps saying so.
+      const isInstalled = update?.status === 'restart' || update?.status === 'reload'
+      if (found && !isInstalled) update = found
+      $.ui.invalidate('ui.render')
+    }
+
+    // Quiet: whatever fails leaves the band as it was.
+    const lookQuietly = () => void lookForUpdate().catch(() => undefined)
+    lookQuietly()
+    $.clock.every(UPDATE_EVERY_MS, lookQuietly)
     void refresh()
     void syncLimits()
     $.clock.every(LIMITS_SYNC_MS, () => void syncLimits())
@@ -539,8 +574,8 @@ export const register: Register = on => {
     }
 
     const context = isDemo
-      ? { now, columns, rows, ...demo(now) }
-      : { now, columns, rows, weather, usage, stats, hardware, system, git, timerEndsAt }
+      ? { now, columns, rows, update, ...demo(now) }
+      : { now, columns, rows, weather, usage, stats, hardware, system, git, timerEndsAt, update }
     const budget = rowBudget(e.props.placement, e.props.scroll?.bodyRows, rows)
     const lines = isStrip
       ? arrangeStrip(context, budget, groups, creditLines(columns))

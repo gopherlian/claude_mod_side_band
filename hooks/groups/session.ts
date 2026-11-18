@@ -3,6 +3,7 @@ import { formatClock, formatDuration } from '../format'
 import { effortCells, modelName, toolSpark } from '../sections/stats'
 import { compactUsageLines, softRule, usageLines } from '../sections/usage'
 import type { Cell, Line } from '../sections/usage'
+import { versionLine } from '../update'
 import type { Group, GroupContext } from './types'
 
 /** The cost stands out in green, the lighter shade of the CPU bar. */
@@ -86,6 +87,7 @@ export const session: Group = {
   id: 'session',
   label: 'Claude',
   priority: 1,
+  heading: (ctx: GroupContext): Line | undefined => (ctx.update ? versionLine(ctx.update, ctx.columns) : undefined),
   lines: (ctx: GroupContext): Line[] => {
     const { usage, stats } = ctx
     const model = modelRow(ctx)

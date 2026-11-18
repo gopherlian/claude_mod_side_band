@@ -187,7 +187,8 @@ temperature first, then the sky, the place, the date, and last how it feels, the
 
 ### 2. Claude
 
-What this session and your plan are using.
+What this session and your plan are using. Right-aligned on the row above its name, dim, is the version of the mod
+that runs (see [Updates](#updates)).
 
 <p align="center"><img src="docs/img/claude.svg" alt="The Claude group"></p>
 
@@ -264,10 +265,25 @@ row centred.
 | RAM · Swap · Disk | purple `#6b21a8` · mustard `#8a6d0b` · teal `#0f766e` |
 | Down · Up | dark lime `#4d7c0f` · slate `#64748b` |
 | Timer done | green |
+| The mod's version · a new one waiting for a reload · one out but not installed | dim · green · yellow |
 
 The system colours live in [`hooks/sections/palette.ts`](hooks/sections/palette.ts): one bar colour per resource and
 a lighter text colour for its name and number. Orange is kept for the separators between groups and the frames. The system bars do
 not turn yellow or red when they fill: each resource keeps its own colour.
+
+## Updates
+
+The mod keeps itself up to date. At session start and then every 6 hours it reads the version published in this
+repository and, when it is newer than the one that runs, installs it the way the mod was installed:
+
+- **From the marketplace:** it runs `claude plugin update side-band@<marketplace>`. The row above `━━ Claude` then
+  reads `v1.2.4: /reload-plugins`: run `/reload-plugins` (or restart Claude Code) to load it.
+- **From a git working copy** (`--plugin-dir`, `CLAUDE_CODE_PLUGIN_DIRS`): it runs `git pull --ff-only`, but only
+  when the copy is on `main` with nothing changed. A copy the session watches reloads itself at once; otherwise the
+  row reads `v1.2.4: restart`.
+- **Anything else**, or a working copy with changes: nothing is installed, and the row reads `v1.2.4 available`.
+
+A failed check or install says nothing: the row keeps showing the version that runs.
 
 ## Versions
 

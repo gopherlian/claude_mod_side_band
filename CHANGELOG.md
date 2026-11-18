@@ -6,6 +6,11 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Added
+- The mod updates itself: at session start and every 6 hours it checks the repository for a newer version and
+  installs it (`claude plugin update` for a marketplace install, `git pull --ff-only` for a clean working copy on
+  `main`). Its version, or what to do to load the new one, is drawn right-aligned above `━━ Claude`.
+
 ## [1.2.3] - 2026-11-18
 
 ### Changed

@@ -400,3 +400,21 @@ test('with no credit given, arrange draws what it drew before', () => {
 
   expect(arrange(c, 500, groups, [])).toEqual(arrange(c, 500))
 })
+
+test('the blank row above the Claude rule carries the version, right-aligned; the other blank rows stay empty', () => {
+  const full = ctx({
+    git: { branch: 'US-1', changed: 0, ahead: 0, behind: 0 },
+    system: { ramPercent: 10 },
+    usage: { contextWindow: 200_000, limits: [] },
+    update: { status: 'current', version: '1.2.3' },
+  })
+  const lines = arrange(full, 200)
+  const claude = lines.findIndex(l => l.text.startsWith('━━ Claude'))
+
+  expect(lines[claude - 1]).toEqual({ text: ' '.repeat(24) + 'v1.2.3', dimColor: true })
+  const others = lines.filter((l, i) => i !== claude - 1 && l.text.trim() === '')
+  expect(others).toEqual([{ text: ' ' }, { text: ' ' }])
+  // Without a reading of the version the row is blank, as before.
+  const bare = arrange({ ...full, update: undefined }, 200)
+  expect(bare[claude - 1]).toEqual({ text: ' ' })
+})

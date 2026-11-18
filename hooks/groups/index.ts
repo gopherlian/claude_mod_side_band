@@ -17,9 +17,9 @@ const creditSeparator = (columns: number): Line[] => [rule(columns)]
 
 /**
  * The lines to draw in `available` rows: every group with something to show,
- * a blank row and a rule between them, dropping whole groups (highest priority
- * number first) until it fits. The first group always stays. Last of all goes
- * `credit`, right under an untitled orange rule, with no blank row around it:
+ * a blank row (which a group's `heading` may fill) and a rule between them,
+ * dropping whole groups (highest priority number first) until it fits. The
+ * first group always stays. Last of all goes `credit`, right under an untitled orange rule, with no blank row around it:
  * whole or not at all, never at the cost of a group.
  */
 export const arrange = (
@@ -41,7 +41,7 @@ export const arrange = (
 
   const out: Line[] = []
   shown.forEach((item, i) => {
-    if (i > 0) out.push(blank(), item.group.label ? titledRule(item.group.label, ctx.columns) : rule(ctx.columns))
+    if (i > 0) out.push(item.group.heading?.(ctx) ?? blank(), item.group.label ? titledRule(item.group.label, ctx.columns) : rule(ctx.columns))
     out.push(...item.lines)
   })
   const foot = [...creditSeparator(ctx.columns), ...credit]

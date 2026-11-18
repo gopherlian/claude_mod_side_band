@@ -49,6 +49,10 @@ const draw = async (
   on: Parameters<Parameters<typeof test>[1]>[1],
   bodyColumns: number,
   paneProps: Record<string, unknown> = {},
+  fakes: {
+    fetch?: (url: string) => string | undefined
+    run?: (argv: string[]) => { exitCode: number; stdout: string } | undefined
+  } = {},
 ) => {
   // Nothing sits beneath the mod: each hook here stands for the engine.
   on('command.register', () => ({ value: { command: 'band' } }))
@@ -57,14 +61,18 @@ const draw = async (
 
     return { value: { isPlaced: true } }
   })
-  on('http.fetch', () => ({ value: { ok: true, status: 200, text: WEATHER } }))
+  on('http.fetch', (_, e) => ({
+    value: { ok: true, status: 200, text: fakes.fetch?.(String((e as { url?: string }).url)) ?? WEATHER },
+  }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('store.get', () => ({ value: undefined }))
   on('store.set', () => ({ value: undefined }))
   on('clock.now', () => ({ value: Date.parse('2026-11-16T10:00:00Z') }))
   on('clock.every', () => ({ value: 1 }))
   on('clock.after', () => ({ value: 1 }))
-  on('process.run', () => ({ value: { exitCode: 1, stdout: '', stderr: '' } }))
+  on('process.run', (_, e) => ({
+    value: { stderr: '', ...(fakes.run?.([...((e as { argv?: readonly string[] }).argv ?? [])]) ?? { exitCode: 1, stdout: '' }) },
+  }))
 
   await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
   const ui = await $.ui.mount({ ...PANE, props: { ...PANE.props, bodyColumns, ...paneProps } })
@@ -281,4 +289,42 @@ test('/band demo draws every element with made-up readings, and turns off again'
 
   expect(((await run('demo')) as { text?: string }).text).toBe('Demo off: the band shows its real readings again.')
   expect(holderOf(await mount(), /inference-api/)).toBeUndefined()
+})
+
+/** Draws the band of a clean working copy on main, `local` installed and `published` out; records the commands run. */
+const drawVersion = async ($: Parameters<typeof draw>[0], on: Parameters<typeof draw>[1], local: string, published: string) => {
+  const ran: string[][] = []
+  on('env.get', () => ({ value: '/home/test' }))
+  on('fs.exists', () => ({ value: true }))
+  on('fs.read', (_, e) => ({
+    value: String((e as { path?: string }).path).endsWith('plugin.json') ? JSON.stringify({ version: local }) : '[]',
+  }))
+  on('fs.write', () => ({ value: undefined }))
+  const tree = await draw($, on, 40, { scroll: { offset: 0, bodyRows: 200 } }, {
+    fetch: url => (url.endsWith('plugin.json') ? JSON.stringify({ version: published }) : undefined),
+    run: argv => {
+      if (argv[0] !== 'git') return undefined
+      ran.push(argv)
+
+      return { exitCode: 0, stdout: argv.includes('rev-parse') ? 'main\n' : '' }
+    },
+  })
+  const texts = textsOf(tree)
+
+  return { above: texts[texts.findIndex(t => t.startsWith('━━ Claude')) - 1] ?? '', ran }
+}
+
+test('the row above the Claude rule ends with the version that runs, and nothing is installed when it is the latest', async ($, on) => {
+  const { above, ran } = await drawVersion($, on, '1.2.3', '1.2.3')
+
+  expect(above.trim()).toBe('v1.2.3')
+  expect(above.endsWith('v1.2.3')).toBe(true)
+  expect(ran.some(argv => argv.includes('pull'))).toBe(false)
+})
+
+test('a clean working copy on main pulls a newer version and asks for a restart', async ($, on) => {
+  const { above, ran } = await drawVersion($, on, '1.2.3', '1.2.4')
+
+  expect(above.trim()).toBe('v1.2.4: restart')
+  expect(ran.at(-1)?.slice(-2)).toEqual(['pull', '--ff-only'])
 })

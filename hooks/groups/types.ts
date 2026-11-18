@@ -1,6 +1,7 @@
 import type { GitStatus, Hardware, SystemStats } from '../monitor/types'
 import type { Category } from '../sections/context'
 import type { Line, UsageData } from '../sections/usage'
+import type { UpdateState } from '../update'
 import type { WeatherState } from '../widgets/types'
 
 /** What the mod itself observes about the Claude session. */
@@ -37,6 +38,8 @@ export type GroupContext = {
   git?: GitStatus
   /** When the countdown ends, in `$.clock.now()` milliseconds. */
   timerEndsAt?: number
+  /** Which version of the mod runs, and what became of a newer one; absent until it is read. */
+  update?: UpdateState
   /** In the strip: the rows this column may fill, its title not counted. Absent where the band is stacked. */
   budget?: number
 }
@@ -62,6 +65,8 @@ export type Group = {
   label?: string
   priority: number
   lines: (ctx: GroupContext) => Line[]
+  /** What the blank row above the group's rule carries in the stacked band; blank where it gives nothing. */
+  heading?: (ctx: GroupContext) => Line | undefined
   /** How the group draws as a column of the strip; a group without it is left out of the strip. */
   strip?: Strip
 }
