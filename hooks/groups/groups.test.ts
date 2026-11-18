@@ -175,7 +175,7 @@ test('the session group draws the cost, the tools chart, the turn and the model,
 test('what fills the context is drawn under the bar, never listing the free space or the reserve as a consumer', () => {
   const lines = session.lines(busy()).map(l => l.text)
 
-  expect(lines.slice(2, 4)).toEqual(['▒ buffer 33k  ■ msgs 30k', '■ sys 12k'])
+  expect(lines.slice(3, 5)).toEqual(['▒ buffer 33k  ■ msgs 30k', '■ sys 12k'])
   expect(lines.join('\n')).not.toMatch(/free|autocompact/i)
 })
 
@@ -405,8 +405,8 @@ test('a blank row sits between one group and the next, never at the edges', () =
   const blanks = texts.flatMap((t, i) => (t.trim() === '' ? [i] : []))
   const rules = texts.flatMap((t, i) => (t.startsWith('━━ ') ? [i] : []))
 
-  expect(blanks.length).toBe(3)
-  expect(blanks).toEqual(rules.map(i => i - 1))
+  // The Claude group also breathes inside (around its bars), so every rule has a blank above it, and more.
+  expect(rules.every(i => blanks.includes(i - 1))).toBe(true)
   expect(texts[0].trim()).not.toBe('')
   expect(texts[texts.length - 1].trim()).not.toBe('')
   // Inside a group nothing is added: the system group keeps its own plain rules and no blank.
