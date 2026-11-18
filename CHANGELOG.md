@@ -6,6 +6,13 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-11-18
+
+### Changed
+- The credit has no frame: the same two centred rows, with the same colours.
+- The footnote that explains the pace tick is shorter: `┃ inside the fill: over pace; beyond it: under pace.`
+- The rules inside a group are more discreet: spaced dots (`· · · ·`) in a darker orange `#7a4300`.
+
 ## [1.1.1] - 2026-11-18
 
 ### Changed
