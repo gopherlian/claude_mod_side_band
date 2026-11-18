@@ -6,6 +6,8 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-11-18
+
 ### Changed
 - The Context label, its bar and the legend sit together again, with no blank rows between them.
 
