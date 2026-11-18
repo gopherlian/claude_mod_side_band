@@ -5,7 +5,6 @@ import { formatShortTime } from '../widgets/clock'
 import { containerLine } from '../sections/docker'
 import { rateLine } from '../sections/monitor'
 import { creditLines } from '../sections/credit'
-import { footRule } from '../sections/usage'
 import { arrange, groups } from './index'
 import { project } from './project'
 import { session } from './session'
@@ -168,7 +167,7 @@ test('the session group draws the cost, the tools chart, the turn and the model,
   expect(lines.find(l => l.startsWith('tools'))).toMatch(/^tools [·▂▃▄▅▆▇█]{10} 7 ▸ Bash$/)
   expect(lines).toContain('turn 0:42')
   expect(lines).toContain('Sonnet 5.5 ●●○○○ medium')
-  expect(lines[lines.length - 2]).toBe('· '.repeat(15))
+  expect(lines[lines.length - 2]).toBe('─'.repeat(30))
   expect(lines.every(l => l.length <= 30)).toBe(true)
 })
 
@@ -226,7 +225,7 @@ test('the session group has a footnote that explains the tick', () => {
 
 const bare = () => groups.map(group => ({ ...group, footnote: undefined }))
 
-test('footnotes go at the foot after a blank row and a short rule, whole, only where rows are left over', () => {
+test('footnotes go at the foot after a blank row, with no rule, whole, only where rows are left over', () => {
   const c = paced()
   const note = session.footnote!(c)
   const full = arrange(c, 500)
@@ -234,8 +233,8 @@ test('footnotes go at the foot after a blank row and a short rule, whole, only w
 
   expect(note.length).toBeGreaterThan(1)
   expect(full.slice(-note.length)).toEqual(note)
-  expect(full.slice(-note.length - 2, -note.length)).toEqual([{ text: ' ' }, footRule(30)])
-  expect(full.length).toBe(without.length + note.length + 2)
+  expect(full.slice(-note.length - 1, -note.length)).toEqual([{ text: ' ' }])
+  expect(full.length).toBe(without.length + note.length + 1)
   expect(arrange(c, full.length)).toEqual(full)
   expect(arrange(c, full.length - 1)).toEqual(without)
 })
@@ -260,9 +259,9 @@ test('a footnote never costs a widget a row: what drops is what dropped without 
       expect(withNote).toEqual(without)
       continue
     }
-    expect(withNote.length).toBe(without.length + note.length + 2)
+    expect(withNote.length).toBe(without.length + note.length + 1)
     expect(withNote.slice(0, without.length)).toEqual(without)
-    expect(withNote.slice(without.length)).toEqual([{ text: ' ' }, footRule(40), ...note])
+    expect(withNote.slice(without.length)).toEqual([{ text: ' ' }, ...note])
   }
 })
 
@@ -276,7 +275,6 @@ test('a group that was dropped leaves its footnote out too', () => {
     '━'.repeat(30),
     'dropped',
     ' ',
-    '┈'.repeat(10),
     'its note',
   ])
   expect(arrange(ctx(), 1, [kept, dropped]).map(l => l.text)).toEqual(['kept'])
@@ -298,15 +296,15 @@ test('the system group adds memory, disk, network and docker to the bars', () =>
   expect(texts).toContain(down)
   expect(texts).toContain(rateLine('Up', 2048, 1048576, 30).text)
   expect(down).toBe('Down    ' + '█'.repeat(7) + '─'.repeat(7) + '  512K/s')
-  expect(texts[texts.indexOf(down) - 1]).toBe('· '.repeat(15))
+  expect(texts[texts.indexOf(down) - 1]).toBe('─'.repeat(30))
   expect(texts.some(t => t.includes('↓') || t.includes('↑'))).toBe(false)
   expect(texts).toContain('docker · 2 running')
   expect(texts).toContain(containerLine('api', 30).text)
   expect(texts).toContain(containerLine('db', 30).text)
   expect(texts.some(t => t.startsWith('●'))).toBe(false)
   // One network: the only inner separators are the two before the network and docker blocks.
-  expect(texts.filter(t => t.startsWith('· ·')).length).toBe(2)
-  expect(texts[texts.indexOf('docker · 2 running') - 1]).toBe('· '.repeat(15))
+  expect(texts.filter(t => /^─+$/.test(t)).length).toBe(2)
+  expect(texts[texts.indexOf('docker · 2 running') - 1]).toBe('─'.repeat(30))
   expect(texts.some(t => t.startsWith('Swap'))).toBe(false)
 })
 
@@ -374,7 +372,7 @@ test('every separator inside a group is the faint one, so none is mistaken for a
   const texts = arrange(rich, 200).map(l => l.text)
 
   // Claude after the bars and before the model, System before the network and docker blocks, docker between networks.
-  expect(texts.filter(t => /^(· )+$/.test(t)).length).toBe(5)
+  expect(texts.filter(t => /^─+$/.test(t)).length).toBe(5)
   expect(texts.filter(t => t.startsWith('━━ ')).length).toBe(3)
   expect(texts.filter(t => /^━+$/.test(t))).toEqual([])
   expect(texts.some(t => t.startsWith('┄'))).toBe(false)
@@ -424,7 +422,7 @@ test('docker lists at most five names and counts the rest; none running is said'
   expect(system.lines(ctx()).some(l => l.text.startsWith('docker'))).toBe(false)
 })
 
-test('the credit goes last, after a blank row and a short rule, whole, only where rows are left over', () => {
+test('the credit goes last, after a blank row, with no rule, whole, only where rows are left over', () => {
   const c = paced()
   const credit = creditLines(30)
   const plain = arrange(c, 500)
@@ -432,9 +430,9 @@ test('the credit goes last, after a blank row and a short rule, whole, only wher
 
   expect(credit.length).toBeGreaterThan(1)
   expect(full.slice(-credit.length)).toEqual(credit)
-  expect(full.slice(-credit.length - 2, -credit.length)).toEqual([{ text: ' ' }, footRule(30)])
+  expect(full.slice(-credit.length - 1, -credit.length)).toEqual([{ text: ' ' }])
   expect(full.slice(0, plain.length)).toEqual(plain)
-  expect(full.length).toBe(plain.length + credit.length + 2)
+  expect(full.length).toBe(plain.length + credit.length + 1)
   expect(arrange(c, full.length, groups, credit)).toEqual(full)
   expect(arrange(c, full.length - 1, groups, credit)).toEqual(arrange(c, full.length - 1))
 })
@@ -452,7 +450,7 @@ test('the credit never costs a widget or a footnote a row', () => {
       continue
     }
     expect(credited.slice(0, plain.length)).toEqual(plain)
-    expect(credited.slice(plain.length)).toEqual([{ text: ' ' }, footRule(40), ...credit])
+    expect(credited.slice(plain.length)).toEqual([{ text: ' ' }, ...credit])
   }
 })
 

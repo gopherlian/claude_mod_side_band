@@ -255,8 +255,8 @@ wraps, each row centred.
 | What | Colour |
 | --- | --- |
 | Separators between groups, the group names, the time frame | bright orange `#ff8c00` |
-| Short rules before the footnote and the credit, the credit | dark orange `#b36200` |
-| Rules inside a group (`· · · ·`) | darker orange `#7a4300` |
+| The credit | dark orange `#b36200` |
+| Rules inside a group (`────`) | very faint grey `#3a3a3a` |
 | The pace tick `┃` | green |
 | Session and Weekly bars, the Context label and percent | default, **yellow from 70%** and **red from 85%** of the window |
 | Context runs | messages blue `#2b6cb0` · system violet `#6b21a8` · MCP teal `#0f766e` · other amber `#8a6d0b` · reserve grey `#64748b` |
@@ -267,7 +267,7 @@ wraps, each row centred.
 | Timer done | green |
 
 The system colours live in [`hooks/sections/palette.ts`](hooks/sections/palette.ts): one bar colour per resource and
-a lighter text colour for its name and number. Orange is kept for the separators and frames. The system bars do
+a lighter text colour for its name and number. Orange is kept for the separators between groups and the frames. The system bars do
 not turn yellow or red when they fill: each resource keeps its own colour.
 
 ## Versions

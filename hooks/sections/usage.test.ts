@@ -3,7 +3,6 @@ import { expect, test } from 'claude-code/testing'
 import {
   bar,
   colorFor,
-  footRule,
   formatTokens,
   meter,
   paceNote,
@@ -71,14 +70,6 @@ test('the pace note is only there while a tick is drawn', () => {
   expect(paceNote(windows(), 30)).toEqual([])
   expect(paceNote(undefined, 30, NOW)).toEqual([])
   expect(paceNote({ contextWindow: 200_000, limits: [] }, 30, NOW)).toEqual([])
-})
-
-test('a short faint rule sets the footnotes apart from the band', () => {
-  expect(footRule(30)).toEqual({ text: '┈'.repeat(10), color: '#b36200' })
-  expect(footRule(12).text).toBe('┈'.repeat(4))
-  expect(footRule(6).text).toBe('┈'.repeat(3))
-  expect(footRule(2).text).toBe('┈┈')
-  expect(footRule(30).text).not.toBe(softRule(30).text)
 })
 
 test('with no tick on the meters there is no pace note', () => {
@@ -180,9 +171,8 @@ test('without the breakdown the context bar is the plain one, as before', () => 
 test('the rule inside a group is fainter than the one between groups', () => {
   const soft = softRule(12)
 
-  expect(soft.text).toBe('· '.repeat(6))
-  expect(soft.color).toBe('#7a4300')
-  expect(softRule(5).text).toBe('· · ·')
+  expect(soft.text).toBe('─'.repeat(12))
+  expect(soft.color).toBe('#3a3a3a')
   expect(rule(12).color).toBe('#ff8c00')
   expect(soft.text).not.toBe(rule(12).text)
   expect(rule(12).text).toBe('━'.repeat(12))

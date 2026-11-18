@@ -85,8 +85,8 @@ const elapsedShare = (limit: Limit | undefined, now: number | undefined): number
  */
 export const RULE_COLOR = '#ff8c00'
 export const SOFT_RULE_COLOR = '#b36200'
-/** The separator inside a group, darker still: it should be seen only when looked for. */
-export const INNER_RULE_COLOR = '#7a4300'
+/** The separator inside a group: a very faint grey, seen only when looked for. */
+export const INNER_RULE_COLOR = '#3a3a3a'
 
 /** The heavy line that opens a group. Inside a group, `softRule` is used. */
 export const rule = (columns: number): Line => ({
@@ -95,22 +95,12 @@ export const rule = (columns: number): Line => ({
 })
 
 /**
- * A discreet line between blocks inside a group: spaced dots in a dark orange,
- * far less ink than the solid `rule` that opens a group, and unlike the thin
- * track `─` of the bars.
+ * A discreet line between blocks inside a group: a thin line across the band in
+ * a very faint grey, far less ink than the orange `rule` that opens a group.
  */
 export const softRule = (columns: number): Line => ({
-  text: Array.from({ length: columns }, (_, i) => (i % 2 === 0 ? '·' : ' ')).join(''),
+  text: '─'.repeat(columns),
   color: INNER_RULE_COLOR,
-})
-
-/**
- * The short faint rule that sets the footnotes apart from the band: about a
- * third of its width, so it is not taken for a group or an inner separator.
- */
-export const footRule = (columns: number): Line => ({
-  text: '┈'.repeat(Math.min(columns, Math.max(3, Math.floor(columns / 3)))),
-  color: SOFT_RULE_COLOR,
 })
 
 /**

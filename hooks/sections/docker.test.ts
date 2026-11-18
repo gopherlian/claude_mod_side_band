@@ -54,11 +54,11 @@ test('one network gives just the bars, with nothing between them', () => {
   expect(texts(lines)).toEqual([containerLine('a', 20).text, containerLine('b', 20).text])
 })
 
-test('several networks put a discreet dotted row between the groups', () => {
+test('several networks put a faint grey line between the groups', () => {
   const lines = dockerLines([c('a', 'x'), c('b', 'y')], 20, 5)
 
-  expect(texts(lines)).toEqual([containerLine('a', 20).text, '· '.repeat(10), containerLine('b', 20).text])
-  expect(lines[1].color).toBe('#7a4300')
+  expect(texts(lines)).toEqual([containerLine('a', 20).text, '─'.repeat(20), containerLine('b', 20).text])
+  expect(lines[1].color).toBe('#3a3a3a')
 })
 
 test('the cap counts containers, not separators, and the rest are counted', () => {
@@ -67,7 +67,7 @@ test('the cap counts containers, not separators, and the rest are counted', () =
   expect(texts(lines)).toEqual([
     containerLine('a', 20).text,
     containerLine('b', 20).text,
-    '· '.repeat(10),
+    '─'.repeat(20),
     containerLine('c', 20).text,
     '+1 more',
   ])

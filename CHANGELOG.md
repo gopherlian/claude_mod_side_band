@@ -6,6 +6,10 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- No rule before the footnote and the credit: a blank row sets them apart.
+- The rules inside a group are a thin line in a very faint grey `#3a3a3a`.
+
 ## [1.1.2] - 2026-11-18
 
 ### Changed

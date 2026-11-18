@@ -48,7 +48,8 @@ breaking change, minor for a new feature, patch for a fix or a restyle.
   line by line. A hooks module imports only its own files by relative path and `claude-code`: no `node:fs`.
 - **`dimColor` replaces a colour** on the terminal with the theme's dim one: never dim a row that has a colour. A row
   with more than one colour is drawn from `cells`.
-- **Orange is for separators and frames.** No resource uses it. See `specs/appearance/spec.md`.
+- **Orange is for the separators between groups and the frames.** No resource uses it; the rules inside a group are
+  a faint grey. See `specs/appearance/spec.md`.
 - **Language.** Code, comments, UI text, specs and docs are in English.
 - **Commits** follow Conventional Commits (`feat:`, `fix:`, `style:`, `docs:`, `test:`, `refactor:`), with no
   `Co-Authored-By` or AI attribution. Commit identity for this repository is set in its local git config.
