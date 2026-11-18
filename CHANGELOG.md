@@ -6,6 +6,8 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-18
+
 ### Added
 - The mod updates itself: at session start and every 6 hours it checks the repository for a newer version and
   installs it (`claude plugin update` for a marketplace install, `git pull --ff-only` for a clean working copy on
