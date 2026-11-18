@@ -6,6 +6,11 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-11-18
+
+### Changed
+- `/band demo` and the README screenshots show new example names for the containers and the branch.
+
 ## [1.3.0] - 2026-11-18
 
 ### Added
