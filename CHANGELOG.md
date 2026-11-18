@@ -6,15 +6,17 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-18
+
+### Added
+- `/band demo` turns a demonstration on or off: the band draws every element with made-up readings that move, so all
+  of it can be seen working on any machine. It lasts for the session and is never shared.
+
 ### Changed
 - The footnote sits between a faint grey rule above it and an untitled orange rule below it, and the credit follows
   that rule at once.
 - The oranges are darker: `#a05800` for the rules, the group names, the clock's frame and the email (was `#ff8c00`),
   `#744000` for the credit and the strip's bars (was `#b36200`).
-
-### Added
-- `/band demo` turns a demonstration on or off: the band draws every element with made-up readings that move, so all
-  of it can be seen working on any machine. It lasts for the session and is never shared.
 
 ## [1.1.2] - 2026-11-18
 
