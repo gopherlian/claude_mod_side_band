@@ -33,8 +33,9 @@ dropped.
 
 **R6.** When rows are left after the groups, the band SHALL draw, in this order, each whole or not at all: the
 footnotes of the groups shown (between the faint grey rule of a group's inside above them and the orange rule of a
-group's name, untitled, below them), then the credit (after a blank row). They SHALL NOT take the place of a group. In the strip (R13) there is no footnote, and the credit
-follows the columns after a blank row, where the pane has rows left for all of it.
+group's name, untitled, below them), then the credit (right under that rule; after a blank row where there is no
+footnote). They SHALL NOT take the place of a group. In the strip (R13) there is no footnote, and the credit follows
+the columns after a blank row, where the pane has rows left for all of it.
 
 **R13 (strip).** Where the pane is not docked (it sits inline above the prompt, or as a widget), the band SHALL draw
 its groups side by side, as columns, in the order Time, Claude, Project, System, instead of stacked. A docked band

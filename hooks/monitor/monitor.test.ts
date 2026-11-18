@@ -99,7 +99,7 @@ test('every resource bar has its own colour: CPU and GPU keep their own, never t
     RESOURCE_COLORS.npu,
   ])
   expect(new Set(Object.values(RESOURCE_COLORS)).size).toBe(Object.values(RESOURCE_COLORS).length)
-  expect(Object.values(RESOURCE_COLORS)).not.toContain('#ff8c00')
+  expect(Object.values(RESOURCE_COLORS)).not.toContain('#c06a00')
 })
 
 test('the label and the percent are a lighter shade of the resource colour and the bar keeps the darker one', () => {
@@ -115,5 +115,5 @@ test('the label and the percent are a lighter shade of the resource colour and t
 test('every resource has a lighter text colour of its own, none orange', () => {
   expect(Object.keys(RESOURCE_TEXT_COLORS).sort()).toEqual(Object.keys(RESOURCE_COLORS).sort())
   expect(new Set(Object.values(RESOURCE_TEXT_COLORS)).size).toBe(Object.values(RESOURCE_TEXT_COLORS).length)
-  expect(Object.values(RESOURCE_TEXT_COLORS)).not.toContain('#ff8c00')
+  expect(Object.values(RESOURCE_TEXT_COLORS)).not.toContain('#c06a00')
 })

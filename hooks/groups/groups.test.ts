@@ -352,7 +352,7 @@ test('every group but the time one is named, on the line that separates it from 
     '━━ System',
   ])
   expect(texts.every(t => t.length <= 30)).toBe(true)
-  expect(lines.filter(l => l.text.startsWith('━━ ')).every(l => l.color === '#ff8c00')).toBe(true)
+  expect(lines.filter(l => l.text.startsWith('━━ ')).every(l => l.color === '#c06a00')).toBe(true)
   // Each boundary is a blank row and then the rule that names the section.
   const own = groups.reduce((sum, g) => sum + g.lines(full).length, 0)
   expect(lines.length).toBe(own + 6)
@@ -426,19 +426,27 @@ test('docker lists at most five names and counts the rest; none running is said'
   expect(system.lines(ctx()).some(l => l.text.startsWith('docker'))).toBe(false)
 })
 
-test('the credit goes last, after a blank row, with no rule, whole, only where rows are left over', () => {
+test('the credit goes last, right under the orange rule of the footnote, whole, only where rows are left over', () => {
   const c = paced()
   const credit = creditLines(30)
   const plain = arrange(c, 500)
   const full = arrange(c, 500, groups, credit)
 
   expect(credit.length).toBe(1)
-  expect(full.slice(-credit.length)).toEqual(credit)
-  expect(full.slice(-credit.length - 1, -credit.length)).toEqual([{ text: ' ' }])
+  expect(full.slice(-credit.length - 1)).toEqual([rule(30), ...credit])
   expect(full.slice(0, plain.length)).toEqual(plain)
-  expect(full.length).toBe(plain.length + credit.length + 1)
+  expect(full.length).toBe(plain.length + credit.length)
   expect(arrange(c, full.length, groups, credit)).toEqual(full)
   expect(arrange(c, full.length - 1, groups, credit)).toEqual(arrange(c, full.length - 1))
+})
+
+test('with no footnote the credit keeps a blank row above it', () => {
+  const c = ctx({ usage: { contextWindow: 200_000, limits: [] } })
+  const credit = creditLines(30)
+  const full = arrange(c, 500, groups, credit)
+
+  expect(full.slice(-credit.length - 1)).toEqual([{ text: ' ' }, ...credit])
+  expect(full.length).toBe(arrange(c, 500).length + credit.length + 1)
 })
 
 test('the credit never costs a widget or a footnote a row', () => {
@@ -454,7 +462,9 @@ test('the credit never costs a widget or a footnote a row', () => {
       continue
     }
     expect(credited.slice(0, plain.length)).toEqual(plain)
-    expect(credited.slice(plain.length)).toEqual([{ text: ' ' }, ...credit])
+    // Under a footnote the credit follows its rule at once; without one, after a blank row.
+    const noted = plain.at(-1)?.text === rule(40).text
+    expect(credited.slice(plain.length)).toEqual(noted ? credit : [{ text: ' ' }, ...credit])
   }
 })
 

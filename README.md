@@ -256,8 +256,8 @@ row centred.
 
 | What | Colour |
 | --- | --- |
-| Separators between groups, the group names, the time frame | bright orange `#ff8c00` |
-| The credit | dark orange `#b36200` |
+| Separators between groups, the group names, the time frame | bright orange `#c06a00` |
+| The credit | dark orange `#8a4c00` |
 | Rules inside a group (`────`) | very faint grey `#3a3a3a` |
 | The pace tick `┃` | green |
 | Session and Weekly bars, the Context label and percent | default, **yellow from 70%** and **red from 85%** of the window |

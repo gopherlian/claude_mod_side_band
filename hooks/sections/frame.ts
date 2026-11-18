@@ -5,7 +5,7 @@ import type { Cell, Line } from './usage'
 export const FRAME_COLUMNS = 4
 
 /** The frame is orange, like the heavy rules between sections. */
-export const FRAME_COLOR = '#ff8c00'
+export const FRAME_COLOR = '#c06a00'
 
 /** The characters a frame is drawn with. */
 export type Glyphs = { tl: string; tr: string; bl: string; br: string; h: string; v: string }
