@@ -6,6 +6,8 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-11-18
+
 ### Changed
 - A group's name now has a blank row below it as well as above it, so it sits apart from the group's content.
 - In the Claude group a blank row sets the `Context` label, its bar and the legend apart.
