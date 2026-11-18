@@ -6,6 +6,9 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- A group's name now has a blank row below it as well as above it, so it sits apart from the group's content.
+
 ## [1.2.0] - 2026-11-18
 
 ### Added

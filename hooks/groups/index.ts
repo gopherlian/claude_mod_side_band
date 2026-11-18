@@ -9,15 +9,15 @@ import type { Line } from '../sections/usage'
 /** Display order, top to bottom. Add a theme by appending it. */
 export const groups: Group[] = [time, session, project, system]
 
-/** Between two groups: a blank row, then the rule that names the second. */
-const SEPARATOR_ROWS = 2
+/** Between two groups: the rule that names the second, with a blank row on each side. */
+const SEPARATOR_ROWS = 3
 
 /** Around the footnotes: the faint grey rule above them and the orange rule, untitled, below them. */
 const FOOTNOTE_SEPARATOR_ROWS = 2
 
 /**
  * The lines to draw in `available` rows: every group with something to show,
- * a blank row and a rule between them, dropping whole groups (highest
+ * a rule between them with a blank row on each side, dropping whole groups (highest
  * priority number first) until it fits. The first group always stays. Then,
  * if rows are left, the footnotes of the groups shown go at the foot, between
  * the faint grey rule of a group's inside and the orange rule of a group's
@@ -48,7 +48,7 @@ export const arrange = (
 
   const out: Line[] = []
   shown.forEach((item, i) => {
-    if (i > 0) out.push(blank(), item.group.label ? titledRule(item.group.label, ctx.columns) : rule(ctx.columns))
+    if (i > 0) out.push(blank(), item.group.label ? titledRule(item.group.label, ctx.columns) : rule(ctx.columns), blank())
     out.push(...item.lines)
   })
   if (noted) out.push(softRule(ctx.columns), ...notes.flat(), rule(ctx.columns))

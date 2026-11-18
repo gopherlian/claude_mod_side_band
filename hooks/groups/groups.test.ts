@@ -276,6 +276,7 @@ test('a group that was dropped leaves its footnote out too', () => {
     'kept',
     ' ',
     '━'.repeat(30),
+    ' ',
     'dropped',
     '─'.repeat(30),
     'its note',
@@ -323,12 +324,12 @@ test('when rows run short the highest priority number is dropped first, whole', 
     return groups.filter(g => g.lines(full).every(l => lines.some(x => x.text === l.text))).map(g => g.id)
   }
   expect(ids(200)).toEqual(['time', 'session', 'project', 'system'])
-  // Each boundary between groups takes two rows: a blank one and the rule.
+  // Each boundary between groups takes three rows: a blank one, the rule and another blank one.
   const base = time.lines(full).length + session.lines(full).length + project.lines(full).length
-  const noSystem = arrange(full, base + 4)
+  const noSystem = arrange(full, base + 6)
   expect(noSystem.some(l => l.text.startsWith('RAM'))).toBe(false)
   expect(noSystem.some(l => l.text === 'US-1')).toBe(true)
-  const noProject = arrange(full, base + 3)
+  const noProject = arrange(full, base + 5)
   expect(noProject.some(l => l.text === 'US-1')).toBe(false)
   expect(noProject.some(l => l.text.startsWith('━━ Claude'))).toBe(true)
   const onlyTime = arrange(full, 1)
@@ -353,9 +354,9 @@ test('every group but the time one is named, on the line that separates it from 
   ])
   expect(texts.every(t => t.length <= 30)).toBe(true)
   expect(lines.filter(l => l.text.startsWith('━━ ')).every(l => l.color === '#a05800')).toBe(true)
-  // Each boundary is a blank row and then the rule that names the section.
+  // Each boundary is the rule that names the section with a blank row on each side.
   const own = groups.reduce((sum, g) => sum + g.lines(full).length, 0)
-  expect(lines.length).toBe(own + 6)
+  expect(lines.length).toBe(own + 9)
 })
 
 test('every separator inside a group is the faint one, so none is mistaken for a group boundary', () => {
@@ -382,7 +383,7 @@ test('every separator inside a group is the faint one, so none is mistaken for a
   expect(texts.some(t => t.startsWith('┄'))).toBe(false)
 })
 
-test('a blank row sits between one group and the next, never at the edges', () => {
+test('a blank row sits on each side of the rule that names a group, never at the edges', () => {
   const full = ctx({
     git: { branch: 'US-1', changed: 0, ahead: 0, behind: 0 },
     system: { ramPercent: 10 },
@@ -392,12 +393,12 @@ test('a blank row sits between one group and the next, never at the edges', () =
   const blanks = texts.flatMap((t, i) => (t.trim() === '' ? [i] : []))
   const rules = texts.flatMap((t, i) => (t.startsWith('━━ ') ? [i] : []))
 
-  expect(blanks.length).toBe(3)
-  expect(blanks).toEqual(rules.map(i => i - 1))
+  expect(blanks.length).toBe(6)
+  expect(blanks).toEqual(rules.flatMap(i => [i - 1, i + 1]))
   expect(texts[0].trim()).not.toBe('')
   expect(texts[texts.length - 1].trim()).not.toBe('')
   // Inside a group nothing is added: the system group keeps its own plain rules and no blank.
-  const system = texts.slice(rules[2])
+  const system = texts.slice(rules[2] + 2)
   expect(system.some(t => t.trim() === '')).toBe(false)
 })
 
@@ -407,7 +408,7 @@ test('a group dropped for lack of rows takes its name with it', () => {
     system: { ramPercent: 10 },
     usage: { contextWindow: 200_000, limits: [] },
   })
-  const rows = time.lines(full).length + session.lines(full).length + project.lines(full).length + 4
+  const rows = time.lines(full).length + session.lines(full).length + project.lines(full).length + 6
   const texts = arrange(full, rows).map(l => l.text)
 
   expect(texts.some(t => t.startsWith('━━ System'))).toBe(false)

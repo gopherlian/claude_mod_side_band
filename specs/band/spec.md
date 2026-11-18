@@ -19,7 +19,8 @@ of content and never more than 45% of the window, with 2 columns of padding on e
 - *Given* it was never hidden, *When* a session starts, *Then* the band is open.
 
 **R3.** The band SHALL draw its groups in this order, top to bottom: Time, Claude, Project, System. Every group
-after the first SHALL be preceded by a blank row and a titled rule (`━━ Claude ━━━…`); the Time group has no title.
+after the first SHALL be preceded by a titled rule (`━━ Claude ━━━…`) with a blank row above it and another below it; the Time group
+has no title.
 
 **R4.** When a docked band has fewer rows than its groups need, it SHALL scroll (mouse wheel; arrow keys while it
 has focus) and SHALL NOT drop any group. Where it cannot scroll, it SHALL drop whole groups, highest priority
