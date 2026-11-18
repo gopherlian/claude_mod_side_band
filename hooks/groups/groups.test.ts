@@ -75,16 +75,16 @@ test('the time group shows the outlook and a running timer', () => {
 const withIcon = (over: Partial<GroupContext> = {}) =>
   ctx({ ...over, weather: { ...ctx().weather, icon: '☂' } })
 
-test('the weather icon leads the rain row, set apart by a separator: one cell and ` · `', () => {
+test('the weather icon leads the rain row, set apart by two spaces and a dot', () => {
   const joined = '↑24° ↓15° · rain 30% · UV 6'
   const rows = (columns: number) => time.lines(withIcon({ columns })).map(l => l.text)
 
-  expect(rows(60)).toContain('☂ · ' + joined)
-  expect(rows(joined.length + 4)).toContain('☂ · ' + joined)
+  expect(rows(60)).toContain('☂  · ' + joined)
+  expect(rows(joined.length + 5)).toContain('☂  · ' + joined)
 
-  const narrow = rows(joined.length + 3)
-  expect(narrow).not.toContain('☂ · ' + joined)
-  expect(narrow).toContain('☂ · ↑24° ↓15° · rain 30%')
+  const narrow = rows(joined.length + 4)
+  expect(narrow).not.toContain('☂  · ' + joined)
+  expect(narrow).toContain('☂  · ↑24° ↓15° · rain 30%')
   expect(narrow).toContain('UV 6')
 })
 

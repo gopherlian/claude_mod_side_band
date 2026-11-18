@@ -15,8 +15,9 @@ important first: wind, humidity, how it feels, date, place, sky; the temperature
 - *Given* the weather `22°C`, `Overcast`, Valencia, *Then* a row reads `22°C · Overcast · Valencia · feels 20° ·
   56% · 20 km/h · Tue 17 Nov` when the frame is wide enough.
 
-**R3.** Under the frame the group SHALL draw today's outlook, dimmed and centred: the icon, set apart by ` · `, then
-high and low (`↑24° ↓15°`), chance of rain (`rain 3%`) and the UV index (`UV 3`): `☁ · ↑24° ↓15° · rain 3% · UV 3`.
+**R3.** Under the frame the group SHALL draw today's outlook, dimmed and centred: the icon, set apart by two spaces and a
+dot (terminals often draw the icon two cells wide), then high and low (`↑24° ↓15°`), chance of rain (`rain 3%`) and the
+UV index (`UV 3`): `☁  · ↑24° ↓15° · rain 3% · UV 3`.
 Sunrise and sunset are not drawn, so the row is short enough to sit centred. When it does not fit on one row, the UV
 index takes a row of its own, centred, uncut.
 

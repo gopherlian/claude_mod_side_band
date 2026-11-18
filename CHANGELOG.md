@@ -13,7 +13,7 @@ All notable changes to this mod are written here. The format follows
 - The footnote that explains the pace tick is shorter: `┃ inside the fill: over pace; beyond it: under pace.`
 - The rules inside a group are more discreet: a thin line in a very faint grey `#3a3a3a`.
 - No rule before the footnote and the credit: a blank row sets them apart.
-- The outlook under the clock sets the weather icon apart with ` · ` and leaves out sunrise and sunset, so it sits
+- The outlook under the clock sets the weather icon apart with two spaces and ` · ` and leaves out sunrise and sunset, so it sits
   centred on one row.
 
 ## [1.1.1] - 2026-11-18

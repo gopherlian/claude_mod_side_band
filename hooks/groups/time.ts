@@ -58,9 +58,10 @@ const outlookLines = (ctx: GroupContext): Line[] => {
   // One row when both fit side by side. When they do not (a tall, narrow
   // band) each keeps its own row, uncut, centered.
   const joined = outlook.join(' · ')
-  // The icon leads the first row, set apart by ` · ` like the rest; the row is cut around it.
-  const lead = ctx.weather.icon ? `${ctx.weather.icon} · ` : ''
-  const leadCells = lead ? ICON_CELLS + 3 : 0
+  // The icon leads the first row, set apart by ` · ` like the rest. Terminals often draw the icon two cells wide
+  // over the one it is given, so a second space keeps the dot clear of it. The row is cut around it.
+  const lead = ctx.weather.icon ? `${ctx.weather.icon}  · ` : ''
+  const leadCells = lead ? ICON_CELLS + 4 : 0
   const isSplit = outlook.length === 2 && leadCells + joined.length > ctx.columns
   const rows = outlook.length === 2 && !isSplit ? [joined] : outlook
 
