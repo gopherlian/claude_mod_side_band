@@ -388,8 +388,8 @@ test('every separator inside a group is the faint one, so none is mistaken for a
   })
   const texts = arrange(rich, 200).map(l => l.text)
 
-  // Claude before the model, System before the network and docker blocks, docker between networks.
-  expect(texts.filter(t => /^┈+$/.test(t)).length).toBe(4)
+  // Claude after the bars and before the model, System before the network and docker blocks, docker between networks.
+  expect(texts.filter(t => /^┈+$/.test(t)).length).toBe(5)
   expect(texts.filter(t => t.startsWith('━━ ')).length).toBe(3)
   expect(texts.filter(t => /^━+$/.test(t))).toEqual([])
   expect(texts.some(t => t.startsWith('┄'))).toBe(false)

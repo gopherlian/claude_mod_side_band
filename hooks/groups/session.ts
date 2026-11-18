@@ -90,10 +90,13 @@ export const session: Group = {
   lines: (ctx: GroupContext): Line[] => {
     const { usage, stats } = ctx
     const model = modelRow(ctx)
+    const facts = present([costRow(ctx), toolsRow(ctx), turnRow(ctx)])
 
     return [
       ...usageLines(usage && { ...usage, categories: stats.categories }, ctx.columns, ctx.now, ctx.noted),
-      ...present([costRow(ctx), toolsRow(ctx), turnRow(ctx)]),
+      // A faint rule sets the bars apart from the session's facts.
+      ...(usage && facts.length > 0 ? [softRule(ctx.columns)] : []),
+      ...facts,
       ...(model ? [softRule(ctx.columns), model] : []),
     ]
   },

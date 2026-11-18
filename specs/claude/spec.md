@@ -50,7 +50,7 @@ you are under pace.` wrapped to the band with the continuation rows indented, th
 
 **R7 (removed).** There is no `↻` row: each window carries its own time left (R2a).
 
-**R8.** After the legend of the tick the group SHALL draw:
+**R8.** After the legend of the tick, under a faint rule (stacked band only), the group SHALL draw:
 
 - how long the session has run, its cost, in green, and, after three minutes, the cost per hour, dim
   (`1h35m · $4.82 · $3.04/h`);
