@@ -76,6 +76,7 @@ The band opens by itself when a session starts. One command controls it:
 | `/band timer <minutes>` | Starts a countdown, from 1 to 600 minutes. It is drawn under the clock. |
 | `/band timer` | Says how much of the countdown is left. |
 | `/band timer off` | Clears it. |
+| `/band demo` | Turns a demonstration on or off: every element of the band with made-up readings that move (containers, GPU, plan windows, a timer…), to see it all working on any machine. For this session only; nothing is shared or saved. |
 
 When the countdown ends the band shows `Timer done` in green and raises a `Timer done` toast.
 

@@ -256,3 +256,29 @@ test('an idle band shows the higher five-hour figure another band shared', async
   expect(text).not.toMatch(/Session[^%]*18%/)
   expect(written).toBe('')
 })
+
+test('/band demo draws every element with made-up readings, and turns off again', async ($, on) => {
+  await draw($, on, 40)
+  const run = (args: string) =>
+    $.command.run({ command: 'band', args, origin: { kind: 'composer' }, presentation: { isFullscreen: true, columns: 212 } })
+  const mount = async () => {
+    const ui = await $.ui.mount({ ...PANE, props: { ...PANE.props, bodyColumns: 40 } })
+    const tree = (await ui.drawn()) as unknown as Drawn
+    await ui.unmount()
+
+    return tree
+  }
+
+  // Without docker, a repository or a plan, none of these are drawn.
+  const real = await mount()
+  expect(holderOf(real, /inference-api/)).toBeUndefined()
+
+  expect(((await run('demo')) as { text?: string }).text).toBe('Demo on: the band shows made-up readings. /band demo turns it off.')
+  const demo = await mount()
+  for (const words of [/inference-api/, /docker · 3 running/, /^GPU /, /^VRAM /, /^Session /, /^Weekly /, /━━ Project/, /^Timer /, / msgs 203k/]) {
+    expect(holderOf(demo, words)).toBeDefined()
+  }
+
+  expect(((await run('demo')) as { text?: string }).text).toBe('Demo off: the band shows its real readings again.')
+  expect(holderOf(await mount(), /inference-api/)).toBeUndefined()
+})

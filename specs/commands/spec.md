@@ -25,4 +25,16 @@ the choice for later sessions. It answers `Side band hidden. /band shows it agai
 
 **R5.** When the countdown ends, the band SHALL show `Timer done` in green and raise a `Timer done` toast, once.
 
-**R6.** The command SHALL be registered with a description that names `refresh <seconds>` and `timer <minutes>`.
+**R6.** The command SHALL be registered with a description that names `refresh <seconds>`, `timer <minutes>` and
+`demo`.
+
+**R7 (demo).** `/band demo` SHALL turn on a demonstration: the band is shown and draws every element it has with
+made-up readings that move a little each second (the weather and its outlook, the context and its runs, Session and
+Weekly with their ticks, the cost, the model, the tools chart, a branch with changes, CPU, GPU, VRAM, RAM, Swap, Disk,
+the network, three containers on two networks, one of them on the GPU, and a running timer). It answers
+`Demo on: the band shows made-up readings. /band demo turns it off.` Run again, it SHALL turn the demonstration off
+and answer `Demo off: the band shows its real readings again.` The demonstration SHALL last only for the session, SHALL
+NOT be written to the files the bands share, and SHALL NOT raise the timer's toast.
+
+- *Given* a machine without docker, *When* `/band demo` runs, *Then* the band draws three containers.
+- *Given* the demonstration is on, *When* `/band demo` runs, *Then* the band shows the real readings again.

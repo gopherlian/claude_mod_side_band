@@ -1,6 +1,7 @@
 import type { Register } from 'claude-code'
 
 import { formatClock } from './format'
+import { demo } from './demo'
 import { arrange, groups } from './groups'
 import { arrangeStrip } from './groups/strip'
 import type { GroupContext, SessionStats } from './groups/types'
@@ -62,11 +63,13 @@ export const register: Register = on => {
   let lastSampleAt = 0
   let timerEndsAt: number | undefined
   let timerNotified = false
+  /** While on, the band draws the demonstration's made-up readings; for this session only. */
+  let isDemo = false
 
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'band',
-      description: 'Show or hide the side band; "refresh <seconds>" and "timer <minutes>" too',
+      description: 'Show or hide the side band; "refresh <seconds>", "timer <minutes>" and "demo" too',
     })
     // On by default; only an explicit /band hide is remembered. Opened through
     // our own command, so the engine stamps the window width on it: a plain
@@ -432,6 +435,18 @@ export const register: Register = on => {
       return { text: '' }
     }
 
+    // The demonstration: every element with made-up readings, drawn over the real ones and never shared.
+    if (args === 'demo') {
+      isDemo = !isDemo
+      if (isDemo) {
+        await $.ui.open({ id: PANE, title: TITLE, columns: dockColumns(e.presentation?.columns ?? 100), rows: STRIP_ROWS })
+
+        return { text: 'Demo on: the band shows made-up readings. /band demo turns it off.' }
+      }
+
+      return { text: 'Demo off: the band shows its real readings again.' }
+    }
+
     if (args.startsWith('refresh')) {
       const wanted = args.slice('refresh'.length).trim()
       if (wanted === '') {
@@ -523,7 +538,9 @@ export const register: Register = on => {
       usage = undefined
     }
 
-    const context = { now, columns, rows, weather, usage, stats, hardware, system, git, timerEndsAt }
+    const context = isDemo
+      ? { now, columns, rows, ...demo(now) }
+      : { now, columns, rows, weather, usage, stats, hardware, system, git, timerEndsAt }
     const budget = rowBudget(e.props.placement, e.props.scroll?.bodyRows, rows)
     const lines = isStrip
       ? arrangeStrip(context, budget, groups, creditLines(columns))
