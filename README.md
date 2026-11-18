@@ -248,6 +248,17 @@ The system colours live in [`hooks/sections/palette.ts`](hooks/sections/palette.
 a lighter text colour for its name and number. Orange is kept for the separators and frames. The system bars do
 not turn yellow or red when they fill: each resource keeps its own colour.
 
+## Versions
+
+The mod follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The version is in
+[`.claude-plugin/plugin.json`](.claude-plugin/plugin.json), each release has a `vX.Y.Z` tag, and
+[`CHANGELOG.md`](CHANGELOG.md) says what changed. In this mod:
+
+- **major**: a change that breaks what you rely on: a `/band` command removed or changed, a group removed, a change
+  to what it reads or writes;
+- **minor**: something new that keeps working as before (a group, a row, a command, an option);
+- **patch**: a fix, or a change of look with no new behaviour.
+
 ## Develop it
 
 This repository is spec-driven: the behaviour is written in [`specs/`](specs/README.md) before it is built, and the

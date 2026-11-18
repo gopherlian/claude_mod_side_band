@@ -31,6 +31,13 @@ docs/img/          the screenshots (generated: never edit by hand)
 .claude-plugin/    plugin.json and marketplace.json
 ```
 
+## Versions
+
+Semantic Versioning. A change that users would notice goes in `CHANGELOG.md` under `[Unreleased]` in the same commit.
+To release: move those lines under a new `## [X.Y.Z] - date`, set `version` in `.claude-plugin/plugin.json` to the same
+number, commit as `chore: release X.Y.Z`, tag it `vX.Y.Z` (annotated) and push the commit and the tag. Major for a
+breaking change, minor for a new feature, patch for a fix or a restyle.
+
 ## Rules
 
 - **A visible change refreshes the screenshots.** Colours, layout, groups, rows, the frame, the credit: run

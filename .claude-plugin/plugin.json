@@ -1,7 +1,7 @@
 {
   "name": "side-band",
-  "version": "0.1.0",
-  "description": "A vertical side band (about 1/5 of the screen) with modular widgets; starts with an analog clock.",
+  "version": "1.0.0",
+  "description": "A live side band for Claude Code: time and weather, plan usage, repository and machine, docked beside the chat or side by side above the prompt.",
   "author": {
     "name": "Alberto Rodriguez Baixauli",
     "email": "a@webtory.es"
