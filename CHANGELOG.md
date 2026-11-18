@@ -6,6 +6,8 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-11-18
+
 ### Changed
 - A group's name has a blank row above it and none below it; the orange rule above the credit has none around it.
 
