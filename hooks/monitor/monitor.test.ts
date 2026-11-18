@@ -47,7 +47,7 @@ test('what is not detected is hidden, and nothing detected hides the section', (
   expect(monitorLines({ gpus: [], npus: [] }, 30)).toEqual([])
 
   const texts = monitorLines({ cpu: { total: 20, cores: [] }, gpus: [], npus: [] }, 30).map(l => l.text)
-  expect(texts).toEqual([meter('⚙ CPU     ', 20, 30)])
+  expect(texts).toEqual([meter('▦ CPU   ', 20, 30)])
 })
 
 test('the monitor is only percent bars: no cores, names, GB, temperature or footer', () => {
@@ -60,10 +60,10 @@ test('the monitor is only percent bars: no cores, names, GB, temperature or foot
     30,
   )
   expect(lines.map(l => l.text)).toEqual([
-    meter('⚙ CPU     ', 10, 30),
-    meter('▣ GPU     ', 90, 30),
-    meter('▤ VRAM    ', 50, 30),
-    meter('◈ NPU     ', 5, 30),
+    meter('▦ CPU   ', 10, 30),
+    meter('▣ GPU   ', 90, 30),
+    meter('▤ VRAM  ', 50, 30),
+    meter('◈ NPU   ', 5, 30),
   ])
   expect(lines[1].color).toBe(RESOURCE_COLORS.gpu)
 })
@@ -79,7 +79,7 @@ test('several gpus are told apart by number', () => {
     },
     30,
   ).map(l => l.text)
-  expect(lines).toEqual([meter('▣ GPU0    ', 1, 30), meter('▣ GPU1    ', 2, 30)])
+  expect(lines).toEqual([meter('▣ GPU0  ', 1, 30), meter('▣ GPU1  ', 2, 30)])
 })
 
 test('every resource bar has its own colour: CPU and GPU keep their own, never the separators orange', () => {
@@ -107,7 +107,7 @@ test('the label and the percent are a lighter shade of the resource colour and t
   const cells = line.cells!
 
   expect(cells.map(c => c.text).join('')).toBe(line.text)
-  expect(cells[0]).toEqual({ text: '⚙ CPU     ', color: RESOURCE_TEXT_COLORS.cpu })
+  expect(cells[0]).toEqual({ text: '▦ CPU   ', color: RESOURCE_TEXT_COLORS.cpu })
   expect(cells[1]!.color).toBe(RESOURCE_COLORS.cpu)
   expect(cells[2]).toEqual({ text: '  20%', color: RESOURCE_TEXT_COLORS.cpu })
 })

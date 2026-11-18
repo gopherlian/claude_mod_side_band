@@ -7,8 +7,8 @@ All notable changes to this mod are written here. The format follows
 ## [Unreleased]
 
 ### Changed
-- Every resource of the System group has an icon before its name, and the network rows read `↓ Download` and
-  `↑ Upload` instead of `Down` and `Up`. Their bars are two cells shorter.
+- Every resource of the System group has an icon before its name: `▦` CPU, `▣` GPU, `▤` VRAM, `◈` NPU, `≡` RAM,
+  `⇄` Swap, `◉` Disk, and the arrows `↓` Down and `↑` Up for the network.
 
 ## [1.3.1] - 2026-11-18
 

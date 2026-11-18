@@ -29,8 +29,8 @@ export const meterLine = (label: string, percent: number, columns: number, resou
   return { text, color, cells: brightEnds(text, LABEL_WIDTH, 5, color, RESOURCE_TEXT_COLORS[resource]) }
 }
 
-/** The icon, a space and the longest name (`Download`). */
-const LABEL_WIDTH = 10
+/** The icon, a space, the longest name (`VRAM0`) and a space before the bar: as wide as `meter` pads a label. */
+const LABEL_WIDTH = 8
 const RATE_WIDTH = 7
 
 /** A meter small enough to share a row: a 4-cell name, the bar, then the number, `width` cells in all. */

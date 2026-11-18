@@ -4,6 +4,7 @@ import { bigText } from '../bigdigits'
 import { formatShortTime } from '../widgets/clock'
 import { containerLine } from '../sections/docker'
 import { creditLines } from '../sections/credit'
+import { RESOURCE_ICONS } from '../sections/palette'
 import { rule, softRule } from '../sections/usage'
 import { arrange, groups } from './index'
 import { project } from './project'
@@ -236,13 +237,13 @@ test('the system group adds memory, disk, network and docker to the bars', () =>
   const texts = system
     .lines(ctx({ system: { ramPercent: 50, diskPercent: 30, downBps: 524288, upBps: 2048, netPeakBps: 1048576, dockers: [{ name: 'api', networks: ['n'] }, { name: 'db', networks: ['n'] }] } }))
     .map(l => l.text)
-  expect(texts.some(t => t.startsWith('≡ RAM     ') && t.includes('50%'))).toBe(true)
-  expect(texts.some(t => t.startsWith('◉ Disk    ') && t.includes('30%'))).toBe(true)
-  // The network rows say what they measure: what comes in and what goes out.
-  const down = '↓ Download' + '█'.repeat(6) + '─'.repeat(6) + '  512K/s'
-  expect(texts).toContain(down)
-  expect(texts.some(t => t.startsWith('↑ Upload  ') && t.endsWith('   2K/s'))).toBe(true)
-  expect(texts.some(t => /^(Down|Up) /.test(t))).toBe(false)
+  expect(texts.some(t => t.startsWith('≡ RAM   ') && t.includes('50%'))).toBe(true)
+  expect(texts.some(t => t.startsWith('◉ Disk  ') && t.includes('30%'))).toBe(true)
+  // The arrows say which way: what comes in and what goes out.
+  const down = texts.find(t => t.startsWith('↓ Down  '))!
+  expect(down).toMatch(/^↓ Down  [█▏▎▍▌▋▊▉─]{14}  512K\/s$/)
+  expect(texts.some(t => t.startsWith('↑ Up    ') && t.endsWith('   2K/s'))).toBe(true)
+  expect(texts.some(t => /Download|Upload/.test(t))).toBe(false)
   expect(texts[texts.indexOf(down) - 1]).toBe('─'.repeat(30))
   expect(texts).toContain('docker · 2 running')
   expect(texts).toContain(containerLine('api', 30).text)
@@ -433,16 +434,33 @@ test('every resource of the system group has its icon before its name, and every
     .map(l => l.text)
     .filter(t => !/^─+$/.test(t))
 
-  expect(texts.map(t => t.slice(0, 10))).toEqual([
-    '⚙ CPU     ',
-    '▣ GPU     ',
-    '▤ VRAM    ',
-    '◈ NPU     ',
-    '≡ RAM     ',
-    '⇄ Swap    ',
-    '◉ Disk    ',
-    '↓ Download',
-    '↑ Upload  ',
+  expect(texts.map(t => t.slice(0, 8))).toEqual([
+    '▦ CPU   ',
+    '▣ GPU   ',
+    '▤ VRAM  ',
+    '◈ NPU   ',
+    '≡ RAM   ',
+    '⇄ Swap  ',
+    '◉ Disk  ',
+    '↓ Down  ',
+    '↑ Up    ',
   ])
+  // The bar starts in the same column on every row, the network ones too.
+  expect(texts.map(t => t.search(/[█▏▎▍▌▋▊▉─]/))).toEqual(texts.map(() => 8))
   expect(texts.every(t => t.length === 30)).toBe(true)
+})
+
+test('a numbered name keeps a space before its bar', () => {
+  const texts = system
+    .lines(ctx({ hardware: { gpus: [{ name: 'a', util: 1, memUsedMb: 1, memTotalMb: 2 }, { name: 'b', util: 2 }], npus: [] } }))
+    .map(l => l.text)
+
+  expect(texts[1]!.slice(0, 8)).toBe('▤ VRAM0 ')
+})
+
+test('no system icon is an emoji: a terminal may draw one two cells wide, over the name', () => {
+  const icons = Object.values(RESOURCE_ICONS)
+
+  expect(icons.filter(icon => /\p{Extended_Pictographic}/u.test(icon))).toEqual([])
+  expect(icons.every(icon => [...icon].length === 1)).toBe(true)
 })

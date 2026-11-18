@@ -26,9 +26,10 @@ inside keeps its own colours.
 year and the license SHALL be dark orange `#744000`; the email bright orange `#a05800`. Where the row is wider than the
 band it SHALL wrap, each row centred, and the email SHALL stay whole.
 
-**R7.** The system palette SHALL be muted and dark. Bar colour / text colour:
+**R7.** The system palette SHALL be muted and dark. Bar colour / text colour; the icon before a name takes the text
+colour (see [system](../system/spec.md) R1):
 
-| Resource | Bar | Name and number |
+| Resource | Bar | Icon, name and number |
 | --- | --- | --- |
 | CPU | `#2f855a` | `#68d391` |
 | GPU | `#2b6cb0` | `#63b3ed` |
