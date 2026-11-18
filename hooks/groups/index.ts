@@ -24,8 +24,7 @@ const CREDIT_SEPARATOR_ROWS = 2
  * priority number first) until it fits. The first group always stays. Then,
  * if rows are left, the footnotes of the groups shown go at the foot, after a
  * blank row and a short rule: whole or not at all, so they never cost a group
- * its place. A group whose note is drawn is asked again with `noted` set, so
- * it can mark the row the note belongs to; the mark takes no row of its own.
+ * its place.
  * Last of all goes `credit`, after its own blank row and short rule, on the
  * same terms: whole or not at all, never at the cost of a group or a note.
  */
@@ -49,9 +48,6 @@ export const arrange = (
   const notes = shown.map(item => item.group.footnote?.(ctx) ?? [])
   const rows = notes.reduce((sum, own) => sum + own.length, 0)
   const noted = rows > 0 && available - size(shown) >= rows + FOOTNOTE_SEPARATOR_ROWS
-  if (noted) {
-    shown = shown.map((item, i) => (notes[i].length > 0 ? { ...item, lines: item.group.lines({ ...ctx, noted: true }) } : item))
-  }
 
   const out: Line[] = []
   shown.forEach((item, i) => {

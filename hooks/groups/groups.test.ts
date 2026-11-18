@@ -163,7 +163,7 @@ test('the session group draws the cost, the tools chart, the turn and the model,
   expect(lines.some(l => l.startsWith('↻'))).toBe(false)
   expect(lines.find(l => l.startsWith('Session'))).toMatch(/2h$/)
   expect(lines.find(l => l.startsWith('Session'))).toContain('┃')
-  expect(lines).toContain('┃ time elapsed in the window')
+  expect(lines.some(l => l.startsWith('┃ time elapsed'))).toBe(false)
   expect(lines).toContain('1h00m · $3.00 · $3.00/h')
   expect(lines.find(l => l.startsWith('tools'))).toMatch(/^tools [·▂▃▄▅▆▇█]{10} 7 ▸ Bash$/)
   expect(lines).toContain('turn 0:42')
@@ -220,7 +220,7 @@ const paced = (over: Partial<GroupContext> = {}) =>
 test('the session group has a footnote that explains the tick', () => {
   const note = session.footnote!(paced()).map(l => l.text)
 
-  expect(note[0]).toMatch(/^\(\*\) If ┃ is inside the fill/)
+  expect(note[0]).toMatch(/^If ┃ is inside the fill/)
   expect(session.footnote!(ctx())).toEqual([])
 })
 
@@ -240,31 +240,17 @@ test('footnotes go at the foot after a blank row and a short rule, whole, only w
   expect(arrange(c, full.length - 1)).toEqual(without)
 })
 
-test('the legend carries the (*) only where its note is drawn', () => {
-  const c = paced()
-  const texts = (lines: { text: string }[]) => lines.map(l => l.text)
+test('the stacked band has no legend row of the tick and no (*): only the footnote explains it', () => {
+  const texts = arrange(paced(), 500).map(l => l.text)
 
-  expect(texts(arrange(c, 500))).toContain('┃ time elapsed (*)')
-  expect(texts(arrange(paced({ columns: 40 }), 500))).toContain('┃ time elapsed in the window (*)')
-  expect(texts(arrange(c, 500, bare()))).toContain('┃ time elapsed in the window')
-  expect(texts(arrange(c, 500, bare())).some(t => t.includes('(*)'))).toBe(false)
+  expect(texts.some(t => t.startsWith('┃ time elapsed'))).toBe(false)
+  expect(texts.some(t => t.includes('(*)'))).toBe(false)
+  expect(texts.some(t => t.startsWith('If ┃ is inside'))).toBe(true)
 })
 
 test('a footnote never costs a widget a row: what drops is what dropped without it', () => {
-  // Wide enough for the legend to keep its wording with the mark in; below that
-  // it shortens, which is the one other difference a drawn note makes.
   const c = paced({ columns: 40 })
   const note = session.footnote!(c)
-  const strip = (text: string) => text.replace(/ \(\*\)$/, '')
-  const unmark = (line: { text: string; cells?: { text: string }[] }) => ({
-    ...line,
-    text: strip(line.text),
-    ...(line.cells && {
-      cells: line.cells
-        .filter(cell => cell.text !== '(*)')
-        .map(cell => ({ ...cell, text: line.cells!.some(c => c.text === '(*)') ? cell.text.replace(/ $/, '') : cell.text })),
-    }),
-  })
 
   for (let available = 5; available <= 80; available++) {
     const without = arrange(c, available, bare())
@@ -275,9 +261,8 @@ test('a footnote never costs a widget a row: what drops is what dropped without 
       continue
     }
     expect(withNote.length).toBe(without.length + note.length + 2)
-    expect(withNote.slice(0, without.length).map(unmark)).toEqual(without)
+    expect(withNote.slice(0, without.length)).toEqual(without)
     expect(withNote.slice(without.length)).toEqual([{ text: ' ' }, footRule(40), ...note])
-    expect(withNote.filter(l => l.text.endsWith(' (*)'))).toHaveLength(1)
   }
 })
 

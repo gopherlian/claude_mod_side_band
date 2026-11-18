@@ -37,8 +37,6 @@ export type GroupContext = {
   git?: GitStatus
   /** When the countdown ends, in `$.clock.now()` milliseconds. */
   timerEndsAt?: number
-  /** This group's footnote is going to be drawn: point to it. Set by `arrange` alone. */
-  noted?: boolean
   /** In the strip: the rows this column may fill, its title not counted. Absent where the band is stacked. */
   budget?: number
 }

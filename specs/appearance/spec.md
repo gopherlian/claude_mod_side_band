@@ -18,8 +18,7 @@ footnote.
 **R4.** The frame of the time group SHALL be heavy (`┏━┓ ┃ ┗━┛`) and bright orange. Only the frame is orange; what is
 inside keeps its own colours.
 
-**R5.** The pace tick `┃` SHALL be green wherever it is drawn (bars, legend, footnote). The `(*)` that points to the
-footnote SHALL be bright yellow.
+**R5.** The pace tick `┃` SHALL be green wherever it is drawn (bars, legend, footnote).
 
 **R6.** The credit SHALL sit in a faint dark-orange frame (`╭┈┈╮ ┊ ╰┈┈╯`), centred like the time: first row
 `© 2026 Alberto Rodriguez Baixauli │ a@webtory.es`, second row `GNU GPL v3 or later`. The name, the bar and the

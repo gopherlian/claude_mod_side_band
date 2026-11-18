@@ -146,21 +146,12 @@ export const bar = (percent: number, width: number): string => {
   return '█'.repeat(filled) + '░'.repeat(width - filled)
 }
 
-/** Marks a row that has a footnote, and starts that footnote; in parentheses it reads as a note. */
-const NOTE_MARK = '(*)'
-
 /** What the tick means, longest wording first; the row takes the first that fits the band. */
 const LEGEND = [`${MARK} time elapsed in the window`, `${MARK} time elapsed`]
 
-/**
- * The one-row legend under the bars, or nothing where not even the short
- * wording fits. When its footnote is to be drawn (`noted`) the row ends with
- * the mark that points to it, and the wording is chosen with the mark in.
- */
-const legendLines = (columns: number, noted: boolean): Line[] => {
-  const text = LEGEND.map(wording => (noted ? `${wording} ${NOTE_MARK}` : wording)).find(
-    wording => wording.length <= columns,
-  )
+/** The one-row legend of the tick, for the strip, which has no footnote; nothing where not even the short wording fits. */
+const legendLines = (columns: number): Line[] => {
+  const text = LEGEND.find(wording => wording.length <= columns)
 
   return text === undefined ? [] : [{ text, dimColor: true }]
 }
@@ -172,26 +163,18 @@ const withMark = (drawn: string, share: number): string => {
   return drawn.slice(0, at) + MARK + drawn.slice(at + 1)
 }
 
-/** The `(*)` that points to the footnote and starts it: bright yellow, so the note is found. */
-const NOTE_COLOR = 'yellowBright'
-
 /**
- * A row that holds the tick or the `(*)`, drawn in cells so those alone are
- * coloured (the tick green, the `(*)` bright yellow) and the rest keeps the
- * row's own colour. `text` stays the plain row. Other rows come back as they are.
+ * A row that holds the tick, drawn in cells so the tick alone is green and the
+ * rest keeps the row's own colour. `text` stays the plain row. Other rows come back as they are.
  */
 const withMarks = (line: Line): Line => {
-  const parts = line.text.split(/(┃|\(\*\))/).filter(part => part !== '')
-  if (!parts.some(part => part === MARK || part === NOTE_MARK)) return line
+  const parts = line.text.split(/(┃)/).filter(part => part !== '')
+  if (!parts.includes(MARK)) return line
 
   return {
     ...line,
     cells: parts.map(part =>
-      part === MARK
-        ? { text: part, color: MARK_COLOR }
-        : part === NOTE_MARK
-          ? { text: part, color: NOTE_COLOR }
-          : { text: part, color: line.color, dimColor: line.dimColor },
+      part === MARK ? { text: part, color: MARK_COLOR } : { text: part, color: line.color, dimColor: line.dimColor },
     ),
   }
 }
@@ -219,20 +202,14 @@ export const meter = (
 const PACE_NOTE = `If ${MARK} is inside the fill, you spend faster than time passes; beyond it, you are under pace.`
 
 /**
- * How to read the tick: a footnote that starts with the mark the legend
- * carries, wrapped to the band with what wraps indented under the text.
- * Nothing while there is no legend row to point from. It is long, so it is
- * drawn only where the band has rows to spare.
+ * How to read the tick, wrapped to the band, the tick green and the rest dim.
+ * Nothing while no bar carries a tick. It is long, so it is drawn only where
+ * the band has rows to spare.
  */
 export const paceNote = (data: UsageData | undefined, columns: number, now?: number): Line[] => {
-  const pointed = usageLines(data, columns, now, true).some(line => line.text.endsWith(` ${NOTE_MARK}`))
-  if (!pointed) return []
+  if (!usageLines(data, columns, now).some(line => line.text.includes(MARK))) return []
 
-  const hang = NOTE_MARK.length + 1
-
-  return wrap(PACE_NOTE, columns - hang).map((text, i) =>
-    withMarks({ text: (i === 0 ? `${NOTE_MARK} ` : ' '.repeat(hang)) + text, dimColor: true }),
-  )
+  return wrap(PACE_NOTE, columns).map(text => withMarks({ text, dimColor: true }))
 }
 
 /** The time left at the end of a window's row, right-aligned in this many cells. */
@@ -288,11 +265,10 @@ const contextBar = (data: UsageData, columns: number): Line => {
 
 /**
  * The lines of the section, each at most `columns` cells wide. Given `now`,
- * the plan meters carry a tick for how much of their window has gone by, and
- * a one-row legend below them says what it is; `noted` makes that row point to
- * the footnote that explains how to read it.
+ * the plan meters carry a tick for how much of their window has gone by; the
+ * footnote (`paceNote`) explains how to read it.
  */
-export const usageLines = (data: UsageData | undefined, columns: number, now?: number, noted = false): Line[] => {
+export const usageLines = (data: UsageData | undefined, columns: number, now?: number): Line[] => {
   if (!data) return [{ text: 'Usage unavailable', dimColor: true }]
 
   const tokens = data.contextTokens === undefined ? '—' : formatTokens(data.contextTokens)
@@ -302,12 +278,13 @@ export const usageLines = (data: UsageData | undefined, columns: number, now?: n
       color: colorFor(data.contextPercent),
     },
     contextBar(data, columns),
-    ...compositionLegend(data.categories, columns).map(cells => ({ text: cells.map(cell => cell.text).join(''), cells })),
   ]
+  // A faint rule sets the legend of the runs apart from the plan windows.
+  const legend = compositionLegend(data.categories, columns).map(cells => ({ text: cells.map(cell => cell.text).join(''), cells }))
+  lines.push(...legend)
+  if (legend.length > 0) lines.push(softRule(columns))
 
   for (const { label, limit } of windows(data.limits)) lines.push(windowRow(label, limit, columns, now))
-  // The tick is new to the eye: say what it is under the bars, only while one is drawn.
-  if (lines.some(line => line.text.includes(MARK))) lines.push(...legendLines(columns, noted))
 
   // A row that passes the band is cut and drawn plain: its cells no longer add up to its text.
   return lines.map(line =>
@@ -333,7 +310,7 @@ export const compactUsageLines = (data: UsageData | undefined, columns: number, 
     },
     ...windows(data.limits).map(({ label: name, limit }) => windowRow(name, limit, columns, now)),
   ]
-  if (lines.some(line => line.text.includes(MARK))) lines.push(...legendLines(columns, false).map(withMarks))
+  if (lines.some(line => line.text.includes(MARK))) lines.push(...legendLines(columns).map(withMarks))
 
   return lines
 }

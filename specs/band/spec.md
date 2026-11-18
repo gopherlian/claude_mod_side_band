@@ -48,7 +48,7 @@ space on each side.
 cutting at the bottom always leaves something whole:
 
 - Time: the frame with the big clock and the weather text, then the outlook and the timer; the frame is never cut.
-- Claude: `Context` and its bar on one row, `Session`, `Weekly`, the tick's legend, the cost row, the model row, the
+- Claude: `Context` and its bar on one row, `Session`, `Weekly`, the legend of the tick, the cost row, the model row, the
   tools row.
 - Project: the branch and its state (`3 changed ↑2`).
 - System: two resources a row (`CPU`/`GPU`, `VRAM`/`RAM`, `Swap`/`Disk`; a resource that is not there leaves no

@@ -178,7 +178,7 @@ From top to bottom:
 2. **Session** and **Weekly.** The plan's five-hour and seven-day windows, each as a bar with the percent used and,
    at the end of the row, the time left (`1h9m`, `3d12h`). A spend limit, when your plan has one, is drawn as
    **Spend**. The `┃` on each bar is the *pace tick*, see below.
-3. **The tick's legend** `┃ time elapsed in the window (*)`.
+3. **A faint rule** between the legend of the context runs and the bars, and another before the session's facts.
 4. **The session line:** how long it has run, what it has cost (in green), and the cost per hour (after three minutes).
 5. **Tools:** a small chart of the tool calls of the last ten minutes (one cell a minute, `·` for a quiet one), the
    total, and the tool running now. Then the current turn's time, or the last one's.
@@ -191,9 +191,9 @@ its usage at all the group says `Usage unavailable`.
 **The pace tick.** The bar fills as you use the window. The green `┃` marks how much of the window's *time* has
 gone by. If the tick is *inside* the fill, you are spending faster than time passes and may run out before the
 window resets; beyond the fill, you are under pace. In the example above, Session has used 41% of its tokens but
-77% of its time has gone by: comfortably under pace. The `(*)` in the legend, in bright yellow, points to the
-footnote at the foot of the band that says this in a sentence; the footnote only appears when the band has rows to
-spare.
+77% of its time has gone by: comfortably under pace. The footnote at the foot of the band says this in a
+sentence; it only appears when the band has rows to spare. (The strip has no footnote, so there a one-row legend,
+`┃ time elapsed in the window`, stands under the bars.)
 
 ### 3. Project
 
@@ -236,7 +236,6 @@ the text wraps inside the frame.
 | Separators between groups, the group names, the time frame | bright orange `#ff8c00` |
 | Faint rules inside a group, the credit | dark orange `#b36200` |
 | The pace tick `┃` | green |
-| The `(*)` that points to the footnote | bright yellow |
 | Session and Weekly bars, the Context label and percent | default, **yellow from 70%** and **red from 85%** of the window |
 | Context runs | messages blue `#2b6cb0` · system violet `#6b21a8` · MCP teal `#0f766e` · other amber `#8a6d0b` · reserve grey `#64748b` |
 | Cost · tools chart · effort pips | green `#68d391` · violet `#c084fc` · cyan `#4dd0e1` (faint `#4a5568`) |

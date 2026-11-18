@@ -69,7 +69,7 @@ export const arrangeStrip = (ctx: GroupContext, rows: number, all: Group[] = gro
   const forms = (group: Group): Strip => group.strip!
   const titled = (group: Group) => (group.label === undefined ? 0 : 1)
   const body = (group: Group, columns: number) =>
-    forms(group).lines({ ...ctx, columns, budget: Math.max(1, rows - titled(group)), noted: false })
+    forms(group).lines({ ...ctx, columns, budget: Math.max(1, rows - titled(group)) })
 
   let shown = all.filter(group => group.strip && body(group, forms(group).min).length > 0)
   const needs = (items: Group[]) => items.reduce((sum, g) => sum + forms(g).min, 0) + STRIP_GAP * (items.length - 1)

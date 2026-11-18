@@ -41,16 +41,18 @@ pace.
   fill: under pace.
 - *Given* a window with no known end, *Then* its bar carries no tick.
 
-**R5.** While at least one tick is drawn, a one-row legend SHALL follow the bars: `┃ time elapsed in the window`,
-or `┃ time elapsed` when that does not fit, and nothing where neither fits. The `┃` is green.
+**R5.** In the stacked band no legend row follows the bars: the footnote explains the tick (R6). In the strip, which
+has no footnote, a one-row legend follows them: `┃ time elapsed in the window`, or `┃ time elapsed` when that does not
+fit, and nothing where neither fits. The `┃` is green.
 
-**R6.** When the footnote is drawn, the legend row SHALL end with `(*)` in bright yellow, and the footnote SHALL
-start with the same `(*)`, then the sentence `If ┃ is inside the fill, you spend faster than time passes; beyond it,
-you are under pace.` wrapped to the band with the continuation rows indented, the `┃` green and the rest dim.
+**R6.** When rows are left, the footnote SHALL be the sentence `If ┃ is inside the fill, you spend faster than time
+passes; beyond it, you are under pace.` wrapped to the band, the `┃` green and the rest dim. There is no `(*)`.
+
+**R6a.** A faint rule SHALL separate the legend of the context runs from the plan windows (stacked band).
 
 **R7 (removed).** There is no `↻` row: each window carries its own time left (R2a).
 
-**R8.** After the legend of the tick, under a faint rule (stacked band only), the group SHALL draw:
+**R8.** After the plan windows, under a faint rule (stacked band only), the group SHALL draw:
 
 - how long the session has run, its cost, in green, and, after three minutes, the cost per hour, dim
   (`1h35m · $4.82 · $3.04/h`);

@@ -52,65 +52,29 @@ test('the plan meters are marked where their time stands; the context and the re
   expect(spend.some(t => t.startsWith('Spend') && !t.includes('┃'))).toBe(true)
 })
 
-test('a one-row legend under the meters says what the tick is', () => {
+test('the stacked section has no legend row under the meters: the footnote explains the tick', () => {
   const lines = usageLines(windows(), 30, NOW)
 
-  expect(lines.slice(4)).toEqual([
-    {
-      text: '┃ time elapsed in the window',
-      dimColor: true,
-      cells: [
-        { text: '┃', color: 'green' },
-        { text: ' time elapsed in the window', color: undefined, dimColor: true },
-      ],
-    },
-  ])
-  expect(lines.length).toBe(5)
+  expect(lines.map(l => l.text.slice(0, 7))).toEqual(['Context', lines[1]!.text.slice(0, 7), 'Session', 'Weekly '])
+  expect(lines.some(l => l.text.includes('time elapsed') || l.text.includes('(*)'))).toBe(false)
 })
 
-test('the legend shortens in a narrow band, goes when it cannot fit, and never overflows', () => {
-  const legend = (columns: number) => usageLines(windows(), columns, NOW).slice(4).map(l => l.text)
-
-  expect(legend(28)).toEqual(['┃ time elapsed in the window'])
-  expect(legend(27)).toEqual(['┃ time elapsed'])
-  expect(legend(14)).toEqual(['┃ time elapsed'])
-  expect(legend(13)).toEqual([])
-  for (let columns = 10; columns <= 40; columns++) {
-    for (const line of usageLines(windows(), columns, NOW)) expect(line.text.length).toBeLessThanOrEqual(columns)
-  }
-})
-
-test('when its note is to be drawn, the legend points to it with a (*)', () => {
-  const legend = (columns: number, noted = true) =>
-    usageLines(windows(), columns, NOW, noted).slice(4).map(l => l.text)
-
-  expect(usageLines(windows(), 32, NOW, true).slice(4).map(l => l.text)).toEqual(['┃ time elapsed in the window (*)'])
-  expect(legend(31)).toEqual(['┃ time elapsed (*)'])
-  expect(legend(18)).toEqual(['┃ time elapsed (*)'])
-  expect(legend(17)).toEqual([])
-  expect(legend(30, false)).toEqual(['┃ time elapsed in the window'])
-  expect(usageLines(windows(), 32, undefined, true).some(l => l.text.includes('(*)'))).toBe(false)
-})
-
-test('the pace note starts with the same (*), indents what wraps and says how to read the tick', () => {
+test('the pace note says how to read the tick, wrapped to the band, with no mark in front', () => {
   const note = paceNote(windows(), 30, NOW).map(l => l.text)
 
   expect(note.length).toBeGreaterThan(1)
-  expect(note[0].startsWith('(*) If ┃ is inside')).toBe(true)
-  expect(note.slice(1).every(text => text.startsWith('    ') && !text.startsWith('     '))).toBe(true)
-  expect(note.map(text => text.slice(4)).join(' ')).toBe(
+  expect(note[0]!.startsWith('If ┃ is inside')).toBe(true)
+  expect(note.join(' ')).toBe(
     'If ┃ is inside the fill, you spend faster than time passes; beyond it, you are under pace.',
   )
   expect(note.every(text => text.length <= 30)).toBe(true)
   expect(paceNote(windows(), 30, NOW).every(l => l.dimColor === true)).toBe(true)
 })
 
-test('the pace note is only there while a tick is drawn and the legend can point to it', () => {
+test('the pace note is only there while a tick is drawn', () => {
   expect(paceNote(windows(), 30)).toEqual([])
   expect(paceNote(undefined, 30, NOW)).toEqual([])
   expect(paceNote({ contextWindow: 200_000, limits: [] }, 30, NOW)).toEqual([])
-  expect(paceNote(windows(), 18, NOW).length).toBeGreaterThan(0)
-  expect(paceNote(windows(), 17, NOW)).toEqual([])
 })
 
 test('a short faint rule sets the footnotes apart from the band', () => {
@@ -121,16 +85,9 @@ test('a short faint rule sets the footnotes apart from the band', () => {
   expect(footRule(30).text).not.toBe(softRule(30).text)
 })
 
-test('with no tick on the meters there is no legend', () => {
+test('with no tick on the meters there is no pace note', () => {
   expect(usageLines(windows(), 30)).toHaveLength(4)
-  expect(usageLines({ contextWindow: 200_000, limits: [] }, 30, NOW)).toHaveLength(4)
-  expect(
-    usageLines(
-      { contextWindow: 200_000, limits: [{ kind: 'spend_limit', percentUsed: 50, resetsAt: endsIn(3_600_000) }] },
-      30,
-      NOW,
-    ).some(l => l.text.includes('time elapsed')),
-  ).toBe(false)
+  expect(paceNote({ contextWindow: 200_000, limits: [{ kind: 'spend_limit', percentUsed: 50, resetsAt: endsIn(3_600_000) }] }, 30, NOW)).toEqual([])
 })
 
 test('without the time, or without a valid end, a meter has no mark', () => {
@@ -206,7 +163,6 @@ test('the legend of the runs sits right under the context bar, before the plan w
   const lines = usageLines({ ...windows(), contextWindow: 1_000_000, contextPercent: 14, categories: breakdown }, 28, NOW)
 
   expect(lines.slice(2, 4).map(l => l.text)).toEqual(['■ msgs 100k  ■ mcp 37k', '▒ buffer 33k'])
-  expect(lines[4]!.text.startsWith('Session')).toBe(true)
 })
 
 test('the number of the context bar warns from 70% and alarms from 85%, whatever the runs', () => {
@@ -326,16 +282,18 @@ test('the tick is green on every meter that has one, and nothing else on the row
   }
 })
 
-test('in the footnote and the legend the tick is green and the (*) bright yellow; the rest stays dim', () => {
+test('in the footnote the tick is green and the rest stays dim', () => {
   const note = paceNote(windows(), 30, NOW)
   const cells = note.flatMap(l => l.cells ?? [])
 
-  expect(cells.filter(c => c.text === '(*)')).toEqual([{ text: '(*)', color: 'yellowBright' }])
   expect(cells.filter(c => c.color === 'green')).toEqual([{ text: '┃', color: 'green' }])
   expect(cells.filter(c => c.color === undefined).every(c => c.dimColor === true)).toBe(true)
   expect(note.map(l => (l.cells ?? [l]).map(c => c.text).join(''))).toEqual(note.map(l => l.text))
+})
 
-  const legend = usageLines(windows(), 32, NOW, true).slice(4)[0]!
+test('a faint rule sets the legend of the context runs apart from the plan windows', () => {
+  const lines = usageLines({ ...windows(), contextWindow: 1_000_000, contextPercent: 14, categories: breakdown }, 28, NOW)
 
-  expect(legend.cells!.find(c => c.text === '(*)')).toEqual({ text: '(*)', color: 'yellowBright' })
+  expect(lines[4]).toEqual(softRule(28))
+  expect(lines[5]!.text.startsWith('Session')).toBe(true)
 })

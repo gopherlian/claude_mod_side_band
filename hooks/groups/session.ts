@@ -93,7 +93,7 @@ export const session: Group = {
     const facts = present([costRow(ctx), toolsRow(ctx), turnRow(ctx)])
 
     return [
-      ...usageLines(usage && { ...usage, categories: stats.categories }, ctx.columns, ctx.now, ctx.noted),
+      ...usageLines(usage && { ...usage, categories: stats.categories }, ctx.columns, ctx.now),
       // A faint rule sets the bars apart from the session's facts.
       ...(usage && facts.length > 0 ? [softRule(ctx.columns)] : []),
       ...facts,
