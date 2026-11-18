@@ -176,8 +176,8 @@ If rows are left after the groups, the footnote goes at the foot, and then the c
 ### 1. Time
 
 The time in a big font, centred in a heavy orange frame, with the temperature, the sky, the place, how it feels, the
-humidity, the wind and the date centred under it. Under the frame, dimmed and centred, today's outlook (high and low,
-chance of rain, UV index, sunrise and sunset). While a countdown is running, `Timer mm:ss` closes the group.
+humidity, the wind and the date centred under it. Under the frame, dimmed and centred, today's outlook: the icon, then high and
+low, chance of rain and the UV index (`☁ · ↑24° ↓15° · rain 3% · UV 3`). While a countdown is running, `Timer mm:ss` closes the group.
 
 <p align="center"><img src="docs/img/time.svg" alt="The time group"></p>
 

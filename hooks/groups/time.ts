@@ -52,17 +52,15 @@ const outlookLines = (ctx: GroupContext): Line[] => {
     f.max !== undefined && f.min !== undefined ? `↑${round(f.max)}° ↓${round(f.min)}°` : '',
     f.rainPercent !== undefined ? `rain ${round(f.rainPercent)}%` : '',
   ].filter(Boolean)
-  const sky = [
-    f.uv !== undefined ? `UV ${round(f.uv)}` : '',
-    f.sunrise && f.sunset ? `${f.sunrise}–${f.sunset}` : '',
-  ].filter(Boolean)
+  // Sunrise and sunset are left out, so the row is short enough to sit centred.
+  const sky = [f.uv !== undefined ? `UV ${round(f.uv)}` : ''].filter(Boolean)
   const outlook = [today, sky].filter(parts => parts.length > 0).map(parts => parts.join(' · '))
   // One row when both fit side by side. When they do not (a tall, narrow
   // band) each keeps its own row, uncut, centered.
   const joined = outlook.join(' · ')
-  // The icon leads the first row: one cell plus a space, cut around it.
-  const lead = ctx.weather.icon ? `${ctx.weather.icon} ` : ''
-  const leadCells = lead ? ICON_CELLS + 1 : 0
+  // The icon leads the first row, set apart by ` · ` like the rest; the row is cut around it.
+  const lead = ctx.weather.icon ? `${ctx.weather.icon} · ` : ''
+  const leadCells = lead ? ICON_CELLS + 3 : 0
   const isSplit = outlook.length === 2 && leadCells + joined.length > ctx.columns
   const rows = outlook.length === 2 && !isSplit ? [joined] : outlook
 

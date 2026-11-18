@@ -75,12 +75,12 @@ const draw = async (
 }
 
 test('in a narrow band the two outlook rows are drawn centered', async ($, on) => {
-  const tree = await draw($, on, 40)
+  const tree = await draw($, on, 30)
 
-  // 40 body columns, less the padding on both sides, is 36 for the frame.
-  expect(holderOf(tree, /^┏━{34}┓$/)).toBeDefined()
-  expect(holderOf(tree, /^☁ ↑24° ↓15° · rain 0%$/)?.props?.justifyContent).toBe('center')
-  expect(holderOf(tree, /^UV 3 · 07:46–17:45$/)?.props?.justifyContent).toBe('center')
+  // 30 body columns, less the padding on both sides, is 26 for the frame.
+  expect(holderOf(tree, /^┏━{24}┓$/)).toBeDefined()
+  expect(holderOf(tree, /^☁ · ↑24° ↓15° · rain 0%$/)?.props?.justifyContent).toBe('center')
+  expect(holderOf(tree, /^UV 3$/)?.props?.justifyContent).toBe('center')
   // Every other line stays where it was.
   expect(holderOf(tree, /Overcast/)).toBeDefined()
   expect(holderOf(tree, /Overcast/)?.props?.justifyContent).toBeUndefined()
@@ -89,7 +89,7 @@ test('in a narrow band the two outlook rows are drawn centered', async ($, on) =
 
 test('in a wide band the outlook stays on one row, centered under the frame', async ($, on) => {
   const tree = await draw($, on, 80)
-  const holder = holderOf(tree, /^☁ ↑24° ↓15° · rain 0% · UV 3 · 07:46–17:45$/)
+  const holder = holderOf(tree, /^☁ · ↑24° ↓15° · rain 0% · UV 3$/)
 
   expect(holderOf(tree, /^┏━{74}┓$/)).toBeDefined()
   expect(holder).toBeDefined()

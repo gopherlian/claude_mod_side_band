@@ -66,8 +66,8 @@ test('in the frame the time is centered and the weather text goes below it', () 
 
 test('the time group shows the outlook and a running timer', () => {
   const texts = time.lines(ctx({ timerEndsAt: NOW + 62_000 })).map(l => l.text)
-  expect(texts).toContain('↑24° ↓15° · rain 30%')
-  expect(texts).toContain('UV 6 · 07:12–18:44')
+  expect(texts).toContain('↑24° ↓15° · rain 30% · UV 6')
+  expect(texts.join('\n')).not.toMatch(/07:12|18:44/)
   expect(texts).toContain('Timer 1:02')
   expect(time.lines(ctx({ timerEndsAt: NOW - 1 })).some(l => l.text === 'Timer done')).toBe(true)
 })
@@ -75,41 +75,42 @@ test('the time group shows the outlook and a running timer', () => {
 const withIcon = (over: Partial<GroupContext> = {}) =>
   ctx({ ...over, weather: { ...ctx().weather, icon: '☂' } })
 
-test('the weather icon leads the rain row and costs one cell plus a space', () => {
-  const joined = '↑24° ↓15° · rain 30% · UV 6 · 07:12–18:44'
+test('the weather icon leads the rain row, set apart by a separator: one cell and ` · `', () => {
+  const joined = '↑24° ↓15° · rain 30% · UV 6'
   const rows = (columns: number) => time.lines(withIcon({ columns })).map(l => l.text)
 
-  expect(rows(60)).toContain('☂ ' + joined)
-  expect(rows(joined.length + 2)).toContain('☂ ' + joined)
+  expect(rows(60)).toContain('☂ · ' + joined)
+  expect(rows(joined.length + 4)).toContain('☂ · ' + joined)
 
-  const narrow = rows(joined.length + 1)
-  expect(narrow).not.toContain('☂ ' + joined)
-  expect(narrow).toContain('☂ ↑24° ↓15° · rain 30%')
-  expect(narrow).toContain('UV 6 · 07:12–18:44')
+  const narrow = rows(joined.length + 3)
+  expect(narrow).not.toContain('☂ · ' + joined)
+  expect(narrow).toContain('☂ · ↑24° ↓15° · rain 30%')
+  expect(narrow).toContain('UV 6')
 })
 
 test('without an icon the outlook is exactly as before', () => {
   const texts = time.lines(ctx({ columns: 60 })).map(l => l.text)
   expect(texts.some(t => t.includes('☀') || t.includes('☂'))).toBe(false)
-  expect(texts).toContain('↑24° ↓15° · rain 30% · UV 6 · 07:12–18:44')
+  expect(texts).toContain('↑24° ↓15° · rain 30% · UV 6')
 })
 
-test('the outlook shares one row when it fits and keeps two when it does not', () => {
-  const joined = '↑24° ↓15° · rain 30% · UV 6 · 07:12–18:44'
+test('the outlook shares one row when it fits and keeps two when it does not, with no sunrise or sunset', () => {
+  const joined = '↑24° ↓15° · rain 30% · UV 6'
   const rows = (columns: number) => time.lines(ctx({ columns })).map(l => l.text)
 
   expect(rows(60)).toContain(joined)
-  expect(rows(60)).not.toContain('UV 6 · 07:12–18:44')
+  expect(rows(60)).not.toContain('UV 6')
+  expect(rows(60).join('\n')).not.toMatch(/07:12|18:44/)
   expect(rows(joined.length)).toContain(joined)
 
   const narrow = rows(joined.length - 1)
   expect(narrow).not.toContain(joined)
   expect(narrow).toContain('↑24° ↓15° · rain 30%')
-  expect(narrow).toContain('UV 6 · 07:12–18:44')
+  expect(narrow).toContain('UV 6')
 })
 
 test('the outlook is always centered, on one row or split in two', () => {
-  const joined = '↑24° ↓15° · rain 30% · UV 6 · 07:12–18:44'
+  const joined = '↑24° ↓15° · rain 30% · UV 6'
   const outlook = (columns: number) => time.lines(ctx({ columns })).filter(l => /rain|UV/.test(l.text))
 
   const wide = outlook(60)
@@ -117,7 +118,7 @@ test('the outlook is always centered, on one row or split in two', () => {
   expect(wide[0].align).toBe('center')
 
   const narrow = outlook(joined.length - 1)
-  expect(narrow.map(l => l.text)).toEqual(['↑24° ↓15° · rain 30%', 'UV 6 · 07:12–18:44'])
+  expect(narrow.map(l => l.text)).toEqual(['↑24° ↓15° · rain 30%', 'UV 6'])
   expect(narrow.map(l => l.align)).toEqual(['center', 'center'])
   expect(narrow.every(l => l.dimColor === true)).toBe(true)
 
