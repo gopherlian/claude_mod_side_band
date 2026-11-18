@@ -33,3 +33,20 @@ export const RESOURCE_TEXT_COLORS: Record<Resource, string> = {
   up: '#a0aec0',
 }
 
+
+/**
+ * One icon per resource, drawn before its name: a one-cell text symbol (no
+ * emoji, no variation selector), as the weather icon, so no terminal can
+ * misalign the rows. It takes the resource's lighter colour, as the name does.
+ */
+export const RESOURCE_ICONS: Record<Resource, string> = {
+  cpu: '⚙',
+  gpu: '▣',
+  vram: '▤',
+  npu: '◈',
+  ram: '≡',
+  swap: '⇄',
+  disk: '◉',
+  down: '↓',
+  up: '↑',
+}

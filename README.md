@@ -226,15 +226,15 @@ commits to push and `↓n` to pull. The group does not appear outside a git repo
 
 ### 4. System
 
-What the machine is doing, one bar per resource. Each resource has its own colour (see the
-[colour guide](#colour-guide)); the bar is the darker shade and its name and number are a lighter shade of the same
-colour so they read well.
+What the machine is doing, one bar per resource, each with an icon before its name. Each resource has its own colour
+(see the [colour guide](#colour-guide)); the bar is the darker shade and its icon, name and number are a lighter shade
+of the same colour so they read well.
 
 <p align="center"><img src="docs/img/system.svg" alt="The system group"></p>
 
-- **CPU, GPU, VRAM, NPU:** utilisation in percent. With several GPUs they are numbered (`GPU0`, `VRAM0`…).
-- **RAM, Swap, Disk:** memory in use, swap in use, and the disk the session's working directory is on.
-- **Down, Up:** network rates. A network bar has no fixed top speed, so it is scaled to the highest rate seen since
+- **`⚙` CPU, `▣` GPU, `▤` VRAM, `◈` NPU:** utilisation in percent. With several GPUs they are numbered (`GPU0`, `VRAM0`…).
+- **`≡` RAM, `⇄` Swap, `◉` Disk:** memory in use, swap in use, and the disk the session's working directory is on.
+- **`↓` Download, `↑` Upload:** what the network receives and sends. A network bar has no fixed top speed, so it is scaled to the highest rate seen since
   the mod loaded (never below 1 MB/s, so a trickle does not look full).
 - **Docker:** one bar per running container, then its name. The bar has two halves: the top half is the container's
   CPU (green) and the bottom half the GPU (blue). Docker does not split a GPU between containers, so a container
@@ -263,7 +263,7 @@ row centred.
 | Cost · tools chart · effort pips | green `#68d391` · violet `#c084fc` · cyan `#4dd0e1` (faint `#4a5568`) |
 | CPU · GPU · VRAM · NPU | green `#2f855a` · blue `#2b6cb0` · cyan `#0e7490` · indigo `#4c51bf` |
 | RAM · Swap · Disk | purple `#6b21a8` · mustard `#8a6d0b` · teal `#0f766e` |
-| Down · Up | dark lime `#4d7c0f` · slate `#64748b` |
+| Download · Upload | dark lime `#4d7c0f` · slate `#64748b` |
 | Timer done | green |
 | The mod's version · a new one waiting for a reload · one out but not installed | dim · green · yellow |
 

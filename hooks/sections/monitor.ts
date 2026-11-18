@@ -1,7 +1,7 @@
 // The hardware monitor section: one bar per resource, in percent.
 import { formatRate } from '../format'
 import type { Hardware } from '../monitor/types'
-import { RESOURCE_COLORS, RESOURCE_TEXT_COLORS } from './palette'
+import { RESOURCE_COLORS, RESOURCE_ICONS, RESOURCE_TEXT_COLORS } from './palette'
 import type { Resource } from './palette'
 import { bar, meter } from './usage'
 import type { Cell, Line } from './usage'
@@ -14,15 +14,23 @@ const brightEnds = (text: string, head: number, tail: number, color: string, lig
     { text: text.slice(text.length - tail), color: light },
   ].filter(cell => cell.text !== '')
 
-/** A bar in the colour of its resource, whatever its fill; the label and the percent are a lighter shade of the same colour. */
+/** The icon of the resource, then its name: `LABEL_WIDTH` cells, so every bar of the group starts in one column. */
+const labelOf = (label: string, resource: Resource): string => `${RESOURCE_ICONS[resource]} ${label}`.padEnd(LABEL_WIDTH)
+
+/**
+ * A bar in the colour of its resource, whatever its fill, after the resource's
+ * icon and name; the icon, the name and the percent are a lighter shade of the
+ * same colour.
+ */
 export const meterLine = (label: string, percent: number, columns: number, resource: Resource): Line => {
-  const text = meter(label, percent, columns)
+  const text = meter(labelOf(label, resource), percent, columns)
   const color = RESOURCE_COLORS[resource]
 
-  return { text, color, cells: brightEnds(text, label ? LABEL_WIDTH : 0, 5, color, RESOURCE_TEXT_COLORS[resource]) }
+  return { text, color, cells: brightEnds(text, LABEL_WIDTH, 5, color, RESOURCE_TEXT_COLORS[resource]) }
 }
 
-const LABEL_WIDTH = 8
+/** The icon, a space and the longest name (`Download`). */
+const LABEL_WIDTH = 10
 const RATE_WIDTH = 7
 
 /** A meter small enough to share a row: a 4-cell name, the bar, then the number, `width` cells in all. */
@@ -51,7 +59,8 @@ export const rateLine = (
   const width = Math.max(4, columns - LABEL_WIDTH - 1 - RATE_WIDTH)
   const percent = peakBps > 0 ? (bps / peakBps) * 100 : 0
 
-  const text = `${label.padEnd(LABEL_WIDTH)}${bar(percent, width)} ${formatRate(bps).padStart(RATE_WIDTH)}`
+  const head = resource ? labelOf(label, resource) : label.padEnd(LABEL_WIDTH)
+  const text = `${head}${bar(percent, width)} ${formatRate(bps).padStart(RATE_WIDTH)}`
   if (!resource) return { text }
   const color = RESOURCE_COLORS[resource]
 

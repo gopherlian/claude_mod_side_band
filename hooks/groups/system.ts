@@ -50,8 +50,8 @@ export const system: Group = {
     if (s.downBps !== undefined && s.upBps !== undefined) {
       const peak = s.netPeakBps ?? Math.max(s.downBps, s.upBps)
       if (lines.length > 0) lines.push(softRule(ctx.columns))
-      lines.push(rateLine('Down', s.downBps, peak, ctx.columns, 'down'))
-      lines.push(rateLine('Up', s.upBps, peak, ctx.columns, 'up'))
+      lines.push(rateLine('Download', s.downBps, peak, ctx.columns, 'down'))
+      lines.push(rateLine('Upload', s.upBps, peak, ctx.columns, 'up'))
     }
     if (s.dockers !== undefined) {
       if (lines.length > 0) lines.push(softRule(ctx.columns))

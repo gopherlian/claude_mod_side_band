@@ -3,7 +3,6 @@ import { expect, test } from 'claude-code/testing'
 import { bigText } from '../bigdigits'
 import { formatShortTime } from '../widgets/clock'
 import { containerLine } from '../sections/docker'
-import { rateLine } from '../sections/monitor'
 import { creditLines } from '../sections/credit'
 import { rule, softRule } from '../sections/usage'
 import { arrange, groups } from './index'
@@ -237,14 +236,14 @@ test('the system group adds memory, disk, network and docker to the bars', () =>
   const texts = system
     .lines(ctx({ system: { ramPercent: 50, diskPercent: 30, downBps: 524288, upBps: 2048, netPeakBps: 1048576, dockers: [{ name: 'api', networks: ['n'] }, { name: 'db', networks: ['n'] }] } }))
     .map(l => l.text)
-  expect(texts.some(t => t.startsWith('RAM') && t.includes('50%'))).toBe(true)
-  expect(texts.some(t => t.startsWith('Disk') && t.includes('30%'))).toBe(true)
-  const down = rateLine('Down', 524288, 1048576, 30).text
+  expect(texts.some(t => t.startsWith('≡ RAM     ') && t.includes('50%'))).toBe(true)
+  expect(texts.some(t => t.startsWith('◉ Disk    ') && t.includes('30%'))).toBe(true)
+  // The network rows say what they measure: what comes in and what goes out.
+  const down = '↓ Download' + '█'.repeat(6) + '─'.repeat(6) + '  512K/s'
   expect(texts).toContain(down)
-  expect(texts).toContain(rateLine('Up', 2048, 1048576, 30).text)
-  expect(down).toBe('Down    ' + '█'.repeat(7) + '─'.repeat(7) + '  512K/s')
+  expect(texts.some(t => t.startsWith('↑ Upload  ') && t.endsWith('   2K/s'))).toBe(true)
+  expect(texts.some(t => /^(Down|Up) /.test(t))).toBe(false)
   expect(texts[texts.indexOf(down) - 1]).toBe('─'.repeat(30))
-  expect(texts.some(t => t.includes('↓') || t.includes('↑'))).toBe(false)
   expect(texts).toContain('docker · 2 running')
   expect(texts).toContain(containerLine('api', 30).text)
   expect(texts).toContain(containerLine('db', 30).text)
@@ -252,7 +251,7 @@ test('the system group adds memory, disk, network and docker to the bars', () =>
   // One network: the only inner separators are the two before the network and docker blocks.
   expect(texts.filter(t => /^─+$/.test(t)).length).toBe(2)
   expect(texts[texts.indexOf('docker · 2 running') - 1]).toBe('─'.repeat(30))
-  expect(texts.some(t => t.startsWith('Swap'))).toBe(false)
+  expect(texts.some(t => t.includes('Swap'))).toBe(false)
 })
 
 test('when rows run short the highest priority number is dropped first, whole', () => {
@@ -269,7 +268,7 @@ test('when rows run short the highest priority number is dropped first, whole', 
   // Each boundary between groups takes two rows: a blank one and the rule that names the group.
   const base = time.lines(full).length + session.lines(full).length + project.lines(full).length
   const noSystem = arrange(full, base + 4)
-  expect(noSystem.some(l => l.text.startsWith('RAM'))).toBe(false)
+  expect(noSystem.some(l => l.text.includes('RAM'))).toBe(false)
   expect(noSystem.some(l => l.text === 'US-1')).toBe(true)
   const noProject = arrange(full, base + 3)
   expect(noProject.some(l => l.text === 'US-1')).toBe(false)
@@ -417,4 +416,33 @@ test('the blank row above the Claude rule carries the version, right-aligned; th
   // Without a reading of the version the row is blank, as before.
   const bare = arrange({ ...full, update: undefined }, 200)
   expect(bare[claude - 1]).toEqual({ text: ' ' })
+})
+
+test('every resource of the system group has its icon before its name, and every bar starts in the same column', () => {
+  const texts = system
+    .lines(
+      ctx({
+        hardware: {
+          cpu: { total: 20, cores: [] },
+          gpus: [{ name: 'g', util: 50, memUsedMb: 1, memTotalMb: 2 }],
+          npus: [{ name: 'n', util: 5 }],
+        },
+        system: { ramPercent: 50, swapPercent: 10, diskPercent: 30, downBps: 1, upBps: 1, netPeakBps: 1048576 },
+      }),
+    )
+    .map(l => l.text)
+    .filter(t => !/^─+$/.test(t))
+
+  expect(texts.map(t => t.slice(0, 10))).toEqual([
+    '⚙ CPU     ',
+    '▣ GPU     ',
+    '▤ VRAM    ',
+    '◈ NPU     ',
+    '≡ RAM     ',
+    '⇄ Swap    ',
+    '◉ Disk    ',
+    '↓ Download',
+    '↑ Upload  ',
+  ])
+  expect(texts.every(t => t.length === 30)).toBe(true)
 })
