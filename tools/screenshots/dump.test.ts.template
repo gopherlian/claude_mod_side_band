@@ -56,12 +56,12 @@ const ctx = (columns: number): GroupContext => ({
   system: {
     ramPercent: 58, swapPercent: 7, diskPercent: 71, downBps: 3_400_000, upBps: 410_000, netPeakBps: 12_000_000,
     dockers: [
-      { name: 'inference-api', networks: ['app'], cpu: 38, gpu: true },
-      { name: 'directus', networks: ['app'], cpu: 12 },
+      { name: 'model-service', networks: ['app'], cpu: 38, gpu: true },
+      { name: 'admin-ui', networks: ['app'], cpu: 12 },
       { name: 'postgres', networks: ['db'], cpu: 5 },
     ],
   },
-  git: { branch: 'US-593', changed: 3, ahead: 2, behind: 0 },
+  git: { branch: 'feat-7', changed: 3, ahead: 2, behind: 0 },
   timerEndsAt: NOW + 24 * 60_000 + 30_000,
 })
 

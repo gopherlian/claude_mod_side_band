@@ -74,11 +74,11 @@ export const demo = (now: number): Demo => ({
     upBps: 410_000,
     netPeakBps: 12_000_000,
     dockers: [
-      { name: 'inference-api', networks: ['app'], cpu: drift(now, 38, 15, 9), gpu: true },
-      { name: 'directus', networks: ['app'], cpu: 12 },
+      { name: 'model-service', networks: ['app'], cpu: drift(now, 38, 15, 9), gpu: true },
+      { name: 'admin-ui', networks: ['app'], cpu: 12 },
       { name: 'postgres', networks: ['db'], cpu: 5 },
     ],
   },
-  git: { branch: 'US-593', changed: 3, ahead: 2, behind: 0 },
+  git: { branch: 'feat-7', changed: 3, ahead: 2, behind: 0 },
   timerEndsAt: timerEnd(now),
 })

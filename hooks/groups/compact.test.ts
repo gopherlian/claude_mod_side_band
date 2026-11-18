@@ -127,7 +127,7 @@ test('the compact System column counts containers instead of drawing them', () =
 
 test('the compact Project column is the branch and its state, hidden outside a repository', () => {
   expect(texts(project.strip!.lines(ctx()))).toEqual(['develop', 'clean'])
-  expect(texts(project.strip!.lines(ctx({ columns: 12, git: { branch: 'US-593', changed: 3, ahead: 2, behind: 0 } })))).toEqual(['US-593', '3 changed ↑2'])
+  expect(texts(project.strip!.lines(ctx({ columns: 12, git: { branch: 'feat-7', changed: 3, ahead: 2, behind: 0 } })))).toEqual(['feat-7', '3 changed ↑2'])
   expect(project.strip!.lines(ctx({ git: undefined }))).toEqual([])
 })
 

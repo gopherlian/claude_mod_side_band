@@ -279,16 +279,16 @@ test('/band demo draws every element with made-up readings, and turns off again'
 
   // Without docker, a repository or a plan, none of these are drawn.
   const real = await mount()
-  expect(holderOf(real, /inference-api/)).toBeUndefined()
+  expect(holderOf(real, /model-service/)).toBeUndefined()
 
   expect(((await run('demo')) as { text?: string }).text).toBe('Demo on: the band shows made-up readings. /band demo turns it off.')
   const demo = await mount()
-  for (const words of [/inference-api/, /docker · 3 running/, /^GPU /, /^VRAM /, /^Session /, /^Weekly /, /━━ Project/, /^Timer /, / msgs 203k/]) {
+  for (const words of [/model-service/, /docker · 3 running/, /^GPU /, /^VRAM /, /^Session /, /^Weekly /, /━━ Project/, /^Timer /, / msgs 203k/]) {
     expect(holderOf(demo, words)).toBeDefined()
   }
 
   expect(((await run('demo')) as { text?: string }).text).toBe('Demo off: the band shows its real readings again.')
-  expect(holderOf(await mount(), /inference-api/)).toBeUndefined()
+  expect(holderOf(await mount(), /model-service/)).toBeUndefined()
 })
 
 /** Draws the band of a clean working copy on main, `local` installed and `published` out; records the commands run. */
