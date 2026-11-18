@@ -2,7 +2,6 @@
 import { formatLeft } from '../format'
 import { compositionCells, compositionLegend } from './context'
 import type { Category } from './context'
-import { wrap } from './wrap'
 
 export type UsageData = {
   contextTokens?: number
@@ -151,7 +150,7 @@ export const bar = (percent: number, width: number): string => {
 /** What the tick means, longest wording first; the row takes the first that fits the band. */
 const LEGEND = [`${MARK} time elapsed in the window`, `${MARK} time elapsed`]
 
-/** The one-row legend of the tick, for the strip, which has no footnote; nothing where not even the short wording fits. */
+/** The one-row legend of the tick, for the strip; nothing where not even the short wording fits. */
 const legendLines = (columns: number): Line[] => {
   const text = LEGEND.find(wording => wording.length <= columns)
 
@@ -199,19 +198,6 @@ export const meter = (
   const drawn = percent === undefined ? TRACK.repeat(width) : bar(percent, width)
 
   return `${head}${mark === undefined ? drawn : withMark(drawn, mark)} ${number}`
-}
-
-const PACE_NOTE = `${MARK} inside the fill: over pace; beyond it: under pace.`
-
-/**
- * How to read the tick, wrapped to the band, the tick green and the rest dim.
- * Nothing while no bar carries a tick. It is long, so it is drawn only where
- * the band has rows to spare.
- */
-export const paceNote = (data: UsageData | undefined, columns: number, now?: number): Line[] => {
-  if (!usageLines(data, columns, now).some(line => line.text.includes(MARK))) return []
-
-  return wrap(PACE_NOTE, columns).map(text => withMarks({ text, dimColor: true }))
 }
 
 /** The time left at the end of a window's row, right-aligned in this many cells. */
@@ -267,8 +253,7 @@ const contextBar = (data: UsageData, columns: number): Line => {
 
 /**
  * The lines of the section, each at most `columns` cells wide. Given `now`,
- * the plan meters carry a tick for how much of their window has gone by; the
- * footnote (`paceNote`) explains how to read it.
+ * the plan meters carry a tick for how much of their window has gone by.
  */
 export const usageLines = (data: UsageData | undefined, columns: number, now?: number): Line[] => {
   if (!data) return [{ text: 'Usage unavailable', dimColor: true }]
@@ -279,12 +264,11 @@ export const usageLines = (data: UsageData | undefined, columns: number, now?: n
       text: `Context ${tokens} / ${formatTokens(data.contextWindow)}`,
       color: colorFor(data.contextPercent),
     },
-    blank(),
     contextBar(data, columns),
   ]
-  // A blank row sets the legend of the runs apart from the bar, and a faint rule from the plan windows.
+  // A faint rule sets the legend of the runs apart from the plan windows.
   const legend = compositionLegend(data.categories, columns).map(cells => ({ text: cells.map(cell => cell.text).join(''), cells }))
-  if (legend.length > 0) lines.push(blank(), ...legend)
+  lines.push(...legend)
   if (legend.length > 0) lines.push(softRule(columns))
 
   for (const { label, limit } of windows(data.limits)) lines.push(windowRow(label, limit, columns, now))

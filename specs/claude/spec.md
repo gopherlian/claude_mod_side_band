@@ -41,15 +41,13 @@ pace.
   fill: under pace.
 - *Given* a window with no known end, *Then* its bar carries no tick.
 
-**R5.** In the stacked band no legend row follows the bars: the footnote explains the tick (R6). In the strip, which
-has no footnote, a one-row legend follows them: `┃ time elapsed in the window`, or `┃ time elapsed` when that does not
+**R5.** In the stacked band no legend row follows the bars, and no footnote explains the tick. In the strip a
+one-row legend follows them: `┃ time elapsed in the window`, or `┃ time elapsed` when that does not
 fit, and nothing where neither fits. The `┃` is green.
 
-**R6.** When rows are left, the footnote SHALL be the sentence `┃ inside the fill: over pace; beyond it: under pace.`
-wrapped to the band, the `┃` green and the rest dim. There is no `(*)`.
+**R6.** There is no footnote and no `(*)`.
 
-**R6a.** In the stacked band a blank row SHALL separate the `Context` label from its bar, and another the bar from
-the legend of the context runs, where there is a legend; a faint rule SHALL separate that legend from the plan windows.
+**R6a.** A faint rule SHALL separate the legend of the context runs from the plan windows (stacked band).
 
 **R7 (removed).** There is no `↻` row: each window carries its own time left (R2a).
 

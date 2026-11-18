@@ -7,21 +7,20 @@ The rules every group follows. If a change breaks one of these, it changes this 
 **R1.** The separators between groups SHALL be orange: the heavy rule that opens a group (`━━ Claude ━━━…`) in bright
 orange `#a05800`, and the bars between the columns of the strip (`┊`) in dark orange `#744000`. The rules inside a
 group SHALL be a thin line across the band (`────`) in a very faint grey `#3a3a3a`, seen only when looked for. The
-footnote sits between that faint grey rule, above it, and the orange rule of a group's name with no title (`━━━━`),
-below it after a blank row. The credit is always set apart by a blank row.
+credit sits under the orange rule of a group's name with no title (`━━━━`), with a blank row above and below that
+rule.
 The oranges are dark, so they frame without glaring.
 
 **R2.** A text that is drawn with a colour SHALL NOT also be dimmed: on the terminal, dimming replaces the colour
 with the theme's dim one. Where a row needs two looks, it SHALL be drawn in cells, runs of text each with its own
 colour.
 
-**R3.** Dim SHALL be used only for secondary text: the outlook under the frame, the activity rows, the legend, the
-footnote.
+**R3.** Dim SHALL be used only for secondary text: the outlook under the frame, the activity rows, the legend.
 
 **R4.** The frame of the time group SHALL be heavy (`┏━┓ ┃ ┗━┛`) and bright orange. Only the frame is orange; what is
 inside keeps its own colours.
 
-**R5.** The pace tick `┃` SHALL be green wherever it is drawn (bars, legend, footnote).
+**R5.** The pace tick `┃` SHALL be green wherever it is drawn (bars, legend).
 
 **R6.** The credit SHALL be one row, centred like the time, with no frame, no name and no bar:
 `© 2026 a@webtory.es  GNU/GPL` (two spaces before the license), 28 cells, so it fits the band it is designed for. The

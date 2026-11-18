@@ -62,11 +62,6 @@ export type Group = {
   label?: string
   priority: number
   lines: (ctx: GroupContext) => Line[]
-  /**
-   * A note for the foot of the band. It is drawn whole and only if the group
-   * is shown and rows are left over, so it never takes the place of a widget.
-   */
-  footnote?: (ctx: GroupContext) => Line[]
   /** How the group draws as a column of the strip; a group without it is left out of the strip. */
   strip?: Strip
 }

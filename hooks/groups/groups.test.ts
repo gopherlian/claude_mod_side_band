@@ -176,7 +176,7 @@ test('the session group draws the cost, the tools chart, the turn and the model,
 test('what fills the context is drawn under the bar, never listing the free space or the reserve as a consumer', () => {
   const lines = session.lines(busy()).map(l => l.text)
 
-  expect(lines.slice(4, 6)).toEqual(['▒ buffer 33k  ■ msgs 30k', '■ sys 12k'])
+  expect(lines.slice(2, 4)).toEqual(['▒ buffer 33k  ■ msgs 30k', '■ sys 12k'])
   expect(lines.join('\n')).not.toMatch(/free|autocompact/i)
 })
 
@@ -218,72 +218,13 @@ const paced = (over: Partial<GroupContext> = {}) =>
     ...over,
   })
 
-test('the session group has a footnote that explains the tick', () => {
-  const note = session.footnote!(paced()).map(l => l.text)
-
-  expect(note[0]).toMatch(/^┃ inside the fill/)
-  expect(session.footnote!(ctx())).toEqual([])
-})
-
-const bare = () => groups.map(group => ({ ...group, footnote: undefined }))
-
-test('footnotes go at the foot between a faint grey rule and an untitled orange one after a blank row, whole, only where rows are left over', () => {
-  const c = paced()
-  const note = session.footnote!(c)
-  const full = arrange(c, 500)
-  const without = arrange(c, 500, bare())
-
-  expect(note.length).toBeGreaterThan(1)
-  expect(full.slice(-note.length - 3)).toEqual([softRule(30), ...note, { text: ' ' }, rule(30)])
-  expect(rule(30).text).toBe('━'.repeat(30))
-  expect(softRule(30).color).toBe('#3a3a3a')
-  expect(full.length).toBe(without.length + note.length + 3)
-  expect(arrange(c, full.length)).toEqual(full)
-  expect(arrange(c, full.length - 1)).toEqual(without)
-})
-
-test('the stacked band has no legend row of the tick and no (*): only the footnote explains it', () => {
+test('the stacked band has no footnote: no sentence about the tick and no faint rule at its foot', () => {
   const texts = arrange(paced(), 500).map(l => l.text)
 
-  expect(texts.some(t => t.startsWith('┃ time elapsed'))).toBe(false)
-  expect(texts.some(t => t.includes('(*)'))).toBe(false)
-  expect(texts.some(t => t.startsWith('┃ inside the fill'))).toBe(true)
-})
-
-test('a footnote never costs a widget a row: what drops is what dropped without it', () => {
-  const c = paced({ columns: 40 })
-  const note = session.footnote!(c)
-
-  for (let available = 5; available <= 80; available++) {
-    const without = arrange(c, available, bare())
-    const withNote = arrange(c, available)
-
-    if (withNote.length === without.length) {
-      expect(withNote).toEqual(without)
-      continue
-    }
-    expect(withNote.length).toBe(without.length + note.length + 3)
-    expect(withNote.slice(0, without.length)).toEqual(without)
-    expect(withNote.slice(without.length)).toEqual([softRule(40), ...note, { text: ' ' }, rule(40)])
-  }
-})
-
-test('a group that was dropped leaves its footnote out too', () => {
-  const kept = { id: 'kept', priority: 1, lines: () => [{ text: 'kept' }] }
-  const dropped = { id: 'dropped', priority: 2, lines: () => [{ text: 'dropped' }], footnote: () => [{ text: 'its note' }] }
-
-  expect(arrange(ctx(), 10, [kept, dropped]).map(l => l.text)).toEqual([
-    'kept',
-    ' ',
-    '━'.repeat(30),
-    ' ',
-    'dropped',
-    '─'.repeat(30),
-    'its note',
-    ' ',
-    '━'.repeat(30),
-  ])
-  expect(arrange(ctx(), 1, [kept, dropped]).map(l => l.text)).toEqual(['kept'])
+  expect(texts.some(t => t.includes('pace'))).toBe(false)
+  expect(texts.some(t => t.includes('time elapsed') || t.includes('(*)'))).toBe(false)
+  expect(texts.at(-1)).not.toBe(softRule(30).text)
+  expect(texts.at(-1)).not.toBe(rule(30).text)
 })
 
 test('the project group is hidden outside a repository', () => {
@@ -391,8 +332,7 @@ test('a blank row sits on each side of the rule that names a group, never at the
     usage: { contextWindow: 200_000, limits: [] },
   })
   const texts = arrange(full, 200).map(l => l.text)
-  // The Claude group's own blank row, between the context label and its bar, is not a boundary.
-  const blanks = texts.flatMap((t, i) => (t.trim() === '' && !texts[i - 1]?.startsWith('Context ') ? [i] : []))
+  const blanks = texts.flatMap((t, i) => (t.trim() === '' ? [i] : []))
   const rules = texts.flatMap((t, i) => (t.startsWith('━━ ') ? [i] : []))
 
   expect(blanks.length).toBe(6)
@@ -429,30 +369,21 @@ test('docker lists at most five names and counts the rest; none running is said'
   expect(system.lines(ctx()).some(l => l.text.startsWith('docker'))).toBe(false)
 })
 
-test('the credit goes last, a blank row under the orange rule of the footnote, whole, only where rows are left over', () => {
+test('the credit goes last, between blank rows around an untitled orange rule, whole, only where rows are left over', () => {
   const c = paced()
   const credit = creditLines(30)
   const plain = arrange(c, 500)
   const full = arrange(c, 500, groups, credit)
 
   expect(credit.length).toBe(1)
-  expect(full.slice(-credit.length - 2)).toEqual([rule(30), { text: ' ' }, ...credit])
+  expect(full.slice(plain.length)).toEqual([{ text: ' ' }, rule(30), { text: ' ' }, ...credit])
+  expect(rule(30).text).toBe('━'.repeat(30))
   expect(full.slice(0, plain.length)).toEqual(plain)
-  expect(full.length).toBe(plain.length + credit.length + 1)
   expect(arrange(c, full.length, groups, credit)).toEqual(full)
   expect(arrange(c, full.length - 1, groups, credit)).toEqual(arrange(c, full.length - 1))
 })
 
-test('with no footnote the credit keeps a blank row above it', () => {
-  const c = ctx({ usage: { contextWindow: 200_000, limits: [] } })
-  const credit = creditLines(30)
-  const full = arrange(c, 500, groups, credit)
-
-  expect(full.slice(-credit.length - 1)).toEqual([{ text: ' ' }, ...credit])
-  expect(full.length).toBe(arrange(c, 500).length + credit.length + 1)
-})
-
-test('the credit never costs a widget or a footnote a row', () => {
+test('the credit never costs a widget a row', () => {
   const c = paced({ columns: 40 })
   const credit = creditLines(40)
 
@@ -465,8 +396,7 @@ test('the credit never costs a widget or a footnote a row', () => {
       continue
     }
     expect(credited.slice(0, plain.length)).toEqual(plain)
-    // The credit always follows a blank row, under the footnote's rule or under the last group.
-    expect(credited.slice(plain.length)).toEqual([{ text: ' ' }, ...credit])
+    expect(credited.slice(plain.length)).toEqual([{ text: ' ' }, rule(40), { text: ' ' }, ...credit])
   }
 })
 

@@ -195,7 +195,7 @@ test('with no credit given, nothing follows the columns', () => {
   expect(arrangeStrip(ctx(), 20)).toHaveLength(8)
 })
 
-test('there is no footnote in the strip, and no (*) pointing to one', () => {
+test('there is no (*) in the strip', () => {
   expect(texts(arrangeStrip(ctx(), 20)).join('\n')).not.toMatch(/\(\*\)/)
 })
 

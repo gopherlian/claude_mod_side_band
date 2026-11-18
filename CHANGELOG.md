@@ -6,6 +6,13 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- The Context label, its bar and the legend sit together again, with no blank rows between them.
+
+### Removed
+- The footnote that explained the pace tick, and the faint grey rule above it. The credit keeps its orange rule,
+  with a blank row above and below it.
+
 ## [1.2.1] - 2026-11-18
 
 ### Changed

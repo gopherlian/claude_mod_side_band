@@ -68,7 +68,6 @@ test('dump', () => {
   const out: Record<string, unknown> = { columns: COLUMNS }
   const c = ctx(COLUMNS)
   for (const g of groups) out[g.id] = g.lines({ ...c, noted: true })
-  out.footnote = groups.flatMap(g => g.footnote?.(c) ?? [])
   out.credit = creditLines(COLUMNS)
   out.overview = arrange(c, 500, groups, creditLines(COLUMNS))
   // The strip: where the pane is not docked, 99 columns across (a half-screen terminal) and 8 rows.

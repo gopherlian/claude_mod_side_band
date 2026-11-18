@@ -13,7 +13,7 @@ hot-reloads. It only reads; it never changes your files, your repository or your
 - [Install](#install)
 - [Use it](#use-it)
 - [How it works](#how-it-works)
-- [The groups](#the-groups): [Time](#1-time) · [Claude](#2-claude) · [Project](#3-project) · [System](#4-system) · [Footnote and credit](#the-footnote-and-the-credit)
+- [The groups](#the-groups): [Time](#1-time) · [Claude](#2-claude) · [Project](#3-project) · [System](#4-system) · [Credit](#the-credit)
 - [Colour guide](#colour-guide)
 - [Develop it](#develop-it) (spec-driven)
 - [License](#license)
@@ -156,7 +156,7 @@ right, each one compact:
 The columns need 99 columns across to show all four groups. Fewer than that and whole groups are dropped, System
 first, then Project, then Claude; the time always stays. Width left over is shared among the columns. The strip is
 never taller than the rows the pane has, and a column that is taller is cut at the bottom, the least important row
-first. The band asks for 8 rows when it opens, which is what the tallest column needs. It has no footnote; the
+first. The band asks for 8 rows when it opens, which is what the tallest column needs. The
 credit follows the columns where there are rows for all of it.
 
 **How rows are shared out in a docked band.** Each group has a priority. When there are fewer rows than groups need, whole groups are
@@ -170,8 +170,8 @@ docked pane nothing is dropped, because it scrolls.
 | 2 | Project | third |
 | 3 | System | first |
 
-If rows are left after the groups, the footnote goes at the foot, between a faint grey rule and an orange one, and then
-the credit, each whole or not at all.
+If rows are left after the groups, the credit goes at the foot, under an orange rule set between blank rows, whole or
+not at all.
 
 ## The groups
 
@@ -190,7 +190,7 @@ temperature first, then the sky, the place, the date, and last how it feels, the
 
 What this session and your plan are using.
 
-<p align="center"><img src="docs/img/claude.svg" alt="The Claude group and its footnote"></p>
+<p align="center"><img src="docs/img/claude.svg" alt="The Claude group"></p>
 
 From top to bottom:
 
@@ -214,9 +214,8 @@ its usage at all the group says `Usage unavailable`.
 **The pace tick.** The bar fills as you use the window. The green `┃` marks how much of the window's *time* has
 gone by. If the tick is *inside* the fill, you are spending faster than time passes and may run out before the
 window resets; beyond the fill, you are under pace. In the example above, Session has used 41% of its tokens but
-77% of its time has gone by: comfortably under pace. The footnote at the foot of the band says this in a
-sentence; it only appears when the band has rows to spare. (The strip has no footnote, so there a one-row legend,
-`┃ time elapsed in the window`, stands under the bars.)
+77% of its time has gone by: comfortably under pace. (In the strip a one-row legend, `┃ time elapsed in the window`,
+stands under the bars.)
 
 ### 3. Project
 
@@ -242,10 +241,9 @@ colour so they read well.
   that asked for a GPU shows the GPU's whole utilisation. Containers that share a network (directly or through
   another container) are grouped, with a faint rule between groups. Five are drawn; the rest are counted (`+3 more`).
 
-### The footnote and the credit
+### The credit
 
-At the foot of the band, only when rows are left over, the footnote explains the pace tick. Last of all, the
-credit:
+At the foot of the band, only when rows are left over, under an orange rule set between blank rows:
 
 <p align="center"><img src="docs/img/credit.svg" alt="The credit"></p>
 

@@ -1,7 +1,7 @@
 // The Claude session: context, plan windows, time, cost, tools, turn, model.
 import { formatClock, formatDuration } from '../format'
 import { effortCells, modelName, toolSpark } from '../sections/stats'
-import { compactUsageLines, paceNote, softRule, usageLines } from '../sections/usage'
+import { compactUsageLines, softRule, usageLines } from '../sections/usage'
 import type { Cell, Line } from '../sections/usage'
 import type { Group, GroupContext } from './types'
 
@@ -86,7 +86,6 @@ export const session: Group = {
   id: 'session',
   label: 'Claude',
   priority: 1,
-  footnote: (ctx: GroupContext): Line[] => paceNote(ctx.usage, ctx.columns, ctx.now),
   lines: (ctx: GroupContext): Line[] => {
     const { usage, stats } = ctx
     const model = modelRow(ctx)
