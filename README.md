@@ -319,13 +319,17 @@ hooks/
   widgets/             clock, date and weather
   layout.ts            the band's width and the rows it may take
   limits.ts            the plan limits shared between bands
+  shared.ts            the machine's readings and the weather shared between bands
+  update.ts            the check for a newer version, how it is installed, and the version row
+  demo.ts              the made-up readings of /band demo
 tools/screenshots/     how the screenshots above are drawn from the mod's own lines
 docs/img/              the screenshots (generated: they are redrawn with every visible change)
 ```
 
 Adding a group is adding a file in `hooks/groups/` that exports a `Group` (an `id`, an optional `label`, a
-`priority`, a `lines(ctx)` function and, to be in the strip, a compact `strip` form with its least and most width) and appending it to the list in `hooks/groups/index.ts`, after writing its
-spec in `specs/`. Every group reads only its own part of the context. Every file has a test beside it; a change to
+`priority`, a `lines(ctx)` function, optionally a `heading(ctx)` for the blank row above its rule and, to be in the
+strip, a compact `strip` form with its least and most width) and appending it to the list in `hooks/groups/index.ts`,
+after writing its spec in `specs/`. Every group reads only its own part of the context. Every file has a test beside it; a change to
 what is drawn changes its test.
 
 Two terminal facts the code relies on: `dimColor` replaces a text's colour with the theme's dim one, so anything

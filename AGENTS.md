@@ -25,7 +25,7 @@ touched is yours to fix.
 
 ```
 specs/             what the band must do (capability specs, and changes in progress)
-hooks/             the mod: register.tsx, groups/, sections/, monitor/, widgets/, layout.ts, limits.ts
+hooks/             the mod: register.tsx, groups/, sections/, monitor/, widgets/, layout.ts, limits.ts, update.ts
 tools/screenshots/ how the README screenshots are drawn from the mod's own lines
 docs/img/          the screenshots (generated: never edit by hand)
 .claude-plugin/    plugin.json and marketplace.json
