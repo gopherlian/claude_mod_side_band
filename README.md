@@ -30,7 +30,8 @@ If the repository is private, the install only works for people who can read it 
 has a git credential for github.com (an SSH key, or `gh auth login` then `gh auth setup-git`).
 
 Answer `y` to *Add marketplace?*, then pick a scope (the user scope keeps it for every session). The band is active
-from then on, and it opens by itself in every session you start afterwards.
+from then on, and it opens by itself in every session you start afterwards. Then set the dock to about 32 columns
+wide, once per machine: see [Size](#use-it) under *Use it*.
 
 From a shell, the same thing is:
 
@@ -82,9 +83,20 @@ When the countdown ends the band shows `Timer done` in green and raises a `Timer
 than 45% of the window). It is a docked pane: when the window is too short for every group it scrolls with the mouse
 wheel, or with the arrow keys while it has focus.
 
-> **The band is wider than that?** The engine remembers the width the dock was last resized to (it is kept in
-> `~/.claude.json`, under `pluginPanes.dockColumns`) and uses it instead of what a mod asks for. Resize the dock once,
-> to the width you want, and the engine keeps that one.
+> **The band is wider than that?** Claude Code remembers the width the dock was last resized to and uses it instead of
+> what a mod asks for. It is kept in `~/.claude.json`, under `pluginPanes.dockColumns`, for every session and window
+> of that user on that machine: a new machine starts from Claude Code's own default, or from whatever width it was
+> dragged to there.
+>
+> The band is designed for **32 columns** (28 of content and 2 of padding on each side). Set it either way, at any
+> time:
+>
+> - **Drag** the left edge of the dock until it is about that wide. It takes effect at once and is remembered.
+> - **Edit** `~/.claude.json` with Claude Code closed (it rewrites that file while it runs) and set
+>   `"pluginPanes": { "dockColumns": 32 }`, keeping any other keys already under `pluginPanes`.
+>
+> Narrower still works: what does not fit is wrapped or cut and the big clock turns to plain text. Wider just adds
+> room.
 
 ## How it works
 
