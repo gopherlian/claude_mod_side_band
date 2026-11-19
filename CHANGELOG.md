@@ -6,6 +6,8 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-19
+
 ### Changed
 - In a narrow band nothing disappears: the weather items, today's outlook, the cost, tools, turn and model rows and the
   branch and its state go on further rows where they do not fit on one, instead of being dropped or cut. The strip,
