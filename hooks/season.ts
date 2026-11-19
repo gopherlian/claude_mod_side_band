@@ -9,9 +9,8 @@ export type Season = {
   /** First and last day, as `[month, day]` (month 1 to 12), both inside the range; a range may cross New Year. */
   from: [number, number]
   to: [number, number]
-  /** What the tag says, and the symbol of the day at the right end of the top border. */
+  /** What the tag says. */
   name: string
-  icon: string
   /** A centred row under the frame. */
   greeting?: { text: string; color: string }
   /** Symbols drawn in turn, in light grey, on the blank cells of the square; none where the background says it all. */
@@ -39,13 +38,13 @@ const MOTIF_SPACING = 4
 
 /** In the order of the year from February; the demonstration walks through them in this order. */
 export const SEASONS: Season[] = [
-  { id: 'valentine', from: [2, 12], to: [2, 14], name: 'San Valentín', icon: '♥', motif: ['♥'], accent: '#ec7ab0', background: flat('#2a1224') },
-  { id: 'summer', from: [6, 21], to: [9, 22], name: 'Verano', icon: '☀', motif: ['≈', '≈', '☀'], accent: '#e6b422', background: flat('#0c2430') },
-  { id: 'donis', from: [10, 7], to: [10, 9], name: "9 d'Octubre", icon: '⚑', accent: '#d69e2e', background: senyera, greeting: { text: '♥ San Donís', color: '#ec7ab0' } },
-  { id: 'halloween', from: [10, 24], to: [11, 1], name: 'Halloween', icon: '☾', motif: ['☾', '▲', '✶'], accent: '#a78bfa', background: flat('#1b1030') },
-  { id: 'nochebuena', from: [12, 24], to: [12, 24], name: 'Nochebuena', icon: '✦', motif: ['✦', '✧'], accent: '#68d391', background: flat('#0f2417') },
-  { id: 'navidad', from: [12, 25], to: [1, 4], name: 'Navidad', icon: '❄', motif: ['❄', '✦'], accent: '#e57373', background: flat('#2a1012') },
-  { id: 'reyes', from: [1, 5], to: [1, 6], name: 'Reyes Magos', icon: '♚', motif: ['♚', '★'], accent: '#e6b422', background: flat('#2a2208') },
+  { id: 'valentine', from: [2, 12], to: [2, 14], name: 'San Valentín', motif: ['♥'], accent: '#ec7ab0', background: flat('#2a1224') },
+  { id: 'summer', from: [6, 21], to: [9, 22], name: 'Verano', motif: ['≈', '≈', '☀'], accent: '#e6b422', background: flat('#0c2430') },
+  { id: 'donis', from: [10, 7], to: [10, 9], name: "9 d'Octubre", accent: '#d69e2e', background: senyera, greeting: { text: '♥ San Donís', color: '#ec7ab0' } },
+  { id: 'halloween', from: [10, 24], to: [11, 1], name: 'Halloween', motif: ['☾', '▲', '✶'], accent: '#a78bfa', background: flat('#1b1030') },
+  { id: 'nochebuena', from: [12, 24], to: [12, 24], name: 'Nochebuena', motif: ['✦', '✧'], accent: '#68d391', background: flat('#0f2417') },
+  { id: 'navidad', from: [12, 25], to: [1, 4], name: 'Navidad', motif: ['❄', '✦'], accent: '#e57373', background: flat('#2a1012') },
+  { id: 'reyes', from: [1, 5], to: [1, 6], name: 'Reyes Magos', motif: ['♚', '★'], accent: '#e6b422', background: flat('#2a2208') },
 ]
 
 /** A day of the year as one number that grows through the year, so ranges compare and cross New Year. */
@@ -95,29 +94,21 @@ const perChar = (line: Line): Cell[] =>
     [...cell.text].map(char => ({ ...cell, text: char })),
   )
 
-/** The cells between the icon and the right corner. */
-const ICON_MARGIN = 1
-
 /**
- * The top border of the frame dressed: the slanted tag with the name right after the left corner, where it fits, and
- * the icon of the day near the right corner.
+ * The top border of the frame with the slanted tag of the day right after the left corner. Where the tag does not
+ * leave the border two cells to its right, the border is returned as it was.
  */
 const withTag = (top: Line, season: Season): Line => {
   const border = perChar(top)
-  if (border.length < 8) return top
-
-  const iconAt = border.length - 2 - ICON_MARGIN
   const width = [...season.name].length + 4
-  const fits = 1 + width <= iconAt - 1
-  const tag: Cell[] = fits
-    ? [
-        { text: '◢', color: season.accent },
-        ...[...` ${season.name} `].map(char => ({ text: char, color: TAG_TEXT, backgroundColor: season.accent })),
-        { text: '◤', color: season.accent },
-      ]
-    : []
+  if (1 + width > border.length - 3) return top
+
+  const tag: Cell[] = [
+    { text: '◢', color: season.accent },
+    ...[...` ${season.name} `].map(char => ({ text: char, color: TAG_TEXT, backgroundColor: season.accent })),
+    { text: '◤', color: season.accent },
+  ]
   const cells = [border[0]!, ...tag, ...border.slice(1 + tag.length)]
-  cells[iconAt] = { text: season.icon, color: season.accent }
 
   return { text: cells.map(cell => cell.text).join(''), color: top.color, cells: merged(cells) }
 }

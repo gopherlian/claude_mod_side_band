@@ -79,27 +79,22 @@ test('a dressed frame keeps every row as wide as it was and its cells add up to 
   }
 })
 
-test('the tag leads the top border, flush left, with the name alone; the icon of the day sits at its right end', () => {
-  const names: Record<string, [string, string]> = {
-    valentine: ['San Valentín', '♥'],
-    summer: ['Verano', '☀'],
-    donis: ["9 d'Octubre", '⚑'],
-    halloween: ['Halloween', '☾'],
-    nochebuena: ['Nochebuena', '✦'],
-    navidad: ['Navidad', '❄'],
-    reyes: ['Reyes Magos', '♚'],
+test('the tag leads the top border, flush left, with the name alone, and the rest of the border is plain', () => {
+  const names: Record<string, string> = {
+    valentine: 'San Valentín',
+    summer: 'Verano',
+    donis: "9 d'Octubre",
+    halloween: 'Halloween',
+    nochebuena: 'Nochebuena',
+    navidad: 'Navidad',
+    reyes: 'Reyes Magos',
   }
   for (const { id } of SEASONS) {
-    const [name, icon] = names[id]!
     const line = dress(frameOf(), season(id))[0]!
-    const chars = [...line.text]
+    const after = line.text.slice(line.text.indexOf('◤') + 1)
 
-    expect(line.text.startsWith(`┏◢ ${name} ◤━`)).toBe(true)
-    expect(chars[chars.length - 3]).toBe(icon)
-    expect(line.text.endsWith('━┓')).toBe(true)
-    expect(line.text.match(new RegExp(`[${icon}]`, 'gu'))).toHaveLength(1)
-    const cell = line.cells!.find(c => c.text === icon)!
-    expect(cell.color).toBe(season(id).accent)
+    expect(line.text.startsWith(`┏◢ ${names[id]} ◤━`)).toBe(true)
+    expect(after).toBe('━'.repeat(after.length - 1) + '┓')
     expect(dress(frameOf(), season(id))[0]!.text).toBe(line.text)
   }
 })
@@ -116,13 +111,10 @@ test('the tag is dark text on a colour, set off by the triangles in that colour'
   expect(right.color).toBe(label.backgroundColor)
 })
 
-test('a border too narrow for the tag keeps the icon and leaves the name out', () => {
+test('a border too narrow for the tag is left as it is', () => {
   const narrow: Line = { text: '┏' + '━'.repeat(14) + '┓', color: '#a05800' }
-  const line = dress([narrow, rowOf('x')], season('reyes'))[0]!
 
-  expect(line.text).not.toContain('Reyes')
-  expect(line.text).toContain('♚')
-  expect(line.text.length).toBe(16)
+  expect(dress([narrow, rowOf('x')], season('reyes'))[0]).toEqual(narrow)
 })
 
 const channels = (hex: string) => [1, 3, 5].map(at => parseInt(hex.slice(at, at + 2), 16))
@@ -187,8 +179,8 @@ test('every day but 9 October draws its motif in light grey, on blank cells only
 })
 
 test('the motifs are one-cell symbols that are not emoji', () => {
-  for (const { id, icon, motif } of SEASONS) {
-    for (const glyph of [icon, ...(motif ?? [])]) {
+  for (const { id, motif } of SEASONS) {
+    for (const glyph of [...(motif ?? [])]) {
       expect([...glyph]).toHaveLength(1)
       expect(glyph).not.toMatch(/[\u{1F000}-\u{1FFFF}\uFE0F]/u)
     }
