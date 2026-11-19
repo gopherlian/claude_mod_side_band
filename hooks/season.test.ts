@@ -75,7 +75,7 @@ test('a dressed frame keeps every row as wide as it was and its cells add up to 
     }
     expect(lines[0]!.text.startsWith('┏')).toBe(true)
     expect(lines[0]!.text.endsWith('┓')).toBe(true)
-    expect(lines[4]).toEqual(frameOf()[4])
+    expect(lines[4]!.text).toBe(frameOf()[4]!.text)
   }
 })
 
@@ -111,18 +111,21 @@ test('the tag is dark text on a colour, set off by the triangles in that colour'
   expect(right.color).toBe(label.backgroundColor)
 })
 
-test('a border too narrow for the tag is left as it is', () => {
+test('a border too narrow for the tag has no tag, and still the background', () => {
   const narrow: Line = { text: '┏' + '━'.repeat(14) + '┓', color: '#a05800' }
+  const line = dress([narrow, rowOf('x')], season('reyes'))[0]!
 
-  expect(dress([narrow, rowOf('x')], season('reyes'))[0]).toEqual(narrow)
+  expect(line.text).toBe(narrow.text)
+  expect(line.cells!.every(cell => cell.backgroundColor === season('reyes').background(-1, 0))).toBe(true)
 })
 
 const channels = (hex: string) => [1, 3, 5].map(at => parseInt(hex.slice(at, at + 2), 16))
 
 test('the background behind the time is very dark, so what is written on it reads; only the blue band is deeper', () => {
   for (const { id } of SEASONS) {
-    for (const row of dress(frameOf(), season(id)).slice(1, -1)) {
-      for (const cell of row.cells!) {
+    for (const row of dress(frameOf(), season(id))) {
+      // The name on the tag has the colour of the day behind it, and dark letters.
+      for (const cell of row.cells!.filter(c => c.color !== '#111111')) {
         expect(cell.backgroundColor).toMatch(/^#[0-9a-f]{6}$/)
         expect(Math.max(...channels(cell.backgroundColor!))).toBeLessThanOrEqual(id === 'donis' ? 0x90 : 0x40)
       }
@@ -130,13 +133,17 @@ test('the background behind the time is very dark, so what is written on it read
   }
 })
 
-test('the background covers the whole square, and the borders have none', () => {
+test('the background covers the whole square, the border above and the border below included', () => {
   const lines = dress(frameOf(), season('halloween'))
 
-  for (const row of lines.slice(1, -1)) {
+  for (const row of lines) {
     expect(row.cells!.every(cell => cell.backgroundColor !== undefined)).toBe(true)
+    expect(plain(row)).toBe(row.text)
   }
-  expect(lines[4]!.cells).toBeUndefined()
+  // The same colour on every row of a flat day, the borders with the rest.
+  const flat = new Set(lines.flatMap(row => row.cells!.filter(c => c.color !== '#111111').map(c => c.backgroundColor)))
+  expect(flat.size).toBe(1)
+  expect(lines[4]!.text).toBe(frameOf()[4]!.text)
 })
 
 test('the text on the square keeps its own colour over the background', () => {
@@ -207,4 +214,12 @@ test('9 October paints the Royal Senyera: a deep blue band, six cells wide, then
   expect(colourAt(rows[0]!, 15)).not.toBe(colourAt(rows[1]!, 15))
   expect(colourAt(rows[0]!, 15)).toBe(colourAt(rows[2]!, 15))
   expect(rows.map(row => row.text).join('')).toBe(frameOf().slice(1, -1).map(row => row.text).join(''))
+  // The borders above and below carry the band and the bars too.
+  const all = dress(frameOf(), season('donis'))
+  // Above, the tag sits over the first cells: the band shows at its corner and the bars after it.
+  expect(colourAt(all[0]!, 0)).toBe(blue)
+  expect(colourAt(all[0]!, 1)).toBe(blue)
+  expect(colourAt(all[0]!, 30)).not.toBe(blue)
+  for (const column of [0, 5]) expect(colourAt(all[4]!, column)).toBe(blue)
+  expect(colourAt(all[4]!, 15)).not.toBe(blue)
 })

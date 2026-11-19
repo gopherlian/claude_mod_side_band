@@ -29,7 +29,7 @@ const flat = (colour: string) => () => colour
 // The Royal Senyera: a deep blue band at the pole, then red bars on gold in very dark tones, a bar to a row.
 const BAND_COLUMNS = 6
 const senyera = (row: number, column: number): string =>
-  column < BAND_COLUMNS ? '#08306b' : row % 2 === 0 ? '#2e2408' : '#2e0e10'
+  column < BAND_COLUMNS ? '#08306b' : Math.abs(row) % 2 === 0 ? '#2e2408' : '#2e0e10'
 
 /** The motifs are light grey, drawn over the background where nothing is written. */
 const MOTIF_COLOR = '#8f8f8f'
@@ -134,17 +134,21 @@ const withMotif = (cells: Cell[], row: number, motif: string[]): Cell[] => {
   })
 }
 
+/** The background of `season` on the cells of `line` that have none, as the cells of row `row` (-1 above the square). */
+const withBackground = (line: Line, season: Season, row: number): Cell[] =>
+  perChar(line).map((cell, column) => ({ ...cell, backgroundColor: cell.backgroundColor ?? season.background(row, column) }))
+
 /**
- * The frame's lines dressed for `season`: the very dark background of the day behind every row inside the frame, over
- * the text's own colours, and the tag on the top border. Text, width and rows stay what they were.
+ * The frame's lines dressed for `season`: the very dark background of the day behind every row of the frame, the
+ * borders above and below included, over the text's own colours, the tag on the top border and the motif in the
+ * margins. Text, width and rows stay what they were.
  */
 export const dress = (lines: Line[], season: Season): Line[] =>
   lines.map((line, index) => {
-    if (index === 0) return withTag(line, season)
-    if (index === lines.length - 1) return line
+    const edge = index === 0 || index === lines.length - 1
+    const row = index === 0 ? -1 : index - 1
+    const cells = withBackground(index === 0 ? withTag(line, season) : line, season, row)
+    const drawn = !edge && season.motif ? withMotif(cells, row, season.motif) : cells
 
-    const painted = perChar(line).map((cell, column) => ({ ...cell, backgroundColor: season.background(index - 1, column) }))
-    const cells = season.motif ? withMotif(painted, index - 1, season.motif) : painted
-
-    return { ...line, text: cells.map(cell => cell.text).join(''), cells: merged(cells) }
+    return { ...line, text: drawn.map(cell => cell.text).join(''), cells: merged(drawn) }
   })
