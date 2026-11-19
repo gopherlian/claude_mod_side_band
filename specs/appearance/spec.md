@@ -54,7 +54,9 @@ grey `#64748b`; the cost is green `#68d391`, the tools chart violet `#c084fc`, t
 
 - *Given* 43% of a 10-cell bar, *Then* it is `████▎─────`.
 
-**R8.** No row SHALL be wider than the band: text is wrapped or cut, never allowed to push the right edge out.
+**R8.** No row SHALL be wider than the band: text is wrapped, never allowed to push the right edge out. In the stacked
+band nothing a row says is lost to the width: what does not fit goes on further rows (the weather items, the outlook,
+the cost, tools, turn and model rows, the branch and its state). Only the strip, where a column keeps its height, cuts.
 
 **R9.** The README screenshots SHALL be drawn from the lines the mod really draws (`tools/screenshots`), and SHALL be
 regenerated with any visible change.

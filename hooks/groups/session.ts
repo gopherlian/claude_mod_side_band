@@ -3,6 +3,7 @@ import { formatClock, formatDuration } from '../format'
 import { effortCells, modelName, toolSpark } from '../sections/stats'
 import { compactUsageLines, softRule, usageLines } from '../sections/usage'
 import type { Cell, Line } from '../sections/usage'
+import { wrapCells, wrapParts } from '../sections/wrap'
 import { versionLine } from '../update'
 import type { Group, GroupContext } from './types'
 
@@ -12,17 +13,22 @@ const COST_COLOR = '#68d391'
 const SPARK_COLOR = '#c084fc'
 const SPARK_WIDTH = 10
 
-/** A row drawn from cells; where it would pass `columns` it is cut and drawn plain and dim. */
-const row = (cells: Cell[], columns: number): Line => {
+/**
+ * A row drawn from cells. Where it would pass `columns` it goes on further rows, at its spaces, each run keeping its
+ * colour; in the strip (`budget`), where a column keeps its height, it is cut and drawn plain and dim instead.
+ */
+const rows = (cells: Cell[], columns: number, budget?: number): Line[] => {
   const text = cells.map(cell => cell.text).join('')
+  if (text.length <= columns) return [{ text, cells }]
+  if (budget !== undefined) return [{ text: text.slice(0, columns), dimColor: true }]
 
-  return text.length <= columns ? { text, cells } : { text: text.slice(0, columns), dimColor: true }
+  return wrapCells(cells, columns).map(run => ({ text: run.map(cell => cell.text).join(''), cells: run }))
 }
 
 /** How long the session has run, what it has cost (green) and, after three minutes, the cost per hour. */
-const costRow = (ctx: GroupContext): Line | undefined => {
+const costRow = (ctx: GroupContext): Line[] => {
   const { usage } = ctx
-  if (usage?.startedAt === undefined) return undefined
+  if (usage?.startedAt === undefined) return []
 
   const elapsed = ctx.now - usage.startedAt
   const cells: Cell[] = [{ text: formatDuration(elapsed) }]
@@ -33,11 +39,11 @@ const costRow = (ctx: GroupContext): Line | undefined => {
     }
   }
 
-  return row(cells, ctx.columns)
+  return rows(cells, ctx.columns, ctx.budget)
 }
 
 /** The tool calls of the last ten minutes as a chart, the total, and the tool running now. */
-const toolsRow = (ctx: GroupContext): Line => {
+const toolsRow = (ctx: GroupContext): Line[] => {
   const { stats } = ctx
   const count = String(stats.toolCalls)
   const spark = toolSpark(
@@ -48,7 +54,7 @@ const toolsRow = (ctx: GroupContext): Line => {
   const room = ctx.columns - (6 + spark.length + 1 + count.length) - 3
   const running = stats.runningTool && room > 0 ? ` ▸ ${stats.runningTool.slice(0, room)}` : ''
 
-  return row(
+  return rows(
     [
       { text: 'tools ', dimColor: true },
       { text: spark, color: SPARK_COLOR },
@@ -56,11 +62,12 @@ const toolsRow = (ctx: GroupContext): Line => {
       ...(running ? [{ text: running, dimColor: true }] : []),
     ],
     ctx.columns,
+    ctx.budget,
   )
 }
 
 /** The current turn's time, or the last one's; nothing before the first turn. */
-const turnRow = (ctx: GroupContext): Line | undefined => {
+const turnRow = (ctx: GroupContext): Line[] => {
   const { stats } = ctx
   const turn =
     stats.turnStartedAt !== undefined
@@ -69,19 +76,21 @@ const turnRow = (ctx: GroupContext): Line | undefined => {
         ? `last ${formatClock(stats.lastTurnMs)}`
         : ''
 
-  return turn ? { text: turn.slice(0, ctx.columns), dimColor: true } : undefined
+  return turn ? wrapParts([turn], ctx.columns).map(text => ({ text, dimColor: true })) : []
 }
 
 /** The model by its short name and how hard it thinks, as pips. */
-const modelRow = (ctx: GroupContext): Line | undefined => {
+const modelRow = (ctx: GroupContext): Line[] => {
   const { stats } = ctx
   const model = stats.model ?? stats.stepModel
-  if (!model) return undefined
+  if (!model) return []
 
-  return row([{ text: modelName(model) }, ...(stats.effort ? [{ text: ' ' }, ...effortCells(stats.effort)] : [])], ctx.columns)
+  return rows(
+    [{ text: modelName(model) }, ...(stats.effort ? [{ text: ' ' }, ...effortCells(stats.effort)] : [])],
+    ctx.columns,
+    ctx.budget,
+  )
 }
-
-const present = (lines: (Line | undefined)[]): Line[] => lines.filter((line): line is Line => line !== undefined)
 
 export const session: Group = {
   id: 'session',
@@ -91,14 +100,14 @@ export const session: Group = {
   lines: (ctx: GroupContext): Line[] => {
     const { usage, stats } = ctx
     const model = modelRow(ctx)
-    const facts = present([costRow(ctx), toolsRow(ctx), turnRow(ctx)])
+    const facts = [...costRow(ctx), ...toolsRow(ctx), ...turnRow(ctx)]
 
     return [
       ...usageLines(usage && { ...usage, categories: stats.categories }, ctx.columns, ctx.now),
       // A faint rule sets the bars apart from the session's facts.
       ...(usage && facts.length > 0 ? [softRule(ctx.columns)] : []),
       ...facts,
-      ...(model ? [softRule(ctx.columns), model] : []),
+      ...(model.length > 0 ? [softRule(ctx.columns), ...model] : []),
     ]
   },
   // In the strip the same facts in fewer rows, the ones that matter most first.
@@ -109,7 +118,7 @@ export const session: Group = {
       const { usage, stats } = ctx
       const lines = compactUsageLines(usage && { ...usage, categories: stats.categories }, ctx.columns, ctx.now)
 
-      return [...lines, ...(usage ? present([costRow(ctx), modelRow(ctx), toolsRow(ctx)]) : [])].slice(
+      return [...lines, ...(usage ? [...costRow(ctx), ...modelRow(ctx), ...toolsRow(ctx)] : [])].slice(
         0,
         ctx.budget ?? Number.POSITIVE_INFINITY,
       )

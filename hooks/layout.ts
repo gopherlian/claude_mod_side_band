@@ -1,6 +1,7 @@
 // Layout rules of the band, kept apart from the widgets.
 import { bigText } from './bigdigits'
 import type { BigHeight } from './bigdigits'
+import { wrapParts } from './sections/wrap'
 import type { Chunk } from './widgets/types'
 
 /** The band asks for 1/12 of the window width: half of what it once took. */
@@ -69,6 +70,9 @@ const pack = (chunks: Chunk[], columns: number): string[] => {
   return rows
 }
 
+/** Every chunk, in order, packed into rows of at most `columns` cells: what does not fit on a row goes on the next. */
+const packAll = (chunks: Chunk[], columns: number): string[] => wrapParts(chunks.map(chunk => chunk.text), columns)
+
 /**
  * The rows to draw: as many chunks as fit in `columns` x `rows`, dropping
  * the highest-ranked (least important) first and keeping display order.
@@ -110,10 +114,13 @@ export const compose = (
   all: Chunk[],
   columns: number,
   rows: number,
-  options: { stack?: boolean } = {},
+  options: { stack?: boolean; keepAll?: boolean } = {},
 ): string[] => {
   const chunks = all.filter(chunk => chunk.text !== '')
-  if (rows < 2) return fit(chunks, columns, rows)
+  // With `keepAll` no chunk is dropped for lack of rows or width: the text takes as many rows as it needs.
+  const place = (rest: Chunk[], width: number, room: number): string[] =>
+    options.keepAll ? packAll(rest, width) : fit(rest, width, room)
+  if (rows < 2) return place(chunks, columns, rows)
 
   const height: BigHeight = rows >= 3 ? 3 : 2
   const used: Chunk[] = []
@@ -125,7 +132,7 @@ export const compose = (
       width = next
     }
   }
-  if (used.length === 0) return fit(chunks, columns, rows)
+  if (used.length === 0) return place(chunks, columns, rows)
 
   const pieces = chunks.filter(chunk => used.includes(chunk)).map(chunk => bigText(chunk.big!, height))
   const big = Array.from({ length: height }, (_, row) =>
@@ -134,9 +141,11 @@ export const compose = (
   const rest = chunks.filter(chunk => !used.includes(chunk))
   const sideColumns = columns - width - BIG_GAP.length
   const isStacked = options.stack === true && rows > height
-  if (isStacked || sideColumns < MIN_SIDE) {
+  // Beside the time only what fits there whole; otherwise everything goes below it.
+  const isCrowded = options.keepAll === true && (sideColumns < MIN_SIDE || packAll(rest, sideColumns).length > height)
+  if (isStacked || isCrowded || sideColumns < MIN_SIDE) {
     const lead = options.stack ? ' '.repeat(Math.max(0, Math.floor((columns - width) / 2))) : ''
-    const below = fit(rest, columns, rows - height)
+    const below = place(rest, columns, rows - height)
 
     // Stacked, what goes below the time is centered under it, row by row.
     return [...big.map(row => lead + row), ...(options.stack ? below.map(row => centered(row, columns)) : below)]

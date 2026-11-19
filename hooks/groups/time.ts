@@ -3,6 +3,7 @@ import { formatClock } from '../format'
 import { compose, maxRows } from '../layout'
 import { FRAME_COLUMNS, frameLines } from '../sections/frame'
 import type { Line } from '../sections/usage'
+import { wrapParts } from '../sections/wrap'
 import { widgets } from '../widgets'
 import { ICON_CELLS } from '../widgets/weather'
 import type { Group, GroupContext } from './types'
@@ -33,7 +34,7 @@ const timeLines = (ctx: GroupContext): Line[] => {
   const chunks = widgets
     .flatMap(widget => widget.chunks({ now: ctx.now, weather: ctx.weather }))
     .map(chunk => (isStrip && blockRows < 2 && chunk.big ? { ...chunk, rank: -1 } : chunk))
-  const block = compose(chunks, Math.max(1, ctx.columns - FRAME_COLUMNS), blockRows, { stack: true })
+  const block = compose(chunks, Math.max(1, ctx.columns - FRAME_COLUMNS), blockRows, { stack: true, keepAll: !isStrip })
   const lines: Line[] = frameLines(block, ctx.columns)
 
   for (const line of extra) {
@@ -65,12 +66,17 @@ const outlookLines = (ctx: GroupContext): Line[] => {
   const isSplit = outlook.length === 2 && leadCells + joined.length > ctx.columns
   const rows = outlook.length === 2 && !isSplit ? [joined] : outlook
 
-  return rows.map((text, index): Line => {
+  // A row that is still too wide goes on further rows, whole parts first; the icon leads the first of them.
+  const lines = rows.flatMap((text, index) => {
     const head = index === 0 ? lead : ''
     const room = ctx.columns - (index === 0 ? leadCells : 0)
+    // In the strip the rows are few and fixed: there a row is cut, as the column keeps its height.
+    const parts = text.length <= room ? [text] : ctx.budget === undefined ? wrapParts(text.split(' · '), Math.max(1, room)) : [text.slice(0, Math.max(0, room))]
 
-    return { text: head + text.slice(0, Math.max(0, room)), dimColor: true, align: 'center' }
+    return parts.map((part, at): Line => ({ text: (at === 0 ? head : '') + part, dimColor: true, align: 'center' }))
   })
+
+  return lines
 }
 
 /** The icon of the countdown: an hourglass Unicode does not count as an emoji, so it takes one cell on any terminal. */

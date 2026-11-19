@@ -473,3 +473,61 @@ test('no system icon is an emoji: a terminal may draw one two cells wide, over t
   expect(icons.filter(icon => /\p{Extended_Pictographic}/u.test(icon))).toEqual([])
   expect(icons.every(icon => [...icon].length === 1)).toBe(true)
 })
+
+const wordsOf = (rows: { text: string }[]) => rows.map(l => l.text).join(' ')
+
+test('a narrow band keeps every weather item: what does not fit on a row goes on the next', () => {
+  const full = ctx({
+    columns: 24,
+    rows: 40,
+    weather: {
+      status: 'ready',
+      place: 'Valencia',
+      temperature: 18,
+      summary: 'Partly cloudy',
+      feelsLike: 17,
+      humidity: 56,
+      wind: 20,
+      forecast: { max: 24, min: 15, rainPercent: 30, uv: 6 },
+    },
+  })
+  const text = wordsOf(time.lines(full))
+
+  for (const item of ['18°C', 'Partly cloudy', 'Valencia', 'feels 17°', '56%', '20 km/h', 'Mon 16 Nov']) {
+    expect(text).toContain(item)
+  }
+  for (const line of time.lines(full)) expect(line.text.length).toBeLessThanOrEqual(24)
+})
+
+test('the outlook is never cut: on a band narrower than its parts they take a row each', () => {
+  const text = wordsOf(time.lines(ctx({ columns: 12 })).filter(l => !/[┏┃┗]/.test(l.text)))
+
+  for (const item of ['↑24° ↓15°', 'rain 30%', 'UV 6']) expect(text).toContain(item)
+})
+
+test('the cost row goes on a second row where it does not fit, whole and not cut', () => {
+  const rows = session.lines(busy({ columns: 12 })).map(l => l.text)
+  const joined = rows.join('\n')
+
+  expect(joined).toContain('$3.00')
+  expect(joined).toContain('$3.00/h')
+  for (const row of rows) expect(row.length).toBeLessThanOrEqual(12)
+})
+
+test('the tools, turn and model rows lose nothing on a narrow band', () => {
+  const joined = session.lines(busy({ columns: 12 })).map(l => l.text).join('\n')
+
+  expect(joined).toContain('tools')
+  expect(joined).toContain('turn 0:42')
+  expect(joined).toContain('Sonnet 5.5')
+})
+
+test('a long branch name and its state wrap onto further rows instead of being cut', () => {
+  const git = { branch: 'feature/a-very-long-branch-name', changed: 3, ahead: 1, behind: 0 }
+  const rows = project.lines(ctx({ columns: 12, git })).map(l => l.text)
+
+  expect(rows.join('')).toContain('feature/a-very-long-branch-name'.replace(/ /g, ''))
+  expect(rows.join(' ')).toContain('3 changed')
+  expect(rows.join(' ')).toContain('↑1')
+  for (const row of rows) expect(row.length).toBeLessThanOrEqual(12)
+})

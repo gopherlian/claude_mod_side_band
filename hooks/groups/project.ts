@@ -1,5 +1,6 @@
 // Project and work: where the repository stands. Hidden outside a repository.
 import type { Line } from '../sections/usage'
+import { wrap, wrapParts } from '../sections/wrap'
 import type { Group, GroupContext } from './types'
 
 /** The branch and its state; `join` goes between the parts of the state. */
@@ -13,9 +14,14 @@ const rows = (ctx: GroupContext, join: string): Line[] => {
     git.behind > 0 ? `↓${git.behind}` : '',
   ].filter(Boolean)
 
+  // In the strip the column keeps its height, so a row is cut there; stacked, what does not fit goes on further rows.
+  if (ctx.budget !== undefined) {
+    return [{ text: git.branch.slice(0, ctx.columns) }, { text: state.join(join).slice(0, ctx.columns), dimColor: true }]
+  }
+
   return [
-    { text: git.branch.slice(0, ctx.columns) },
-    { text: state.join(join).slice(0, ctx.columns), dimColor: true },
+    ...wrap(git.branch, ctx.columns).map((text): Line => ({ text })),
+    ...wrapParts(state, ctx.columns).map((text): Line => ({ text, dimColor: true })),
   ]
 }
 

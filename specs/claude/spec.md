@@ -62,6 +62,9 @@ fit, and nothing where neither fits. The `┃` is green.
 - under a faint rule, the model by its short name (`claude-sonnet-5-5` is `Sonnet 5.5`) and the effort as five pips
   filled up to its level, then its word (`Opus 5.5 ●●●○○ high`): low 1, medium 2, high 3, xhigh 4, max 5.
 
+**R8a (narrow band).** In the stacked band, where a row of the facts or the model does not fit the band, it SHALL go
+on further rows, at its spaces, each part keeping its colour; nothing is cut.
+
 **R9.** When the session cannot report its usage the group SHALL say `Usage unavailable`. Without a subscription
 that reports limits, the plan bars SHALL NOT be drawn.
 

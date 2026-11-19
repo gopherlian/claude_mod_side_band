@@ -6,6 +6,11 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- In a narrow band nothing disappears: the weather items, today's outlook, the cost, tools, turn and model rows and the
+  branch and its state go on further rows where they do not fit on one, instead of being dropped or cut. The strip,
+  where a column keeps its height, is unchanged.
+
 ## [1.4.0] - 2026-11-18
 
 ### Changed

@@ -10,6 +10,8 @@ changed files (`3 changed`), followed by `↑n` commits to push and `↓n` to pu
 - *Given* branch `feat-7` with 3 changed files and 2 commits to push, *Then* the rows are `feat-7` and
   `3 changed · ↑2`.
 
+**R1a.** Where the branch name or the state is wider than the band, it SHALL go on further rows instead of being cut.
+
 **R2.** Outside a git repository the group SHALL NOT appear.
 
 **R3.** The state SHALL be read from `git status --porcelain=v1 -b` in the session's working directory, every third

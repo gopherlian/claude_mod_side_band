@@ -96,7 +96,7 @@ wheel, or with the arrow keys while it has focus.
 > - **Edit** `~/.claude.json` with Claude Code closed (it rewrites that file while it runs) and set
 >   `"pluginPanes": { "dockColumns": 32 }`, keeping any other keys already under `pluginPanes`.
 >
-> Narrower still works: what does not fit is wrapped or cut and the big clock turns to plain text. Wider just adds
+> Narrower still works: what does not fit goes on further rows, so nothing disappears. Wider just adds
 > room.
 
 ## How it works
@@ -182,8 +182,9 @@ low, chance of rain and the UV index (`☁  · ↑24° ↓15° · rain 3% · UV 
 
 <p align="center"><img src="docs/img/time.svg" alt="The time group"></p>
 
-The items under the time are ranked by importance. When the band is narrow only the most important ones fit: the
-temperature first, then the sky, the place, the date, and last how it feels, the humidity and the wind.
+The items under the time are never lost to a narrow band: those that do not fit on a row go on the next one. (In the
+strip, where a column keeps its height, they are ranked and the least important go first: the wind, the humidity, how
+it feels, the date, the place and the sky; the temperature stays.)
 
 ### 2. Claude
 

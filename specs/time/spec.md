@@ -9,17 +9,21 @@ centred in a heavy orange frame (see [appearance](../appearance/spec.md) R4).
 
 **R2.** Under the big time, inside the frame, the group SHALL draw the weather items separated by ` · ` and
 **centred** in the frame: temperature, sky, place, how it feels (`feels 20°`), humidity, wind (`20 km/h`), and the
-date (`Tue 17 Nov`). When the frame is too narrow for all of them, the items SHALL be dropped in this order, least
-important first: wind, humidity, how it feels, date, place, sky; the temperature is last to go.
+date (`Tue 17 Nov`). Where the items do not all fit on one row, the rest SHALL go on further rows, whole items
+first, so that none is lost however narrow the band; an item wider than a row is split. (In the strip, where a column
+keeps its height, the items are dropped in this order, least important first: wind, humidity, how it feels, date,
+place, sky; the temperature is last to go.)
 
 - *Given* the weather `22°C`, `Overcast`, Valencia, *Then* a row reads `22°C · Overcast · Valencia · feels 20° ·
   56% · 20 km/h · Tue 17 Nov` when the frame is wide enough.
+- *Given* a frame 20 cells wide, *Then* the same items are drawn over several rows (`22°C · Overcast`, `Valencia`,
+  `feels 20° · 56%`, ...) and none is missing.
 
 **R3.** Under the frame the group SHALL draw today's outlook, dimmed and centred: the icon, set apart by two spaces and a
 dot (terminals often draw the icon two cells wide), then high and low (`↑24° ↓15°`), chance of rain (`rain 3%`) and the
 UV index (`UV 3`): `☁  · ↑24° ↓15° · rain 3% · UV 3`.
 Sunrise and sunset are not drawn, so the row is short enough to sit centred. When it does not fit on one row, the UV
-index takes a row of its own, centred, uncut.
+index takes a row of its own, centred, uncut; where a part alone is wider than a row, each part takes a row.
 
 **R4.** While the weather is loading the group SHALL show `weather…`; when it fails, `no weather`.
 

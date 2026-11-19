@@ -50,6 +50,11 @@ breaking change, minor for a new feature, patch for a fix or a restyle.
   with more than one colour is drawn from `cells`.
 - **Orange is for the separators between groups and the frames.** No resource uses it; the rules inside a group are
   a faint grey. See `specs/appearance/spec.md`.
+- **Everything is anonymous. Always.** Every action in this repository (code, tests, specs, docs, examples, fixtures,
+  screenshots, changelog, commit messages, tags, issues) is absolutely anonymised: no real person, place, machine,
+  host, path, e-mail, account, project, container or branch name from the user's setup, and no reason that points at
+  one. Use generic names (`feat-7`, `web`, `Anytown`) and say what changed, never why it was found. Check the diff for
+  this before every commit.
 - **Language.** Code, comments, UI text, specs and docs are in English.
 - **Commits** follow Conventional Commits (`feat:`, `fix:`, `style:`, `docs:`, `test:`, `refactor:`), with no
   `Co-Authored-By` or AI attribution. Commit identity for this repository is set in its local git config.
