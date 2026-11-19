@@ -10,6 +10,7 @@ import { arrange, groups } from './index'
 import { project } from './project'
 import { session } from './session'
 import { system } from './system'
+import { seasonById } from '../season'
 import { time } from './time'
 import type { GroupContext } from './types'
 
@@ -539,7 +540,9 @@ test('on a day of a season the border of the frame is decorated; on any other da
   expect(plain[0]!.text).toBe('┏' + '━'.repeat(38) + '┓')
   expect(dressed[0]!.text).not.toBe(plain[0]!.text)
   expect(dressed[0]!.text.length).toBe(40)
-  expect(dressed.slice(1).map(l => l.text)).toEqual(plain.slice(1).map(l => l.text))
+  // Only blank cells take the motif: with it taken out, the rows are as they were.
+  const motif = new RegExp(`[${seasonById('navidad').motif!.join('')}]`, 'gu')
+  expect(dressed.slice(1).map(l => l.text.replace(motif, ' '))).toEqual(plain.slice(1).map(l => l.text))
   // The real date picks the season when none is forced.
   const winter = time.lines(ctx({ columns: 40, now: new Date(2026, 11, 24, 12).getTime() }))
   expect(winter[0]!.text).not.toBe(plain[0]!.text)

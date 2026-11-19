@@ -62,14 +62,12 @@ const rowOf = (text: string): Line => ({
 const frameOf = (): Line[] => [top, rowOf('big'), rowOf('time'), rowOf('weather'), { text: '┗' + '━'.repeat(30) + '┛', color: '#a05800' }]
 const season = (id: string) => SEASONS.find(s => s.id === id)!
 const plain = (line: Line) => (line.cells ?? [{ text: line.text }]).map(cell => cell.text).join('')
+const MOTIF_COLOUR = '#8f8f8f'
 
-test('a dressed frame keeps every row as wide and as plain as it was', () => {
+test('a dressed frame keeps every row as wide as it was and its cells add up to its text', () => {
   for (const { id } of SEASONS) {
     const lines = dress(frameOf(), season(id))
 
-    expect(lines.map(l => l.text)).toEqual(
-      frameOf().map((l, i) => (i === 0 ? lines[0]!.text : l.text)),
-    )
     expect(lines).toHaveLength(5)
     for (const line of lines) {
       expect(line.text.length).toBe(32)
@@ -77,23 +75,24 @@ test('a dressed frame keeps every row as wide and as plain as it was', () => {
     }
     expect(lines[0]!.text.startsWith('┏')).toBe(true)
     expect(lines[0]!.text.endsWith('┓')).toBe(true)
+    expect(lines[4]).toEqual(frameOf()[4])
   }
 })
 
-test('the top border carries the name of the festivity on a slanted tag, and it is the same whenever it is drawn', () => {
+test('the tag leads the top border, flush left, with the icon of the day before its name', () => {
   const names: Record<string, string> = {
-    valentine: 'San Valentín',
-    summer: 'Verano',
-    donis: 'Sant Donís',
-    halloween: 'Halloween',
-    nochebuena: 'Nochebuena',
-    navidad: 'Navidad',
-    reyes: 'Reyes Magos',
+    valentine: '♥ San Valentín',
+    summer: '☀ Verano',
+    donis: '⚑ Sant Donís',
+    halloween: '☾ Halloween',
+    nochebuena: '✦ Nochebuena',
+    navidad: '❄ Navidad',
+    reyes: '♚ Reyes Magos',
   }
   for (const { id } of SEASONS) {
     const text = dress(frameOf(), season(id))[0]!.text
 
-    expect(text).toContain(`◢ ${names[id]} ◤`)
+    expect(text.startsWith(`┏◢ ${names[id]} ◤━`)).toBe(true)
     expect(dress(frameOf(), season(id))[0]!.text).toBe(text)
   }
 })
@@ -118,14 +117,12 @@ test('a border too narrow for the tag is left as it is', () => {
 
 const channels = (hex: string) => [1, 3, 5].map(at => parseInt(hex.slice(at, at + 2), 16))
 
-test('the background behind the time is very dark, so what is written on it reads', () => {
+test('the background behind the time is very dark, so what is written on it reads; only the blue band is stronger', () => {
   for (const { id } of SEASONS) {
-    const rows = dress(frameOf(), season(id)).slice(1, -1)
-
-    for (const row of rows) {
+    for (const row of dress(frameOf(), season(id)).slice(1, -1)) {
       for (const cell of row.cells!) {
         expect(cell.backgroundColor).toMatch(/^#[0-9a-f]{6}$/)
-        expect(Math.max(...channels(cell.backgroundColor!))).toBeLessThanOrEqual(0x40)
+        expect(Math.max(...channels(cell.backgroundColor!))).toBeLessThanOrEqual(id === 'donis' ? 0x90 : 0x40)
       }
     }
   }
@@ -135,12 +132,9 @@ test('the background covers the whole square, and the borders have none', () => 
   const lines = dress(frameOf(), season('halloween'))
 
   for (const row of lines.slice(1, -1)) {
-    expect(plain(row)).toBe(row.text)
     expect(row.cells!.every(cell => cell.backgroundColor !== undefined)).toBe(true)
   }
-  for (const border of [lines[0]!, lines[4]!]) {
-    expect(border.cells === undefined || border.cells.every(cell => cell.backgroundColor === undefined || cell.text.includes('Hall'))).toBe(true)
-  }
+  expect(lines[4]!.cells).toBeUndefined()
 })
 
 test('the text on the square keeps its own colour over the background', () => {
@@ -149,7 +143,50 @@ test('the text on the square keeps its own colour over the background', () => {
   expect(row.cells!.some(cell => cell.color === 'green' && cell.text.includes('time'))).toBe(true)
 })
 
-test('9 October paints the Royal Senyera: a blue band, then red bars on gold, row by row', () => {
+const motifOf = (id: string) => season(id).motif ?? []
+
+test('every day but 9 October draws its motif in light grey, on blank cells only, never against a letter', () => {
+  for (const { id } of SEASONS.filter(s => s.id !== 'donis')) {
+    const rows = dress(frameOf(), season(id)).slice(1, -1)
+    const original = frameOf().slice(1, -1)
+    let drawn = 0
+
+    rows.forEach((row, r) => {
+      const chars = [...row.text]
+      const chars0 = [...original[r]!.text]
+      chars.forEach((char, c) => {
+        if (char === chars0[c]) return
+        drawn++
+        expect(chars0[c]).toBe(' ')
+        expect(motifOf(id)).toContain(char)
+        // Only in the margins: outside the span of what is written on the row.
+        const written = chars0.map((ch, at) => (at >= 2 && at <= chars0.length - 3 && ch !== ' ' ? at : -1)).filter(at => at >= 0)
+        expect(c < Math.min(...written) || c > Math.max(...written)).toBe(true)
+        expect(chars[c - 1]).toBe(' ')
+        expect(chars[c + 1]).toBe(' ')
+        const cell = row.cells!.flatMap(x => [...x.text].map(() => x))[c]!
+        expect(cell.color).toBe(MOTIF_COLOUR)
+      })
+      // Where there is text, it is where it was.
+      for (const word of ['big', 'time', 'weather']) {
+        if (original[r]!.text.includes(word)) expect(row.text).toContain(word)
+      }
+    })
+    expect(drawn).toBeGreaterThan(3)
+  }
+})
+
+test('the motifs are one-cell symbols that are not emoji', () => {
+  for (const { id, icon, motif } of SEASONS) {
+    for (const glyph of [icon, ...(motif ?? [])]) {
+      expect([...glyph]).toHaveLength(1)
+      expect(glyph).not.toMatch(/[\u{1F000}-\u{1FFFF}\uFE0F]/u)
+    }
+    expect(id).toBeDefined()
+  }
+})
+
+test('9 October paints the Royal Senyera: a strong blue band, nine cells wide, then red bars on gold, row by row', () => {
   const rows = dress(frameOf(), season('donis')).slice(1, -1)
   const colourAt = (row: Line, column: number) => {
     let at = 0
@@ -159,9 +196,12 @@ test('9 October paints the Royal Senyera: a blue band, then red bars on gold, ro
     }
   }
 
-  const blues = rows.map(row => colourAt(row, 2))
-  expect(new Set(blues).size).toBe(1)
-  expect(rows.map(row => colourAt(row, 15))[0]).not.toBe(rows.map(row => colourAt(row, 15))[1])
+  const blue = colourAt(rows[0]!, 0)!
+  for (const row of rows) for (let column = 0; column < 9; column++) expect(colourAt(row, column)).toBe(blue)
+  for (const row of rows) expect(colourAt(row, 9)).not.toBe(blue)
+  expect(Math.max(...channels(blue))).toBeGreaterThan(0x40)
+  expect(channels(blue)[2]).toBeGreaterThan(channels(blue)[0]! * 2)
+  expect(colourAt(rows[0]!, 15)).not.toBe(colourAt(rows[1]!, 15))
   expect(colourAt(rows[0]!, 15)).toBe(colourAt(rows[2]!, 15))
-  expect(colourAt(rows[0]!, 2)).not.toBe(colourAt(rows[0]!, 15))
+  expect(rows.map(row => row.text).join('')).toBe(frameOf().slice(1, -1).map(row => row.text).join(''))
 })
