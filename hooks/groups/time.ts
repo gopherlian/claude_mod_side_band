@@ -3,6 +3,7 @@ import { formatClock } from '../format'
 import { compose, maxRows } from '../layout'
 import { dress, seasonAt, seasonById } from '../season'
 import { FRAME_COLUMNS, frameLines } from '../sections/frame'
+import { blank } from '../sections/usage'
 import type { Line } from '../sections/usage'
 import { wrapParts } from '../sections/wrap'
 import { widgets } from '../widgets'
@@ -40,9 +41,11 @@ const timeLines = (ctx: GroupContext): Line[] => {
   const framed = frameLines(block, ctx.columns)
   const lines: Line[] = season ? dress(framed, season) : framed
 
-  // The greeting of the day takes a row of its own, so only where rows are not counted: in the stacked band.
-  if (season?.greeting && !isStrip) {
-    lines.push({ text: season.greeting.text, color: season.greeting.color, align: 'center' })
+  // What a day adds under the frame takes a row of its own, so only where rows are not counted: in the stacked band.
+  // Its greeting where it has one; otherwise a blank row sets the outlook apart from the frame.
+  if (season && !isStrip) {
+    if (season.greeting) lines.push({ text: season.greeting.text, color: season.greeting.color, align: 'center' })
+    else if (outlook.length > 0) lines.push(blank())
   }
 
   for (const line of extra) {

@@ -60,9 +60,9 @@ the cost, tools, turn and model rows, the branch and its state). Only the strip,
 
 **R8a.** On a few days of the year the time frame MAY be dressed: a very dark colour behind the whole frame, its top and bottom lines included, a
 small motif in light grey in the margins of its rows, a slanted tag with the day's name flush left on its top border. The colour SHALL be dark enough for the time and the weather to read on
-it, and the motif SHALL never sit between or over what is written. The dressing SHALL change no text, no width and no
-row, SHALL cost no row in the strip and SHALL not move; one day MAY add a centred line of text under the frame in the
-stacked band.
+it, and the motif SHALL never sit between or over what is written. The dressing SHALL change no text and no width of the frame and SHALL not move. In the stacked band a dressed day
+adds one row under the frame: a blank one that sets the outlook apart from it, or, on one day, a centred line of text
+in its place. In the strip it costs no row.
 
 **R9.** The README screenshots SHALL be drawn from the lines the mod really draws (`tools/screenshots`), and SHALL be
 regenerated with any visible change.

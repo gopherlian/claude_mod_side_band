@@ -542,23 +542,37 @@ test('on a day of a season the border of the frame is decorated; on any other da
   expect(dressed[0]!.text.length).toBe(40)
   // Only blank cells take the motif: with it taken out, the rows are as they were.
   const motif = new RegExp(`[${seasonById('navidad').motif!.join('')}]`, 'gu')
-  expect(dressed.slice(1).map(l => l.text.replace(motif, ' '))).toEqual(plain.slice(1).map(l => l.text))
+  const framed = (rows: { text: string }[]) => rows.slice(1, rows.findIndex(l => l.text.startsWith('┗')) + 1).map(l => l.text)
+  expect(framed(dressed).map(t => t.replace(motif, ' '))).toEqual(framed(plain))
   // The real date picks the season when none is forced.
   const winter = time.lines(ctx({ columns: 40, now: new Date(2026, 11, 24, 12).getTime() }))
   expect(winter[0]!.text).not.toBe(plain[0]!.text)
 })
 
-test('the day of 9 October puts San Donís under the frame, centred, with a heart; no other day adds a row', () => {
-  const lines = (id?: string, budget?: number) => time.lines(ctx({ columns: 40, season: id as never, budget }))
+test('a day of a season leaves a blank row between the frame and the outlook; 9 October has its greeting there instead', () => {
+  const lines = (id?: string, budget?: number, over: Partial<GroupContext> = {}) =>
+    time.lines(ctx({ columns: 40, season: id as never, budget, ...over }))
+  const below = (rows: { text: string }[]) => rows.slice(rows.findIndex(l => l.text.startsWith('┗')) + 1).map(l => l.text)
 
   for (const id of ['valentine', 'summer', 'halloween', 'nochebuena', 'navidad', 'reyes']) {
-    expect(lines(id).length).toBe(lines().length)
+    const dressed = lines(id)
+    expect(dressed.length).toBe(lines().length + 1)
+    expect(below(dressed)[0]).toBe(' ')
+    expect(below(dressed)[1]).toContain('rain 30%')
   }
+
   const donis = lines('donis')
   expect(donis.length).toBe(lines().length + 1)
   const greeting = donis.find(l => l.text === '♥ San Donís')!
   expect(greeting.align).toBe('center')
-  expect(donis.indexOf(greeting)).toBe(donis.findIndex(l => l.text.startsWith('┗')) + 1)
-  // The strip counts its rows: there the greeting is not drawn.
-  expect(lines('donis', 8).length).toBe(lines(undefined, 8).length)
+  expect(below(donis)[0]).toBe('♥ San Donís')
+  expect(below(donis)[1]).toContain('rain 30%')
+  expect(below(donis).filter(t => t === ' ')).toHaveLength(0)
+
+  // Without an outlook there is nothing to set apart; with no season the rows are as they were.
+  const noOutlook = { weather: { status: 'ready', place: 'Valencia', temperature: 18, summary: 'Clear' } } as Partial<GroupContext>
+  expect(lines('navidad', undefined, noOutlook).length).toBe(lines(undefined, undefined, noOutlook).length)
+  expect(below(lines())[0]).toContain('rain 30%')
+  // The strip counts its rows: there neither the blank row nor the greeting is drawn.
+  for (const id of ['navidad', 'donis']) expect(lines(id, 8).length).toBe(lines(undefined, 8).length)
 })
