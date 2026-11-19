@@ -1,5 +1,5 @@
-// Small decorations for a few days of the year: glyphs and colour on the border of the time frame, nothing else.
-// The date alone decides, nothing is read or written, and there is no timer: what moves is drawn from the clock.
+// Small decorations for a few days of the year: a very dark background behind the time frame and a slanted tag on its
+// top border that names the day. The date alone decides; nothing is read or written, and nothing moves.
 import type { Cell, Line } from './sections/usage'
 
 export type SeasonId = 'valentine' | 'summer' | 'donis' | 'halloween' | 'nochebuena' | 'navidad' | 'reyes'
@@ -9,39 +9,33 @@ export type Season = {
   /** First and last day, as `[month, day]` (month 1 to 12), both inside the range; a range may cross New Year. */
   from: [number, number]
   to: [number, number]
-  /** Drawn in turn along the border, one cell each, in the colour at the same place of `colors`. */
-  glyphs: string[]
-  colors: string[]
-  /** How many glyphs: one every few cells where absent. */
-  count?: number
-  /** The border drawn in equal runs of these colours, instead of its own. */
-  stripes?: string[]
-  /** A centred row under the frame. */
-  greeting?: { text: string; color: string }
+  /** What the tag says. */
+  name: string
+  /** The colour of the tag. */
+  accent: string
+  /** The background of the cell at `column` of the `row`th row inside the frame: always a very dark colour. */
+  background: (row: number, column: number) => string
 }
 
-const BLUE = '#2b6cb0'
-const YELLOW = '#d69e2e'
-const RED = '#c53030'
+/** The text of the tag: dark, so it reads on any accent. */
+const TAG_TEXT = '#111111'
+
+const flat = (colour: string) => () => colour
+
+// The Royal Senyera in very dark tones: a blue band at the pole, then red bars on gold, a bar to a row.
+const BAND_COLUMNS = 3
+const senyera = (row: number, column: number): string =>
+  column < BAND_COLUMNS ? '#0e2236' : row % 2 === 0 ? '#2e2408' : '#2e0e10'
 
 /** In the order of the year from February; the demonstration walks through them in this order. */
 export const SEASONS: Season[] = [
-  { id: 'valentine', from: [2, 12], to: [2, 14], glyphs: ['♥'], colors: ['#ec7ab0', '#d4577f'] },
-  { id: 'summer', from: [6, 21], to: [9, 22], glyphs: ['☀', '≈'], colors: ['#e6b422', '#4aa3df'] },
-  {
-    id: 'donis',
-    from: [10, 7],
-    to: [10, 9],
-    glyphs: [],
-    colors: [],
-    // The Royal Senyera: the blue band, then the four red bars on gold.
-    stripes: [BLUE, YELLOW, RED, YELLOW, RED, YELLOW, RED, YELLOW, RED],
-    greeting: { text: 'Sant Donís ✿', color: '#ec7ab0' },
-  },
-  { id: 'halloween', from: [10, 24], to: [11, 1], glyphs: ['▲', '☾', '✶'], colors: ['#8b5cf6', '#a78bfa'] },
-  { id: 'nochebuena', from: [12, 24], to: [12, 24], glyphs: ['✦', '✧'], colors: ['#e6b422', '#68d391'] },
-  { id: 'navidad', from: [12, 25], to: [1, 4], glyphs: ['❄', '✦'], colors: ['#9ecbff', '#e6b422'] },
-  { id: 'reyes', from: [1, 5], to: [1, 6], glyphs: ['★'], colors: ['#e6b422'], count: 3 },
+  { id: 'valentine', from: [2, 12], to: [2, 14], name: 'San Valentín', accent: '#ec7ab0', background: flat('#2a1224') },
+  { id: 'summer', from: [6, 21], to: [9, 22], name: 'Verano', accent: '#e6b422', background: flat('#0c2430') },
+  { id: 'donis', from: [10, 7], to: [10, 9], name: 'Sant Donís', accent: '#d69e2e', background: senyera },
+  { id: 'halloween', from: [10, 24], to: [11, 1], name: 'Halloween', accent: '#a78bfa', background: flat('#1b1030') },
+  { id: 'nochebuena', from: [12, 24], to: [12, 24], name: 'Nochebuena', accent: '#68d391', background: flat('#0f2417') },
+  { id: 'navidad', from: [12, 25], to: [1, 4], name: 'Navidad', accent: '#e57373', background: flat('#2a1012') },
+  { id: 'reyes', from: [1, 5], to: [1, 6], name: 'Reyes Magos', accent: '#e6b422', background: flat('#2a2208') },
 ]
 
 /** A day of the year as one number that grows through the year, so ranges compare and cross New Year. */
@@ -62,50 +56,67 @@ export const seasonAt = (now: number): Season | undefined => {
   return SEASONS.find(season => within(season, today))
 }
 
-/** How long the demonstration keeps a season, and how often the glyphs move on. */
+/** How long the demonstration keeps a season. */
 export const DEMO_STEP_MS = 5000
-const MOVE_MS = 2000
 
 /** The season the demonstration shows at `now`: each in turn, every few seconds. */
 export const demoSeason = (now: number): Season => SEASONS[Math.floor(now / DEMO_STEP_MS) % SEASONS.length]!
 
 export const seasonById = (id: SeasonId): Season => SEASONS.find(season => season.id === id)!
 
-/** A border cell run, merged with the one before when it has the same colour. */
-const push = (cells: Cell[], text: string, color: string): void => {
-  const last = cells[cells.length - 1]
-  if (last && last.color === color) last.text += text
-  else cells.push({ text, color })
+/** Cells to the right of the tag on the border: the border goes on a little past it. */
+const TAG_MARGIN = 2
+/** The triangles and the spaces around the name. */
+const TAG_EXTRA = 4
+
+const sameStyle = (a: Cell, b: Cell): boolean =>
+  a.color === b.color && a.dimColor === b.dimColor && a.backgroundColor === b.backgroundColor
+
+/** Runs of equal style merged, so a row stays a few cells long. */
+const merged = (cells: Cell[]): Cell[] => {
+  const out: Cell[] = []
+  for (const cell of cells) {
+    const last = out[out.length - 1]
+    if (last && sameStyle(last, cell)) last.text += cell.text
+    else out.push({ ...cell })
+  }
+
+  return out
+}
+
+/** One cell per character, each keeping the style of the run it came from. */
+const perChar = (line: Line): Cell[] =>
+  (line.cells ?? [{ text: line.text, color: line.color, dimColor: line.dimColor }]).flatMap(cell =>
+    [...cell.text].map(char => ({ ...cell, text: char })),
+  )
+
+/** The top border with the slanted tag set near its right corner; as it was where the tag does not fit. */
+const withTag = (top: Line, season: Season): Line => {
+  const border = perChar(top)
+  const tag = [
+    { text: '◢', color: season.accent },
+    { text: ` ${season.name} `, color: TAG_TEXT, backgroundColor: season.accent },
+    { text: '◤', color: season.accent },
+  ]
+  const width = [...season.name].length + TAG_EXTRA
+  const start = border.length - 1 - TAG_MARGIN - width
+  if (start < 3) return top
+
+  const cells = [...border.slice(0, start), ...tag.flatMap(cell => (cell.text.length === 1 ? [cell] : [...cell.text].map(char => ({ ...cell, text: char })))), ...border.slice(start + width)]
+
+  return { text: cells.map(cell => cell.text).join(''), color: top.color, cells: merged(cells) }
 }
 
 /**
- * The top border of the frame with the season on it: glyphs set along it, or stripes. The width, the corners and the
- * plain text stay what they were; only the cells change. A border too narrow to carry it is returned as it is.
+ * The frame's lines dressed for `season`: the very dark background of the day behind every row inside the frame, over
+ * the text's own colours, and the tag on the top border. Text, width and rows stay what they were.
  */
-export const decorateTop = (top: Line, season: Season, now: number): Line => {
-  const inner = top.text.length - 2
-  const own = top.color ?? '#a05800'
-  if (inner < 8) return top
+export const dress = (lines: Line[], season: Season): Line[] =>
+  lines.map((line, index) => {
+    if (index === 0) return withTag(line, season)
+    if (index === lines.length - 1) return line
 
-  const fill: Cell[] = Array.from({ length: inner }, (_, i) => ({
-    text: '━',
-    color: season.stripes ? season.stripes[Math.floor((i * season.stripes.length) / inner)]! : own,
-  }))
-  const count = season.glyphs.length === 0 ? 0 : (season.count ?? Math.floor(inner / 4))
-  const phase = Math.floor(now / MOVE_MS)
-  for (let k = 0; k < count; k++) {
-    const at = Math.min(inner - 1, Math.round(((k + 0.5) * inner) / count))
-    const turn = k + phase
-    fill[at] = {
-      text: season.glyphs[turn % season.glyphs.length]!,
-      color: season.colors[turn % season.colors.length]!,
-    }
-  }
+    const cells = perChar(line).map((cell, column) => ({ ...cell, backgroundColor: season.background(index - 1, column) }))
 
-  const cells: Cell[] = []
-  push(cells, top.text[0]!, own)
-  for (const cell of fill) push(cells, cell.text, cell.color!)
-  push(cells, top.text[top.text.length - 1]!, own)
-
-  return { text: top.text.slice(0, 1) + fill.map(cell => cell.text).join('') + top.text.slice(-1), color: top.color, cells }
-}
+    return { ...line, cells: merged(cells) }
+  })

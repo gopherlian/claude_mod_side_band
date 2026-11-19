@@ -545,12 +545,10 @@ test('on a day of a season the border of the frame is decorated; on any other da
   expect(winter[0]!.text).not.toBe(plain[0]!.text)
 })
 
-test('the day of Sant Donís adds a centred greeting under the frame; no other season does', () => {
-  const rows = (id: string) => time.lines(ctx({ columns: 40, season: id as never })).map(l => l.text)
+test('a season adds no row under the frame', () => {
+  const rows = (id?: string) => time.lines(ctx({ columns: 40, season: id as never })).length
 
-  expect(rows('donis').some(t => t.includes('Sant Donís'))).toBe(true)
-  expect(time.lines(ctx({ columns: 40, season: 'donis' })).find(l => l.text.includes('Sant Donís'))?.align).toBe('center')
-  for (const id of ['valentine', 'summer', 'halloween', 'nochebuena', 'navidad', 'reyes']) {
-    expect(rows(id).some(t => t.includes('Sant Donís'))).toBe(false)
+  for (const id of ['valentine', 'summer', 'donis', 'halloween', 'nochebuena', 'navidad', 'reyes']) {
+    expect(rows(id)).toBe(rows())
   }
 })
