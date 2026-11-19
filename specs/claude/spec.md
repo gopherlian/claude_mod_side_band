@@ -41,9 +41,8 @@ pace.
   fill: under pace.
 - *Given* a window with no known end, *Then* its bar carries no tick.
 
-**R5.** In the stacked band no legend row follows the bars, and no footnote explains the tick. In the strip a
-one-row legend follows them: `┃ time elapsed in the window`, or `┃ time elapsed` when that does not
-fit, and nothing where neither fits. The `┃` is green.
+**R5.** No legend row follows the bars, in the stacked band or in the strip, and no footnote explains the tick. The
+`┃` is green.
 
 **R6.** There is no footnote and no `(*)`.
 

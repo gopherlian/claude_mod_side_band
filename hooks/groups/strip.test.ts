@@ -178,7 +178,7 @@ test('every column is cut at the bottom to the rows given, keeping what comes fi
   expect(claude[1]).toMatch(/^Context/)
   expect(claude[2]).toMatch(/^Session/)
   expect(claude[3]).toMatch(/^Weekly/)
-  expect(claude[4]).toMatch(/^┃ time elapsed/)
+  expect(claude[4]).toMatch(/^\d+m/)
 })
 
 test('after the columns, the credit, if all of it fits below a blank row', () => {

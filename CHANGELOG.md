@@ -6,6 +6,11 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-11-19
+
+### Changed
+- The strip no longer draws the `┃ time elapsed in the window` row under the plan bars.
+
 ## [1.5.0] - 2026-11-19
 
 ### Changed

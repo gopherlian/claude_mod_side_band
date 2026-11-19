@@ -57,25 +57,25 @@ const ctx = (over: Partial<GroupContext> = {}): GroupContext => ({
 
 const texts = (lines: { text: string }[]) => lines.map(line => line.text)
 
-test('the compact Claude column: context on one row, the windows, the legend, the cost, the model, the tools', () => {
+test('the compact Claude column: context on one row, the windows, the cost, the model, the tools', () => {
   const rows = texts(session.strip!.lines(ctx()))
 
-  expect(rows).toHaveLength(7)
+  expect(rows).toHaveLength(6)
   expect(rows[0]).toMatch(/^Context [█▒─]+ +17%$/)
   expect(rows[1]).toMatch(/^Session .* 18% +2h30m$/)
   expect(rows[2]).toMatch(/^Weekly .* 17% +1d4h$/)
-  expect(rows[3]).toBe('┃ time elapsed in the window')
-  expect(rows[4]).toMatch(/^17m · \$1\.18/)
-  expect(rows[5]).toBe('Sonnet 5.5 ●●○○○ medium')
-  expect(rows[6]).toMatch(/^tools [·▂▃▄▅▆▇█]{10} 42$/)
+  expect(rows.join('\n')).not.toContain('time elapsed')
+  expect(rows[3]).toMatch(/^17m · \$1\.18/)
+  expect(rows[4]).toBe('Sonnet 5.5 ●●○○○ medium')
+  expect(rows[5]).toMatch(/^tools [·▂▃▄▅▆▇█]{10} 42$/)
   expect(rows.every(row => row.length <= 30)).toBe(true)
 })
 
 test('the compact Claude column is cut to its rows at the bottom, the tools first', () => {
-  const rows = texts(session.strip!.lines(ctx({ budget: 6 })))
+  const rows = texts(session.strip!.lines(ctx({ budget: 5 })))
 
-  expect(rows).toHaveLength(6)
-  expect(rows[5]).toBe('Sonnet 5.5 ●●○○○ medium')
+  expect(rows).toHaveLength(5)
+  expect(rows[4]).toBe('Sonnet 5.5 ●●○○○ medium')
   expect(texts(session.strip!.lines(ctx({ budget: 3 })))).toHaveLength(3)
 })
 

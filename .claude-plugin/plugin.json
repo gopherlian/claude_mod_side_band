@@ -1,6 +1,6 @@
 {
   "name": "side-band",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "A live side band for Claude Code: time and weather, plan usage, repository and machine, docked beside the chat or side by side above the prompt.",
   "author": {
     "name": "Alberto Rodriguez Baixauli",

@@ -19,7 +19,7 @@ colour.
 **R4.** The frame of the time group SHALL be heavy (`┏━┓ ┃ ┗━┛`) and bright orange. Only the frame is orange; what is
 inside keeps its own colours.
 
-**R5.** The pace tick `┃` SHALL be green wherever it is drawn (bars, legend).
+**R5.** The pace tick `┃` SHALL be green wherever it is drawn (bars).
 
 **R6.** The credit SHALL be one row, centred like the time, with no frame, no name and no bar:
 `© 2026 a@webtory.es  GNU/GPL` (two spaces before the license), 28 cells, so it fits the band it is designed for. The

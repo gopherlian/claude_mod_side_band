@@ -147,16 +147,6 @@ export const bar = (percent: number, width: number): string => {
   return '█'.repeat(full) + part + TRACK.repeat(width - full - (part ? 1 : 0))
 }
 
-/** What the tick means, longest wording first; the row takes the first that fits the band. */
-const LEGEND = [`${MARK} time elapsed in the window`, `${MARK} time elapsed`]
-
-/** The one-row legend of the tick, for the strip; nothing where not even the short wording fits. */
-const legendLines = (columns: number): Line[] => {
-  const text = LEGEND.find(wording => wording.length <= columns)
-
-  return text === undefined ? [] : [{ text, dimColor: true }]
-}
-
 /** A tick over the bar, at `share` (0 to 1) of its length; it replaces the cell it lands on. */
 const withMark = (drawn: string, share: number): string => {
   const at = Math.min(drawn.length - 1, Math.floor(Math.min(1, Math.max(0, share)) * drawn.length))
@@ -283,7 +273,7 @@ export const usageLines = (data: UsageData | undefined, columns: number, now?: n
 
 /**
  * The plan and the context in as few rows as they can take: `Context` and its
- * bar on one row, a row per plan window, and the legend of the tick.
+ * bar on one row and a row per plan window.
  */
 export const compactUsageLines = (data: UsageData | undefined, columns: number, now?: number): Line[] => {
   if (!data) return [{ text: 'Usage unavailable', dimColor: true }]
@@ -297,7 +287,6 @@ export const compactUsageLines = (data: UsageData | undefined, columns: number, 
     },
     ...windows(data.limits).map(({ label: name, limit }) => windowRow(name, limit, columns, now)),
   ]
-  if (lines.some(line => line.text.includes(MARK))) lines.push(...legendLines(columns).map(withMarks))
 
   return lines
 }

@@ -215,8 +215,7 @@ its usage at all the group says `Usage unavailable`.
 **The pace tick.** The bar fills as you use the window. The green `┃` marks how much of the window's *time* has
 gone by. If the tick is *inside* the fill, you are spending faster than time passes and may run out before the
 window resets; beyond the fill, you are under pace. In the example above, Session has used 41% of its tokens but
-77% of its time has gone by: comfortably under pace. (In the strip a one-row legend, `┃ time elapsed in the window`,
-stands under the bars.)
+77% of its time has gone by: comfortably under pace.
 
 ### 3. Project
 
