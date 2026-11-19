@@ -59,10 +59,11 @@ band nothing a row says is lost to the width: what does not fit goes on further 
 the cost, tools, turn and model rows, the branch and its state). Only the strip, where a column keeps its height, cuts.
 
 **R8a.** On a few days of the year the time frame MAY be dressed: a very dark colour behind everything inside it, a
-small motif in light grey in the margins of its rows, and a slanted tag, flush left on its top border, that names the
-day behind an icon. The colour SHALL be dark enough for the time and the weather to read on it, the motif SHALL never
-sit between or over what is written, and the dressing SHALL change no text, no width and no row, SHALL cost no row in
-the strip, and SHALL not move.
+small motif in light grey in the margins of its rows, a slanted tag with the day's name flush left on its top border and
+the day's icon at the other end of that border. The colour SHALL be dark enough for the time and the weather to read on
+it, and the motif SHALL never sit between or over what is written. The dressing SHALL change no text, no width and no
+row, SHALL cost no row in the strip and SHALL not move; one day MAY add a centred line of text under the frame in the
+stacked band.
 
 **R9.** The README screenshots SHALL be drawn from the lines the mod really draws (`tools/screenshots`), and SHALL be
 regenerated with any visible change.

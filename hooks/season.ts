@@ -9,9 +9,11 @@ export type Season = {
   /** First and last day, as `[month, day]` (month 1 to 12), both inside the range; a range may cross New Year. */
   from: [number, number]
   to: [number, number]
-  /** What the tag says, and the symbol of the day that leads it. */
+  /** What the tag says, and the symbol of the day at the right end of the top border. */
   name: string
   icon: string
+  /** A centred row under the frame. */
+  greeting?: { text: string; color: string }
   /** Symbols drawn in turn, in light grey, on the blank cells of the square; none where the background says it all. */
   motif?: string[]
   /** The colour of the tag. */
@@ -25,10 +27,10 @@ const TAG_TEXT = '#111111'
 
 const flat = (colour: string) => () => colour
 
-// The Royal Senyera: a strong blue band at the pole, then red bars on gold in very dark tones, a bar to a row.
-const BAND_COLUMNS = 9
+// The Royal Senyera: a deep blue band at the pole, then red bars on gold in very dark tones, a bar to a row.
+const BAND_COLUMNS = 6
 const senyera = (row: number, column: number): string =>
-  column < BAND_COLUMNS ? '#1b4f8a' : row % 2 === 0 ? '#2e2408' : '#2e0e10'
+  column < BAND_COLUMNS ? '#08306b' : row % 2 === 0 ? '#2e2408' : '#2e0e10'
 
 /** The motifs are light grey, drawn over the background where nothing is written. */
 const MOTIF_COLOR = '#8f8f8f'
@@ -39,7 +41,7 @@ const MOTIF_SPACING = 4
 export const SEASONS: Season[] = [
   { id: 'valentine', from: [2, 12], to: [2, 14], name: 'San Valentín', icon: '♥', motif: ['♥'], accent: '#ec7ab0', background: flat('#2a1224') },
   { id: 'summer', from: [6, 21], to: [9, 22], name: 'Verano', icon: '☀', motif: ['≈', '≈', '☀'], accent: '#e6b422', background: flat('#0c2430') },
-  { id: 'donis', from: [10, 7], to: [10, 9], name: 'Sant Donís', icon: '⚑', accent: '#d69e2e', background: senyera },
+  { id: 'donis', from: [10, 7], to: [10, 9], name: "9 d'Octubre", icon: '⚑', accent: '#d69e2e', background: senyera, greeting: { text: '♥ San Donís', color: '#ec7ab0' } },
   { id: 'halloween', from: [10, 24], to: [11, 1], name: 'Halloween', icon: '☾', motif: ['☾', '▲', '✶'], accent: '#a78bfa', background: flat('#1b1030') },
   { id: 'nochebuena', from: [12, 24], to: [12, 24], name: 'Nochebuena', icon: '✦', motif: ['✦', '✧'], accent: '#68d391', background: flat('#0f2417') },
   { id: 'navidad', from: [12, 25], to: [1, 4], name: 'Navidad', icon: '❄', motif: ['❄', '✦'], accent: '#e57373', background: flat('#2a1012') },
@@ -93,19 +95,29 @@ const perChar = (line: Line): Cell[] =>
     [...cell.text].map(char => ({ ...cell, text: char })),
   )
 
-/** The top border with the slanted tag right after its left corner; as it was where the tag does not fit. */
+/** The cells between the icon and the right corner. */
+const ICON_MARGIN = 1
+
+/**
+ * The top border of the frame dressed: the slanted tag with the name right after the left corner, where it fits, and
+ * the icon of the day near the right corner.
+ */
 const withTag = (top: Line, season: Season): Line => {
   const border = perChar(top)
-  const text = `${season.icon} ${season.name}`
-  const width = [...text].length + 4
-  if (width + 2 > border.length - 2) return top
+  if (border.length < 8) return top
 
-  const tag: Cell[] = [
-    { text: '◢', color: season.accent },
-    ...[...` ${text} `].map(char => ({ text: char, color: TAG_TEXT, backgroundColor: season.accent })),
-    { text: '◤', color: season.accent },
-  ]
-  const cells = [border[0]!, ...tag, ...border.slice(1 + width)]
+  const iconAt = border.length - 2 - ICON_MARGIN
+  const width = [...season.name].length + 4
+  const fits = 1 + width <= iconAt - 1
+  const tag: Cell[] = fits
+    ? [
+        { text: '◢', color: season.accent },
+        ...[...` ${season.name} `].map(char => ({ text: char, color: TAG_TEXT, backgroundColor: season.accent })),
+        { text: '◤', color: season.accent },
+      ]
+    : []
+  const cells = [border[0]!, ...tag, ...border.slice(1 + tag.length)]
+  cells[iconAt] = { text: season.icon, color: season.accent }
 
   return { text: cells.map(cell => cell.text).join(''), color: top.color, cells: merged(cells) }
 }

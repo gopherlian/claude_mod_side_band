@@ -40,6 +40,11 @@ const timeLines = (ctx: GroupContext): Line[] => {
   const framed = frameLines(block, ctx.columns)
   const lines: Line[] = season ? dress(framed, season) : framed
 
+  // The greeting of the day takes a row of its own, so only where rows are not counted: in the stacked band.
+  if (season?.greeting && !isStrip) {
+    lines.push({ text: season.greeting.text, color: season.greeting.color, align: 'center' })
+  }
+
   for (const line of extra) {
     if (ctx.budget === undefined || lines.length < ctx.budget) lines.push(line)
   }

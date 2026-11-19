@@ -79,21 +79,28 @@ test('a dressed frame keeps every row as wide as it was and its cells add up to 
   }
 })
 
-test('the tag leads the top border, flush left, with the icon of the day before its name', () => {
-  const names: Record<string, string> = {
-    valentine: '♥ San Valentín',
-    summer: '☀ Verano',
-    donis: '⚑ Sant Donís',
-    halloween: '☾ Halloween',
-    nochebuena: '✦ Nochebuena',
-    navidad: '❄ Navidad',
-    reyes: '♚ Reyes Magos',
+test('the tag leads the top border, flush left, with the name alone; the icon of the day sits at its right end', () => {
+  const names: Record<string, [string, string]> = {
+    valentine: ['San Valentín', '♥'],
+    summer: ['Verano', '☀'],
+    donis: ["9 d'Octubre", '⚑'],
+    halloween: ['Halloween', '☾'],
+    nochebuena: ['Nochebuena', '✦'],
+    navidad: ['Navidad', '❄'],
+    reyes: ['Reyes Magos', '♚'],
   }
   for (const { id } of SEASONS) {
-    const text = dress(frameOf(), season(id))[0]!.text
+    const [name, icon] = names[id]!
+    const line = dress(frameOf(), season(id))[0]!
+    const chars = [...line.text]
 
-    expect(text.startsWith(`┏◢ ${names[id]} ◤━`)).toBe(true)
-    expect(dress(frameOf(), season(id))[0]!.text).toBe(text)
+    expect(line.text.startsWith(`┏◢ ${name} ◤━`)).toBe(true)
+    expect(chars[chars.length - 3]).toBe(icon)
+    expect(line.text.endsWith('━┓')).toBe(true)
+    expect(line.text.match(new RegExp(`[${icon}]`, 'gu'))).toHaveLength(1)
+    const cell = line.cells!.find(c => c.text === icon)!
+    expect(cell.color).toBe(season(id).accent)
+    expect(dress(frameOf(), season(id))[0]!.text).toBe(line.text)
   }
 })
 
@@ -109,15 +116,18 @@ test('the tag is dark text on a colour, set off by the triangles in that colour'
   expect(right.color).toBe(label.backgroundColor)
 })
 
-test('a border too narrow for the tag is left as it is', () => {
+test('a border too narrow for the tag keeps the icon and leaves the name out', () => {
   const narrow: Line = { text: '┏' + '━'.repeat(14) + '┓', color: '#a05800' }
+  const line = dress([narrow, rowOf('x')], season('reyes'))[0]!
 
-  expect(dress([narrow, rowOf('x')], season('reyes'))[0]).toEqual(narrow)
+  expect(line.text).not.toContain('Reyes')
+  expect(line.text).toContain('♚')
+  expect(line.text.length).toBe(16)
 })
 
 const channels = (hex: string) => [1, 3, 5].map(at => parseInt(hex.slice(at, at + 2), 16))
 
-test('the background behind the time is very dark, so what is written on it reads; only the blue band is stronger', () => {
+test('the background behind the time is very dark, so what is written on it reads; only the blue band is deeper', () => {
   for (const { id } of SEASONS) {
     for (const row of dress(frameOf(), season(id)).slice(1, -1)) {
       for (const cell of row.cells!) {
@@ -186,7 +196,7 @@ test('the motifs are one-cell symbols that are not emoji', () => {
   }
 })
 
-test('9 October paints the Royal Senyera: a strong blue band, nine cells wide, then red bars on gold, row by row', () => {
+test('9 October paints the Royal Senyera: a deep blue band, six cells wide, then red bars on gold, row by row', () => {
   const rows = dress(frameOf(), season('donis')).slice(1, -1)
   const colourAt = (row: Line, column: number) => {
     let at = 0
@@ -197,10 +207,11 @@ test('9 October paints the Royal Senyera: a strong blue band, nine cells wide, t
   }
 
   const blue = colourAt(rows[0]!, 0)!
-  for (const row of rows) for (let column = 0; column < 9; column++) expect(colourAt(row, column)).toBe(blue)
-  for (const row of rows) expect(colourAt(row, 9)).not.toBe(blue)
+  for (const row of rows) for (let column = 0; column < 6; column++) expect(colourAt(row, column)).toBe(blue)
+  for (const row of rows) expect(colourAt(row, 6)).not.toBe(blue)
   expect(Math.max(...channels(blue))).toBeGreaterThan(0x40)
   expect(channels(blue)[2]).toBeGreaterThan(channels(blue)[0]! * 2)
+  expect(Math.max(...channels(blue))).toBeLessThan(0x80)
   expect(colourAt(rows[0]!, 15)).not.toBe(colourAt(rows[1]!, 15))
   expect(colourAt(rows[0]!, 15)).toBe(colourAt(rows[2]!, 15))
   expect(rows.map(row => row.text).join('')).toBe(frameOf().slice(1, -1).map(row => row.text).join(''))

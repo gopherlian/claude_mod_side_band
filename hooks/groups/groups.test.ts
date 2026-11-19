@@ -548,10 +548,17 @@ test('on a day of a season the border of the frame is decorated; on any other da
   expect(winter[0]!.text).not.toBe(plain[0]!.text)
 })
 
-test('a season adds no row under the frame', () => {
-  const rows = (id?: string) => time.lines(ctx({ columns: 40, season: id as never })).length
+test('the day of 9 October puts San Donís under the frame, centred, with a heart; no other day adds a row', () => {
+  const lines = (id?: string, budget?: number) => time.lines(ctx({ columns: 40, season: id as never, budget }))
 
-  for (const id of ['valentine', 'summer', 'donis', 'halloween', 'nochebuena', 'navidad', 'reyes']) {
-    expect(rows(id)).toBe(rows())
+  for (const id of ['valentine', 'summer', 'halloween', 'nochebuena', 'navidad', 'reyes']) {
+    expect(lines(id).length).toBe(lines().length)
   }
+  const donis = lines('donis')
+  expect(donis.length).toBe(lines().length + 1)
+  const greeting = donis.find(l => l.text === '♥ San Donís')!
+  expect(greeting.align).toBe('center')
+  expect(donis.indexOf(greeting)).toBe(donis.findIndex(l => l.text.startsWith('┗')) + 1)
+  // The strip counts its rows: there the greeting is not drawn.
+  expect(lines('donis', 8).length).toBe(lines(undefined, 8).length)
 })
