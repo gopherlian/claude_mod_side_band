@@ -6,6 +6,9 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Added
+- A little something on a few days of the year.
+
 ## [1.5.1] - 2026-11-19
 
 ### Changed

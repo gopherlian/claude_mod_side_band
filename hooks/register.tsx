@@ -35,6 +35,7 @@ import type {
 import { isFresh, mergeShared, parseShared, sharedPath } from './shared'
 import type { Shared } from './shared'
 import { trackTool } from './tools'
+import { demoSeason } from './season'
 import { PUBLISHED_MANIFEST_URL, UPDATE_EVERY_MS, checkForUpdate } from './update'
 import type { UpdateState } from './update'
 import type { WeatherState } from './widgets/types'
@@ -67,6 +68,8 @@ export const register: Register = on => {
   let timerNotified = false
   /** While on, the band draws the demonstration's made-up readings; for this session only. */
   let isDemo = false
+  /** Within the demonstration, whether the border of the frame walks through its decorations. */
+  let isDressed = false
   /** Which version of the mod runs, and what became of a newer one; read at session start. */
   let update: UpdateState | undefined
   /** A check under way: another is not started over it, so a pull never runs twice at once. */
@@ -492,8 +495,9 @@ export const register: Register = on => {
     }
 
     // The demonstration: every element with made-up readings, drawn over the real ones and never shared.
-    if (args === 'demo') {
+    if (args === 'demo' || args === 'demo easter') {
       isDemo = !isDemo
+      isDressed = isDemo && args === 'demo easter'
       if (isDemo) {
         await $.ui.open({ id: PANE, title: TITLE, columns: dockColumns(e.presentation?.columns ?? 100), rows: STRIP_ROWS })
 
@@ -595,7 +599,7 @@ export const register: Register = on => {
     }
 
     const context = isDemo
-      ? { now, columns, rows, update, ...demo(now) }
+      ? { now, columns, rows, update, ...demo(now), season: isDressed ? demoSeason(now).id : undefined }
       : { now, columns, rows, weather, usage, stats, hardware, system, git, timerEndsAt, update }
     const budget = rowBudget(e.props.placement, e.props.scroll?.bodyRows, rows)
     const lines = isStrip

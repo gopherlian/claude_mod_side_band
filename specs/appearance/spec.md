@@ -58,5 +58,9 @@ grey `#64748b`; the cost is green `#68d391`, the tools chart violet `#c084fc`, t
 band nothing a row says is lost to the width: what does not fit goes on further rows (the weather items, the outlook,
 the cost, tools, turn and model rows, the branch and its state). Only the strip, where a column keeps its height, cuts.
 
+**R8a.** On a few days of the year the border of the time frame MAY wear a small decoration: glyphs of one cell, or
+colour. It SHALL change no text, no width and no reading, SHALL cost no row in the strip, and SHALL be drawn from the
+clock alone, with no timer of its own.
+
 **R9.** The README screenshots SHALL be drawn from the lines the mod really draws (`tools/screenshots`), and SHALL be
 regenerated with any visible change.

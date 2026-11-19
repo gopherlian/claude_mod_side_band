@@ -1,6 +1,7 @@
 import type { GitStatus, Hardware, SystemStats } from '../monitor/types'
 import type { Category } from '../sections/context'
 import type { Line, UsageData } from '../sections/usage'
+import type { SeasonId } from '../season'
 import type { UpdateState } from '../update'
 import type { WeatherState } from '../widgets/types'
 
@@ -42,6 +43,8 @@ export type GroupContext = {
   update?: UpdateState
   /** In the strip: the rows this column may fill, its title not counted. Absent where the band is stacked. */
   budget?: number
+  /** A season to draw whatever the date; the demonstration walks through them. Absent: the date decides. */
+  season?: SeasonId
 }
 
 /** The compact form of a group, for the strip: a column that is `min` to `max` cells wide. */

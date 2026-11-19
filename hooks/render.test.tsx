@@ -291,6 +291,29 @@ test('/band demo draws every element with made-up readings, and turns off again'
   expect(holderOf(await mount(), /model-service/)).toBeUndefined()
 })
 
+test('a second kind of demonstration turns on and off like the first', async ($, on) => {
+  await draw($, on, 40)
+  const run = (args: string) =>
+    $.command.run({ command: 'band', args, origin: { kind: 'composer' }, presentation: { isFullscreen: true, columns: 212 } })
+  const mount = async () => {
+    const ui = await $.ui.mount({ ...PANE, props: { ...PANE.props, bodyColumns: 40 } })
+    const tree = (await ui.drawn()) as unknown as Drawn
+    await ui.unmount()
+
+    return tree
+  }
+
+  expect(((await run('demo easter')) as { text?: string }).text).toBe('Demo on: the band shows made-up readings. /band demo turns it off.')
+  expect(holderOf(await mount(), /model-service/)).toBeDefined()
+  expect(((await run('demo easter')) as { text?: string }).text).toBe('Demo off: the band shows its real readings again.')
+  expect(holderOf(await mount(), /model-service/)).toBeUndefined()
+
+  // Plain `demo` turns a dressed one off as well.
+  await run('demo easter')
+  expect(((await run('demo')) as { text?: string }).text).toBe('Demo off: the band shows its real readings again.')
+  expect(holderOf(await mount(), /model-service/)).toBeUndefined()
+})
+
 /** Draws the band of a clean working copy on main, `local` installed and `published` out; records the commands run. */
 const drawVersion = async ($: Parameters<typeof draw>[0], on: Parameters<typeof draw>[1], local: string, published: string) => {
   const ran: string[][] = []

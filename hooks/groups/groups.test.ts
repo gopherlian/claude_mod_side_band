@@ -531,3 +531,26 @@ test('a long branch name and its state wrap onto further rows instead of being c
   expect(rows.join(' ')).toContain('↑1')
   for (const row of rows) expect(row.length).toBeLessThanOrEqual(12)
 })
+
+test('on a day of a season the border of the frame is decorated; on any other day it is as it was', () => {
+  const plain = time.lines(ctx({ columns: 40 }))
+  const dressed = time.lines(ctx({ columns: 40, season: 'navidad' }))
+
+  expect(plain[0]!.text).toBe('┏' + '━'.repeat(38) + '┓')
+  expect(dressed[0]!.text).not.toBe(plain[0]!.text)
+  expect(dressed[0]!.text.length).toBe(40)
+  expect(dressed.slice(1).map(l => l.text)).toEqual(plain.slice(1).map(l => l.text))
+  // The real date picks the season when none is forced.
+  const winter = time.lines(ctx({ columns: 40, now: new Date(2026, 11, 24, 12).getTime() }))
+  expect(winter[0]!.text).not.toBe(plain[0]!.text)
+})
+
+test('the day of Sant Donís adds a centred greeting under the frame; no other season does', () => {
+  const rows = (id: string) => time.lines(ctx({ columns: 40, season: id as never })).map(l => l.text)
+
+  expect(rows('donis').some(t => t.includes('Sant Donís'))).toBe(true)
+  expect(time.lines(ctx({ columns: 40, season: 'donis' })).find(l => l.text.includes('Sant Donís'))?.align).toBe('center')
+  for (const id of ['valentine', 'summer', 'halloween', 'nochebuena', 'navidad', 'reyes']) {
+    expect(rows(id).some(t => t.includes('Sant Donís'))).toBe(false)
+  }
+})

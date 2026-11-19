@@ -1,6 +1,7 @@
 // Time and agenda: the big time, date, weather, today's outlook and a timer.
 import { formatClock } from '../format'
 import { compose, maxRows } from '../layout'
+import { decorateTop, seasonAt, seasonById } from '../season'
 import { FRAME_COLUMNS, frameLines } from '../sections/frame'
 import type { Line } from '../sections/usage'
 import { wrapParts } from '../sections/wrap'
@@ -36,6 +37,13 @@ const timeLines = (ctx: GroupContext): Line[] => {
     .map(chunk => (isStrip && blockRows < 2 && chunk.big ? { ...chunk, rank: -1 } : chunk))
   const block = compose(chunks, Math.max(1, ctx.columns - FRAME_COLUMNS), blockRows, { stack: true, keepAll: !isStrip })
   const lines: Line[] = frameLines(block, ctx.columns)
+  const season = ctx.season ? seasonById(ctx.season) : seasonAt(ctx.now)
+  if (season && lines.length > 0) lines[0] = decorateTop(lines[0]!, season, ctx.now)
+
+  // A greeting takes a row of its own, so only where rows are not counted: in the stacked band.
+  if (season?.greeting && !isStrip) {
+    lines.push({ text: season.greeting.text, color: season.greeting.color, align: 'center' })
+  }
 
   for (const line of extra) {
     if (ctx.budget === undefined || lines.length < ctx.budget) lines.push(line)
