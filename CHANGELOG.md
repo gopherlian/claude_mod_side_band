@@ -6,6 +6,9 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- In the GentleAI group, `Now` shows `-` instead of `idle` when nothing is running.
+
 ## [1.7.0] - 2026-11-20
 
 ### Added

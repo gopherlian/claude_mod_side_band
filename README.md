@@ -229,7 +229,7 @@ elsewhere it does not appear. It says where the harness is in its workflow and w
 - **Step:** the SDD phase of the last subagent that ran, as pips (`●●●●●●○○ 6/8 apply`); the judges, the fixer and
   the review lenses are named too (`judgment day · judging`, `review · risk`).
 - **Now:** the task of the subagent running (`▸ apply task 3: strip layout`, `+2` when more run), read whole over as
-  many rows as it needs; else the next open task, else `idle`.
+  many rows as it needs; else the next open task, else `-`.
 - **Tasks:** a bar and `done/total` of the checklist in the project's newest `odd/tasks/<feature>.md`.
 
 <p align="center"><img src="docs/img/harness.svg" alt="The GentleAI group"></p>

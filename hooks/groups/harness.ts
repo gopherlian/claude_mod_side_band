@@ -55,7 +55,7 @@ const wrapped = (marker: Cell, text: string, tail: string, columns: number, dim:
 }
 
 /** What is running now, whole over as many rows as it needs: the oldest agent's task, `+N` for the others. Else the
- * next task, else `idle`. */
+ * next task, else `-`. */
 const nowRows = (state: HarnessState, columns: number): Line[] => {
   const [first] = state.running
   if (first) {
@@ -66,7 +66,7 @@ const nowRows = (state: HarnessState, columns: number): Line[] => {
   const next = state.tasks?.next
   if (next) return wrapped({ text: '· ', dimColor: true }, next, '', columns, true)
 
-  return [joined([{ text: 'Now'.padEnd(LABEL_WIDTH), dimColor: true }, { text: 'idle', dimColor: true }], columns)]
+  return [joined([{ text: 'Now'.padEnd(LABEL_WIDTH), dimColor: true }, { text: '-', dimColor: true }], columns)]
 }
 
 /** The feature document's checklist: a bar and `done/total`. */

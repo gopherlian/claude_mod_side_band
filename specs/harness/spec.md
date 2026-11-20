@@ -24,7 +24,7 @@ group dropped when rows or width run short (priority after System).
 **R4 (now).** A `Now` row SHALL say what is running: `▸` and the task of the oldest running subagent (its `description`),
 and `+N` when others run too. It is read whole: what does not fit goes on further rows, under its own text, never cut
 (in the strip, only by the rows the column has). With none running, the first open task of the feature document, dim
-(`Now   · T3 strip layout`); with that either, `Now   idle`.
+(`Now   · T3 strip layout`); with that either, `Now   -`.
 
 **R5 (tasks).** Where the project has `odd/tasks/<feature>.md`, the newest of them, a `Tasks` row SHALL draw a thin green bar (`━` filled, `─` the rest in
 faint grey) and `done/total` of the checkboxes under its `## Tasks` heading. No document or no checkbox: no row.
