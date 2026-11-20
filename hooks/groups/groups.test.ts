@@ -5,7 +5,10 @@ import { formatShortTime } from '../widgets/clock'
 import { containerLines } from '../sections/docker'
 import { creditLines } from '../sections/credit'
 import { RESOURCE_COLORS, RESOURCE_ICONS } from '../sections/palette'
-import { rule, softRule } from '../sections/usage'
+import { INNER_RULE_COLOR, rule, softRule } from '../sections/usage'
+
+/** A separator inside a group, told from an empty bar (which is also a run of `─`) by its colour. */
+const isSoftRule = (line: { text: string; color?: string }) => /^─+$/.test(line.text) && line.color === INNER_RULE_COLOR
 import { harness } from './harness'
 import { arrange, groups } from './index'
 import { project } from './project'
@@ -263,9 +266,10 @@ test('the project group is hidden outside a repository', () => {
 })
 
 test('the system group adds memory, disk, network and docker to the bars', () => {
-  const texts = system
-    .lines(ctx({ system: { ramPercent: 50, diskPercent: 30, downBps: 524288, upBps: 2048, netPeakBps: 1048576, dockers: [{ name: 'api', networks: ['n'] }, { name: 'db', networks: ['n'] }] } }))
-    .map(l => l.text)
+  const rows = system.lines(
+    ctx({ system: { ramPercent: 50, diskPercent: 30, downBps: 524288, upBps: 2048, netPeakBps: 1048576, dockers: [{ name: 'api', networks: ['n'] }, { name: 'db', networks: ['n'] }] } }),
+  )
+  const texts = rows.map(l => l.text)
   expect(texts.some(t => t.startsWith('≡ RAM   ') && t.includes('50%'))).toBe(true)
   expect(texts.some(t => t.startsWith('◉ Disk  ') && t.includes('30%'))).toBe(true)
   // The arrows say which way: what comes in and what goes out.
@@ -279,7 +283,7 @@ test('the system group adds memory, disk, network and docker to the bars', () =>
   expect(texts).toContain(containerLines('db', 30)[0]!.text)
   expect(texts.some(t => t.startsWith('●'))).toBe(false)
   // One network: the only inner separators are the two before the network and docker blocks.
-  expect(texts.filter(t => /^─+$/.test(t)).length).toBe(2)
+  expect(rows.filter(isSoftRule).length).toBe(2)
   expect(texts[texts.indexOf('docker · 2 running') - 1]).toBe('─'.repeat(30))
   expect(texts.some(t => t.includes('Swap'))).toBe(false)
 })
@@ -345,10 +349,11 @@ test('every separator inside a group is the faint one, so none is mistaken for a
       ],
     },
   })
-  const texts = arrange(rich, 200).map(l => l.text)
+  const lines = arrange(rich, 200)
+  const texts = lines.map(l => l.text)
 
   // Claude after the bars and before the model, System before the network and docker blocks, docker between networks.
-  expect(texts.filter(t => /^─+$/.test(t)).length).toBe(5)
+  expect(lines.filter(isSoftRule).length).toBe(5)
   expect(texts.filter(t => t.startsWith('━━ ')).length).toBe(3)
   expect(texts.filter(t => /^━+$/.test(t))).toEqual([])
   expect(texts.some(t => t.startsWith('┄'))).toBe(false)
@@ -386,7 +391,7 @@ test('docker lists at most five names and counts the rest; none running is said'
   const many = system
     .lines(ctx({ system: { dockers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map(name => ({ name, networks: ['n'] })) } }))
     .map(l => l.text)
-  expect(many.filter(t => /^[▬╸─]+ [a-g]$/.test(t)).length).toBe(5)
+  expect(many.filter(t => /^ +[a-g]$/.test(t)).length).toBe(5)
   expect(many).toContain('+2 more')
   expect(many[0]).toBe('docker · 7 running')
 

@@ -4,7 +4,7 @@ import { CPU_COLOR, GPU_COLOR } from './palette'
 import { softRule } from './usage'
 import type { Cell, Line } from './usage'
 
-/** A bar never gets shorter than this; the name gives way first. */
+/** A bar never gets shorter than this. */
 const MIN_BAR = 2
 
 /** What is left of a bar that is not filled. */
@@ -30,17 +30,20 @@ const barCells = (percent: number | undefined, width: number, color: string): Ce
 export type Load = { cpu?: number; gpu?: number }
 
 /**
- * One container: its CPU bar, in green, that takes what the name leaves of the
- * width, then the name; under it, when the container has a GPU, a second bar of
- * the same length in blue. Each is filled in proportion to its percent.
+ * One container: its name, dim and right-aligned, on a row of its own; under it
+ * its CPU bar, in green, across the whole width and, when the container has a
+ * GPU, a second bar of the same length in blue. Each is filled in proportion
+ * to its percent.
  */
 export const containerLines = (name: string, columns: number, load: Load = {}): Line[] => {
-  const shown = name.slice(0, Math.max(0, columns - MIN_BAR - 1))
-  const width = Math.max(MIN_BAR, columns - shown.length - 1)
-  const row = (cells: Cell[]): Line => ({ text: cells.map(cell => cell.text).join('').slice(0, columns), cells })
+  const shown = name.slice(0, Math.max(0, columns))
+  const width = Math.max(MIN_BAR, columns)
+  const row = (cells: Cell[]): Line => ({ text: cells.map(cell => cell.text).join(''), cells })
+  const title = ' '.repeat(Math.max(0, columns - shown.length)) + shown
 
   return [
-    row([...barCells(load.cpu, width, CPU_COLOR), { text: ` ${shown}` }]),
+    { text: title, dimColor: true },
+    row(barCells(load.cpu, width, CPU_COLOR)),
     ...(load.gpu !== undefined ? [row(barCells(load.gpu, width, GPU_COLOR))] : []),
   ]
 }
@@ -77,7 +80,7 @@ export const groupByNetwork = (containers: Container[]): Container[][] => {
 }
 
 /**
- * The bars of the containers (a CPU bar each, a GPU bar under it for one that has a GPU), at most `max` containers, a faint rule between
+ * The containers, at most `max`: each its name, its CPU bar and, for one that has a GPU, a GPU bar, with a faint rule between
  * groups of different networks and a count of those left out. `gpuUtil` is the
  * whole GPU's use: docker does not split it, so each container that asked for a
  * GPU shows it. Where every
