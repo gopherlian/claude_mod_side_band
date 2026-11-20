@@ -210,7 +210,7 @@ From top to bottom:
 5. **Tools:** `tools 25 calls ▸ Bash` and, under it, between two blank rows, a fine braille chart three rows tall across the whole width of the
    tool calls of the last ten minutes (the oldest on the left; a baseline of dots where nothing ran; not drawn at all when no call fell in those ten minutes). Then a list like
    `htop`: one row per tool used, the most used first, with its name, a bar and its count (`▸ Bash ▬▬▬▬╸──── 14`;
-   the running tool has the `▸`). Then the current turn's time, or the last one's.
+   the running tool has the `▸`). Then the current turn's time, or the last one's, at the right edge.
 6. **The model and the effort level**, under a faint rule: the model's short name and five pips filled up to the
    effort (`Opus 5.5 ●●●○○ high`).
 
@@ -240,7 +240,7 @@ elsewhere it does not appear. It says where the harness is in its workflow and w
 ### 4. Project
 
 Where the repository you are working in stands: the branch, and `clean` or the number of changed files, with `↑n`
-commits to push and `↓n` to pull. The group does not appear outside a git repository.
+commits to push and `↓n` to pull, at the right edge of the band. The group does not appear outside a git repository.
 
 <p align="center"><img src="docs/img/project.svg" alt="The project group"></p>
 
@@ -260,7 +260,7 @@ of the same colour so they read well.
 ### 6. Docker
 
 The containers, a group of their own after System, drawn only where `docker` is available. It starts with how many are
-running (`3 running`, or `none running`). Each container is its name, dim and right-aligned, over its CPU bar (green)
+running (`3 running`, or `none running`), at the right edge. Each container is its name, dim and right-aligned, over its CPU bar (green)
 across the whole width; for a container that asked for a GPU, a GPU bar (blue) of the same length goes under it. Both
 are in the same `▬` form as every other bar. Docker does not split a GPU between containers, so a container that
 asked for a GPU shows the GPU's whole utilisation. A blank row sets one container apart from the next.

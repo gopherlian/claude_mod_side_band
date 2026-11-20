@@ -12,6 +12,8 @@ All notable changes to this mod are written here. The format follows
   blue rule that names each network.
 
 ### Changed
+- The turn time (`turn 0:42`), the repository state (`3 changed · ↑2`) and the container count (`3 running`) are at the
+  right edge of the band.
 - The tools (chart, list and bars) take the green of the CPU bar instead of violet, and so do the GentleAI tasks.
 - Every bar (context, plan windows, resources, network, tools, tasks) is drawn with `▬` over a thin `─` track, ending in
   a half step `╸`. The autocompact reserve of the context bar is a grey `▬` too, no longer a hatched block. A container is its name,

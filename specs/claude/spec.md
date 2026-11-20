@@ -63,7 +63,7 @@ pace.
   bar (`▬` filled, `╸` a half step, `─` the rest in faint grey) as long as its calls next to the busiest tool's,
   and the count; the running tool has a `▸` and its name lit, the others are dim; at most six rows, the last of them
   `+N more` where tools are left out;
-- the current turn's time or the last one's, dim (`turn 0:42`, `last 1:14`);
+- the current turn's time or the last one's, dim and at the right edge of the band (`turn 0:42`, `last 1:14`);
 - under a faint rule, the model by its short name (`claude-sonnet-5-5` is `Sonnet 5.5`) and the effort as five pips
   filled up to its level, then its word (`Opus 5.5 ●●●○○ high`): low 1, medium 2, high 3, xhigh 4, max 5.
 

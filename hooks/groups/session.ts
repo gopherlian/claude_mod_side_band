@@ -4,7 +4,7 @@ import { effortCells, modelName, hasRecentCalls, shortToolName, thinBar, toolBra
 import { RESOURCE_COLORS } from '../sections/palette'
 import { blank, compactUsageLines, softRule, usageLines } from '../sections/usage'
 import type { Cell, Line } from '../sections/usage'
-import { wrapCells, wrapParts } from '../sections/wrap'
+import { flushRight, wrapCells, wrapParts } from '../sections/wrap'
 import { versionLine } from '../update'
 import type { Group, GroupContext } from './types'
 
@@ -142,7 +142,7 @@ const toolsRow = (ctx: GroupContext): Line[] => {
   )
 }
 
-/** The current turn's time, or the last one's; nothing before the first turn. */
+/** The current turn's time, or the last one's, at the right edge; nothing before the first turn. */
 const turnRow = (ctx: GroupContext): Line[] => {
   const { stats } = ctx
   const turn =
@@ -152,7 +152,7 @@ const turnRow = (ctx: GroupContext): Line[] => {
         ? `last ${formatClock(stats.lastTurnMs)}`
         : ''
 
-  return turn ? wrapParts([turn], ctx.columns).map(text => ({ text, dimColor: true })) : []
+  return turn ? wrapParts([turn], ctx.columns).map(text => ({ text: flushRight(text, ctx.columns), dimColor: true })) : []
 }
 
 /** The model by its short name and how hard it thinks, as pips. */

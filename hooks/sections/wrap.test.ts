@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { wrap, wrapCells, wrapParts } from './wrap'
+import { flushRight, wrap, wrapCells, wrapParts } from './wrap'
 
 test('words are packed into rows no wider than the band', () => {
   expect(wrap('one two three four', 9)).toEqual(['one two', 'three', 'four'])
@@ -35,4 +35,10 @@ test('a coloured row wraps at its spaces and every run keeps its colour', () => 
   expect(wrapCells(cells, 9)[1]).toEqual([{ text: '$3.00', color: 'green' }])
   expect(wrapCells([{ text: 'abcdefgh', color: 'red' }], 3).map(row => row[0]!.text)).toEqual(['abc', 'def', 'gh'])
   expect(wrapCells(cells, 0)).toEqual([])
+})
+
+test('a text is pushed to the right edge with spaces, and one too wide is left as it is', () => {
+  expect(flushRight('turn 0:42', 12)).toBe('   turn 0:42')
+  expect(flushRight('abc', 3)).toBe('abc')
+  expect(flushRight('abcdef', 3)).toBe('abcdef')
 })

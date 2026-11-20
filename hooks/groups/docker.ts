@@ -1,6 +1,7 @@
 // The containers: a group of their own, after the machine. Hidden where docker is not available.
 import { dockerLines } from '../sections/docker'
 import type { Line } from '../sections/usage'
+import { flushRight } from '../sections/wrap'
 import type { Group, GroupContext } from './types'
 
 /** Containers drawn as bars; the rest are counted. */
@@ -14,7 +15,7 @@ const rows = (ctx: GroupContext): Line[] => {
   const gpuUtil = gpus.length > 0 ? Math.max(...gpus.map(gpu => gpu.util)) : undefined
 
   return [
-    { text: dockers.length === 0 ? 'none running' : `${dockers.length} running`, dimColor: true },
+    { text: flushRight(dockers.length === 0 ? 'none running' : `${dockers.length} running`, ctx.columns), dimColor: true },
     ...dockerLines(dockers, ctx.columns, MAX_DOCKERS, gpuUtil),
   ]
 }

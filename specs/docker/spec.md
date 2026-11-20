@@ -6,7 +6,7 @@ containers (`docker · 3 running`, see [band](../band/spec.md) R15) and there is
 
 ## Requirements
 
-**R1 (count).** The group SHALL start with `<n> running` (or `none running`), dim.
+**R1 (count).** The group SHALL start with `<n> running` (or `none running`), dim and at the right edge of the band.
 
 **R2 (a container).** Each container SHALL be its name on a row of its own, dim and right-aligned, then its CPU bar
 across the whole width. As every bar it is a fill of `▬` over a thin track `─` (appearance R7b), in the CPU colour; a

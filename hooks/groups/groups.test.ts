@@ -196,7 +196,7 @@ test('the session group draws the cost, the tools chart, the turn and the model,
     expect.stringMatching(/^ {2}Read {5}▬+╸?─* 2$/),
     expect.stringMatching(/^ {2}mem_save ▬+╸?─* 1$/),
   ])
-  expect(lines).toContain('turn 0:42')
+  expect(lines).toContain('turn 0:42'.padStart(30))
   expect(lines).toContain('Sonnet 5.5 ●●○○○ medium')
   expect(lines[lines.length - 2]).toBe('─'.repeat(30))
   expect(lines.every(l => l.length <= 30)).toBe(true)
@@ -225,12 +225,12 @@ test('the last turn is shown once it ends, and a quiet session has an empty char
     .lines(busy({ stats: { toolCalls: 0, activeTools: 0, lastTurnMs: 74_000 } }))
     .map(l => l.text)
 
-  expect(rows).toContain('last 1:14')
+  expect(rows).toContain('last 1:14'.padStart(30))
   expect(rows).toContain('tools 0 calls · last 10 min')
   // With no call in the last ten minutes there is no chart, and no blank rows for it.
   expect(rows.some(row => /^[\u2800-\u28ff]+$/.test(row))).toBe(false)
   expect(rows[rows.indexOf('tools 0 calls · last 10 min') + 1]).toBe('──────────────────────────────')
-  expect(rows.some(l => l.startsWith('turn'))).toBe(false)
+  expect(rows.some(l => l.trim().startsWith('turn'))).toBe(false)
 })
 
 test('the cost per hour comes after three minutes of session', () => {
@@ -263,7 +263,7 @@ test('the stacked band has no footnote: no sentence about the tick and no faint 
 test('the project group is hidden outside a repository', () => {
   expect(project.lines(ctx())).toEqual([])
   const lines = project.lines(ctx({ git: { branch: 'TASK-12', changed: 3, ahead: 1, behind: 0 } })).map(l => l.text)
-  expect(lines).toEqual(['TASK-12', '3 changed · ↑1'])
+  expect(lines).toEqual(['TASK-12', '3 changed · ↑1'.padStart(30)])
 })
 
 test('the system group adds memory, disk and the network to the bars, and no containers', () => {
@@ -291,7 +291,7 @@ test('the Docker group counts the containers and draws each, and is not drawn wi
   const texts = rows.map(l => l.text)
 
   expect(docker.label).toBe('Docker')
-  expect(texts[0]).toBe('2 running')
+  expect(texts[0]).toBe('2 running'.padStart(30))
   expect(texts).toContain(containerLines('api', 30)[0]!.text)
   expect(texts).toContain(containerLines('db', 30)[0]!.text)
   expect(docker.lines(ctx()).length).toBe(0)
@@ -405,9 +405,9 @@ test('docker lists at most five names and counts the rest; none running is said'
     .map(l => l.text)
   expect(many.filter(t => /^ +[a-g]$/.test(t)).length).toBe(5)
   expect(many).toContain('+2 more')
-  expect(many[0]).toBe('7 running')
+  expect(many[0]).toBe('7 running'.padStart(30))
 
-  expect(docker.lines(ctx({ system: { dockers: [] } })).map(l => l.text)).toContain('none running')
+  expect(docker.lines(ctx({ system: { dockers: [] } })).map(l => l.text)).toContain('none running'.padStart(30))
   expect(docker.lines(ctx()).length).toBe(0)
 })
 
@@ -617,7 +617,7 @@ test('a day of a season leaves a blank row between the frame and the outlook; 9 
 test('a faint rule sets the cost, the tools and the turn apart inside the Claude group', () => {
   const rows = session.lines(busy()).map(l => l.text)
   const rule = '─'.repeat(30)
-  const at = (prefix: string) => rows.findIndex(l => l.startsWith(prefix))
+  const at = (prefix: string) => rows.findIndex(l => l.trim().startsWith(prefix))
 
   expect(rows[at('tools') - 1]).toBe(rule)
   expect(rows[at('turn') - 1]).toBe(rule)

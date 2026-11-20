@@ -27,6 +27,9 @@ export const wrap = (text: string, width: number): string[] => {
   return rows
 }
 
+/** `text` pushed to the right edge of a row `width` cells wide, with spaces at its left; text wider than that is as it is. */
+export const flushRight = (text: string, width: number): string => ' '.repeat(Math.max(0, width - text.length)) + text
+
 /** The separator between the parts of a row. */
 const PART_SEPARATOR = ' · '
 
