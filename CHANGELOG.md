@@ -6,6 +6,8 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-11-20
+
 ### Added
 - A **GentleAI** group after Claude, drawn only where that harness is installed: the step of its workflow (`●●●●●●○○ 6/8
   apply`), what is running now (read whole, over as many rows as it needs), and the tasks of the project's feature
@@ -13,8 +15,9 @@ All notable changes to this mod are written here. The format follows
 - A faint rule inside the Claude group between the cost, the tools and the turn.
 
 ### Changed
-- The tools: a fine braille chart three rows tall across the whole width, between two blank rows, and under it a list like `htop`, one row per
-  tool used with its name, a thin bar and its count; the running tool is marked `▸`.
+- The tools: a fine braille chart three rows tall across the whole width, between two blank rows (not drawn when no call fell in the last ten
+  minutes), and under it a list like `htop`, one row per tool used with its name, a thin bar and its count; the
+  running tool is marked `▸`.
 - The cost reads `Cost $4.82  $3.04/h`, with the session's time under it as `Time 1h35m`.
 
 ## [1.6.0] - 2026-11-19
