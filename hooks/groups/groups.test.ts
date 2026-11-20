@@ -654,6 +654,7 @@ test('with nothing running the next task is shown dim, and with no task either a
   expect(harness.lines(harnessCtx({ running: [], tasks: undefined, step: undefined })).map(l => l.text)).toEqual([
     'Step  ○○○○○○○○ -',
     'Now   -',
+    `Tasks ${'─'.repeat(24)} -/-`,
   ])
 })
 
@@ -692,4 +693,14 @@ test('the tools chart is not drawn when no call fell in the last ten minutes, bu
   expect(rows.some(row => /^[\u2800-\u28ff]+$/.test(row))).toBe(false)
   expect(rows[head + 1]).toMatch(/^▸ Bash /)
   expect(session.strip!.lines({ ...old, budget: 20 }).some(line => /^[\u2800-\u28ff]+$/.test(line.text))).toBe(false)
+})
+
+test('the Tasks row is an empty bar and a dim `-/-` when there is no checklist or all of it is done', () => {
+  const done = harness.lines(harnessCtx({ tasks: { done: 3, total: 3 } })).at(-1)!
+
+  expect(done.text).toBe(`Tasks ${'─'.repeat(24)} -/-`)
+  expect(done.cells!.at(-1)).toEqual({ text: ' -/-', dimColor: true })
+  expect(harness.lines(harnessCtx({ tasks: undefined })).at(-1)!.text).toBe(done.text)
+  // A checklist in progress is unchanged.
+  expect(harness.lines(harnessCtx()).at(-1)!.text).toMatch(/ 2\/5$/)
 })

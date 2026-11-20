@@ -74,21 +74,22 @@ const nowRows = (state: HarnessState, columns: number): Line[] => {
   return [joined([{ text: 'Now'.padEnd(LABEL_WIDTH), dimColor: true }, { text: '-', dimColor: true }], columns)]
 }
 
-/** The feature document's checklist: a bar and `done/total`. */
+/**
+ * The feature document's checklist: a bar and `done/total`. With no checklist, or one that is all done, there is no
+ * work in hand: the bar is empty and the count is `-/-`.
+ */
 const tasksRow = (state: HarnessState, columns: number): Line[] => {
-  const { tasks } = state
-  if (!tasks) return []
-
-  const count = ` ${tasks.done}/${tasks.total}`
+  const open = state.tasks && state.tasks.done < state.tasks.total ? state.tasks : undefined
+  const count = open ? ` ${open.done}/${open.total}` : ' -/-'
   const width = columns - LABEL_WIDTH - count.length
-  const { fill, track } = thinBar(tasks.done / tasks.total, width)
+  const { fill, track } = thinBar(open ? open.done / open.total : 0, width)
 
   return [
     joined(
       [
         { text: 'Tasks'.padEnd(LABEL_WIDTH), dimColor: true },
         ...(width >= 4 ? [{ text: fill, color: TASKS_COLOR }, { text: track, color: PIP_OFF }] : []),
-        { text: count },
+        { text: count, dimColor: !open },
       ],
       columns,
     ),

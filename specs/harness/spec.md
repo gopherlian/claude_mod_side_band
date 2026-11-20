@@ -27,7 +27,8 @@ and `+N` when others run too. It is read whole: what does not fit goes on furthe
 (`Now   · T3 strip layout`); with that either, `Now   -`.
 
 **R5 (tasks).** Where the project has `odd/tasks/<feature>.md`, the newest of them, a `Tasks` row SHALL draw a thin green bar (`━` filled, `─` the rest in
-faint grey) and `done/total` of the checkboxes under its `## Tasks` heading. No document or no checkbox: no row.
+faint grey) and `done/total` of the checkboxes under its `## Tasks` heading. With no document, no checkbox, or every box done
+(no work in hand), the row is still drawn: an empty bar and `-/-`, dim.
 
 **R6 (strip).** In the strip the same rows, cut at the bottom to the column's rows, in the width of a column (28 to 40).
 

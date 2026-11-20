@@ -231,7 +231,8 @@ elsewhere it does not appear. It says where the harness is in its workflow and w
   (`○○○○○○○○ -`).
 - **Now:** the task of the subagent running (`▸ apply task 3: strip layout`, `+2` when more run), read whole over as
   many rows as it needs; else the next open task, else `-`.
-- **Tasks:** a bar and `done/total` of the checklist in the project's newest `odd/tasks/<feature>.md`.
+- **Tasks:** a bar and `done/total` of the checklist in the project's newest `odd/tasks/<feature>.md`; `-/-` and an empty bar
+  when there is none or all of it is done.
 
 <p align="center"><img src="docs/img/harness.svg" alt="The GentleAI group"></p>
 
