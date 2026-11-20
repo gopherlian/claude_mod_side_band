@@ -19,7 +19,7 @@ group dropped when rows or width run short (priority after System).
 - `jd-judge-*` is `judgment day · judging`, `jd-fix-agent` is `judgment day · fixing`, `review-<lens>` is
   `review · <lens>`; a flow with no order has no pips;
 - any other subagent (`Explore`, `general-purpose`) sets no step; the step stays after its subagent ends. No step yet:
-  no row.
+  the pips are all empty and a dash takes the place of the name (`Step  ○○○○○○○○ -`).
 
 **R4 (now).** A `Now` row SHALL say what is running: `▸` and the task of the oldest running subagent (its `description`),
 and `+N` when others run too. It is read whole: what does not fit goes on further rows, under its own text, never cut

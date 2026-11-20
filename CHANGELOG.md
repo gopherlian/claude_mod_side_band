@@ -7,7 +7,8 @@ All notable changes to this mod are written here. The format follows
 ## [Unreleased]
 
 ### Changed
-- In the GentleAI group, `Now` shows `-` instead of `idle` when nothing is running.
+- In the GentleAI group, `Now` shows `-` instead of `idle` when nothing is running, and `Step` shows its empty pips and a
+  `-` when there is no step yet.
 
 ## [1.7.0] - 2026-11-20
 

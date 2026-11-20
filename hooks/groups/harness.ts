@@ -1,5 +1,6 @@
 // The GentleAI harness: which step of its workflow the session is on, what is running, how far the feature has got.
 // Shown only where the harness is installed.
+import { SDD_STEPS } from '../harness'
 import type { HarnessState, Step } from '../harness'
 import { thinBar } from '../sections/stats'
 import { wrap } from '../sections/wrap'
@@ -18,8 +19,12 @@ const joined = (cells: Cell[], columns: number): Line => {
 }
 
 /** The step: pips filled up to its place in an ordered workflow, then `n/of` and its name; else the flow and the name. */
-const stepRow = (step: Step, columns: number): Line => {
+/** With no step yet, the pips are all empty and a dash stands where the name would be. */
+const stepRow = (step: Step | undefined, columns: number): Line => {
   const label: Cell = { text: 'Step'.padEnd(LABEL_WIDTH), dimColor: true }
+  if (!step) {
+    return joined([label, { text: '○'.repeat(SDD_STEPS.length), color: PIP_OFF }, { text: ' -', dimColor: true }], columns)
+  }
   if (step.index === undefined || step.of === undefined) {
     return joined([label, { text: `${step.flow} · ${step.name}` }], columns)
   }
@@ -94,7 +99,7 @@ const rows = (ctx: GroupContext): Line[] => {
   const { harness } = ctx
   if (!harness) return []
 
-  return [...(harness.step ? [stepRow(harness.step, ctx.columns)] : []), ...nowRows(harness, ctx.columns), ...tasksRow(harness, ctx.columns)]
+  return [stepRow(harness.step, ctx.columns), ...nowRows(harness, ctx.columns), ...tasksRow(harness, ctx.columns)]
 }
 
 export const harness: Group = {

@@ -651,7 +651,10 @@ test('with nothing running the next task is shown dim, and with no task either a
   expect(next.text).toBe('Now   · T3 strip layout')
   expect(next.cells!.at(-1)!.dimColor).toBe(true)
 
-  expect(harness.lines(harnessCtx({ running: [], tasks: undefined, step: undefined })).map(l => l.text)).toEqual(['Now   -'])
+  expect(harness.lines(harnessCtx({ running: [], tasks: undefined, step: undefined })).map(l => l.text)).toEqual([
+    'Step  ○○○○○○○○ -',
+    'Now   -',
+  ])
 })
 
 test('a step outside an ordered workflow is its flow and its name', () => {

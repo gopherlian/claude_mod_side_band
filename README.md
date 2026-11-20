@@ -227,7 +227,8 @@ Drawn right after Claude, and only where the GentleAI harness is installed (its 
 elsewhere it does not appear. It says where the harness is in its workflow and what it is doing:
 
 - **Step:** the SDD phase of the last subagent that ran, as pips (`●●●●●●○○ 6/8 apply`); the judges, the fixer and
-  the review lenses are named too (`judgment day · judging`, `review · risk`).
+  the review lenses are named too (`judgment day · judging`, `review · risk`). With no step yet the pips are empty and a dash stands for the name
+  (`○○○○○○○○ -`).
 - **Now:** the task of the subagent running (`▸ apply task 3: strip layout`, `+2` when more run), read whole over as
   many rows as it needs; else the next open task, else `-`.
 - **Tasks:** a bar and `done/total` of the checklist in the project's newest `odd/tasks/<feature>.md`.
