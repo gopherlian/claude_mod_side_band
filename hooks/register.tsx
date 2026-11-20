@@ -34,6 +34,8 @@ import type {
 } from './monitor/types'
 import { isFresh, mergeShared, parseShared, sharedPath } from './shared'
 import type { Shared } from './shared'
+import { endAgent, newestDocument, parseTasks, startAgent } from './harness'
+import type { HarnessState } from './harness'
 import { trackTool } from './tools'
 import { demoSeason } from './season'
 import { PUBLISHED_MANIFEST_URL, UPDATE_EVERY_MS, checkForUpdate } from './update'
@@ -61,6 +63,8 @@ export const register: Register = on => {
   // The account's rate limits as every open band last shared them.
   let sharedLimits: Limit[] = []
   const stats: SessionStats = { toolCalls: 0, activeTools: 0 }
+  /** The GentleAI harness: absent unless it is installed here, and then its group is not drawn. */
+  let harness: HarnessState | undefined
   let refreshSeconds = DEFAULT_REFRESH_SECONDS
   // 0 makes the next one-second tick sample the machine at once.
   let lastSampleAt = 0
@@ -87,6 +91,17 @@ export const register: Register = on => {
       void $.command
         .run({ command: 'band', args: 'open' })
         .catch(() => $.ui.open({ id: PANE, title: TITLE }))
+    }
+
+    // The GentleAI group is drawn only where the harness is installed: its state file is there.
+    try {
+      const home = await $.env.get('HOME')
+      if (home !== undefined) {
+        await $.fs.stat(`${home}/.gentle-ai/state.json`)
+        harness = { running: [] }
+      }
+    } catch {
+      harness = undefined
     }
 
     const saved = Number(await $.store.get('refreshSeconds'))
@@ -156,6 +171,7 @@ export const register: Register = on => {
     let isSampling = false
     // When this band last read the repository of its folder, and when it last took the shared weather.
     let lastGitAt = 0
+    let lastDocAt = 0
     let weatherAt = 0
 
     // Reads the machine. Whatever is not there is simply left out.
@@ -325,6 +341,18 @@ export const register: Register = on => {
           }
         }
 
+        // The feature document in hand: the newest of the project's `odd/tasks`; read with the repository.
+        if (harness && at - lastDocAt >= SLOW_EVERY * refreshSeconds * 1000 - 100) {
+          lastDocAt = at
+          try {
+            const dir = `${e.cwd}/odd/tasks`
+            const name = newestDocument(await $.fs.list(dir))
+            harness = { ...harness, tasks: name ? parseTasks(await $.fs.read(`${dir}/${name}`)) : undefined }
+          } catch {
+            harness = { ...harness, tasks: undefined }
+          }
+        }
+
         try {
           const detail = await $.session.usage({ breakdown: 'summary' })
           const breakdown = detail.context.breakdown
@@ -472,6 +500,18 @@ export const register: Register = on => {
     return yield* next(e)
   })
 
+  // The agents the harness runs: which workflow step they belong to, and what each is doing.
+  on('agent.spawn', async ($, e, next) => {
+    if (harness) harness = startAgent(harness, e.subagentType, e.description)
+
+    return next(e)
+  })
+  on('agent.report', async ($, e, next) => {
+    if (harness) harness = endAgent(harness, e.subagentType)
+
+    return next(e)
+  })
+
   on('tool.call', async ($, e, next) => trackTool(stats, e.tool, () => next(e), await $.clock.now()))
 
   // `/band` toggles the band; `/band open` only shows it (what a new session
@@ -600,7 +640,7 @@ export const register: Register = on => {
 
     const context = isDemo
       ? { now, columns, rows, update, ...demo(now), season: isDressed ? demoSeason(now).id : undefined }
-      : { now, columns, rows, weather, usage, stats, hardware, system, git, timerEndsAt, update }
+      : { now, columns, rows, weather, usage, stats, hardware, system, git, timerEndsAt, update, harness }
     const budget = rowBudget(e.props.placement, e.props.scroll?.bodyRows, rows)
     const lines = isStrip
       ? arrangeStrip(context, budget, groups, creditLines(columns))

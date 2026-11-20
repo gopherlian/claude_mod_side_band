@@ -13,7 +13,7 @@ hot-reloads. It only reads; it never changes your files, your repository or your
 - [Install](#install)
 - [Use it](#use-it)
 - [How it works](#how-it-works)
-- [The groups](#the-groups): [Time](#1-time) · [Claude](#2-claude) · [Project](#3-project) · [System](#4-system) · [Credit](#the-credit)
+- [The groups](#the-groups): [Time](#1-time) · [Claude](#2-claude) · [GentleAI](#3-gentleai) · [Project](#4-project) · [System](#5-system) · [Credit](#the-credit)
 - [Colour guide](#colour-guide)
 - [Develop it](#develop-it) (spec-driven)
 - [License](#license)
@@ -153,8 +153,8 @@ right, each one compact:
 
 <p align="center"><img src="docs/img/strip.svg" alt="The strip: the groups side by side"></p>
 
-The columns need 99 columns across to show all four groups. Fewer than that and whole groups are dropped, System
-first, then Project, then Claude; the time always stays. Width left over is shared among the columns. The strip is
+The columns need 99 columns across to show all four groups (130 where the GentleAI group is drawn). Fewer than that and
+whole groups are dropped, GentleAI first, then System, then Project, then Claude; the time always stays. Width left over is shared among the columns. The strip is
 never taller than the rows the pane has, and a column that is taller is cut at the bottom, the least important row
 first. The band asks for 8 rows when it opens, which is what the tallest column needs. The
 credit follows the columns where there are rows for all of it.
@@ -168,7 +168,8 @@ docked pane nothing is dropped, because it scrolls.
 | 0 | Time | never |
 | 1 | Claude | fourth |
 | 2 | Project | third |
-| 3 | System | first |
+| 3 | System | second |
+| 4 | GentleAI | first |
 
 If rows are left after the groups, the credit goes at the foot, right under an orange rule, whole or not at all.
 
@@ -220,14 +221,27 @@ gone by. If the tick is *inside* the fill, you are spending faster than time pas
 window resets; beyond the fill, you are under pace. In the example above, Session has used 41% of its tokens but
 77% of its time has gone by: comfortably under pace.
 
-### 3. Project
+### 3. GentleAI
+
+Drawn right after Claude, and only where the GentleAI harness is installed (its `~/.gentle-ai/state.json` exists);
+elsewhere it does not appear. It says where the harness is in its workflow and what it is doing:
+
+- **Step:** the SDD phase of the last subagent that ran, as pips (`●●●●●●○○ 6/8 apply`); the judges, the fixer and
+  the review lenses are named too (`judgment day · judging`, `review · risk`).
+- **Now:** the task of the subagent running (`▸ apply task 3: strip layout`, `+2` when more run), read whole over as
+  many rows as it needs; else the next open task, else `idle`.
+- **Tasks:** a bar and `done/total` of the checklist in the project's newest `odd/tasks/<feature>.md`.
+
+<p align="center"><img src="docs/img/harness.svg" alt="The GentleAI group"></p>
+
+### 4. Project
 
 Where the repository you are working in stands: the branch, and `clean` or the number of changed files, with `↑n`
 commits to push and `↓n` to pull. The group does not appear outside a git repository.
 
 <p align="center"><img src="docs/img/project.svg" alt="The project group"></p>
 
-### 4. System
+### 5. System
 
 What the machine is doing, one bar per resource, each with an icon before its name. Each resource has its own colour
 (see the [colour guide](#colour-guide)); the bar is the darker shade and its icon, name and number are a lighter shade

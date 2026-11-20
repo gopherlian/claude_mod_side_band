@@ -3,7 +3,7 @@
 import type { GroupContext } from './groups/types'
 
 /** The part of what a band draws that the demonstration replaces; the clock and the size stay the band's own. */
-export type Demo = Pick<GroupContext, 'weather' | 'usage' | 'stats' | 'hardware' | 'system' | 'git' | 'timerEndsAt'>
+export type Demo = Pick<GroupContext, 'weather' | 'usage' | 'stats' | 'hardware' | 'system' | 'git' | 'timerEndsAt' | 'harness'>
 
 /** A value that drifts around `base` by up to `swing`, once every `period` seconds, so the bars move. */
 const drift = (now: number, base: number, swing: number, period: number): number =>
@@ -61,6 +61,11 @@ export const demo = (now: number): Demo => ({
       { name: 'Free space', tokens: 702_000, kind: 'free' },
       { name: 'Autocompact buffer', tokens: 33_000, kind: 'buffer' },
     ],
+  },
+  harness: {
+    running: [{ type: 'sdd-apply', description: 'apply task 3: strip layout' }],
+    step: { flow: 'SDD', name: 'apply', index: 6, of: 8 },
+    tasks: { done: 2, total: 5, next: 'T3 strip layout' },
   },
   hardware: {
     cpu: { total: drift(now, 34, 12, 7), cores: [] },

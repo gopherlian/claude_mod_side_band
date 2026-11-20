@@ -1,6 +1,7 @@
 import type { GitStatus, Hardware, SystemStats } from '../monitor/types'
 import type { Category } from '../sections/context'
 import type { Line, UsageData } from '../sections/usage'
+import type { HarnessState } from '../harness'
 import type { SeasonId } from '../season'
 import type { UpdateState } from '../update'
 import type { WeatherState } from '../widgets/types'
@@ -39,6 +40,8 @@ export type GroupContext = {
   hardware?: Hardware
   system: SystemStats
   git?: GitStatus
+  /** The GentleAI harness; absent where it is not installed, and then its group is not drawn. */
+  harness?: HarnessState
   /** When the countdown ends, in `$.clock.now()` milliseconds. */
   timerEndsAt?: number
   /** Which version of the mod runs, and what became of a newer one; absent until it is read. */

@@ -113,6 +113,7 @@ def svg(name, lines, width, title=None):
 W = d.get("columns", 40)
 svg("time", d["time"], W, "The time group")
 svg("claude", d["session"], W, "The Claude group")
+svg("harness", d["harness"], W, "The GentleAI group")
 svg("project", d["project"], W, "The project group")
 svg("system", d["system"], W, "The system group")
 svg("overview", d["overview"], W, "The whole band")

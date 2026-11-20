@@ -7,6 +7,9 @@ All notable changes to this mod are written here. The format follows
 ## [Unreleased]
 
 ### Added
+- A **GentleAI** group after Claude, drawn only where that harness is installed: the step of its workflow (`●●●●●●○○ 6/8
+  apply`), what is running now (read whole, over as many rows as it needs), and the tasks of the project's feature
+  document as a thin bar.
 - A faint rule inside the Claude group between the cost, the tools and the turn.
 
 ### Changed

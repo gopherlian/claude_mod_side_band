@@ -32,6 +32,11 @@ const ctx = (columns: number): GroupContext => ({
       { kind: 'seven_day', percentUsed: 23, resetsAt: endsIn(302_400_000) },
     ],
   },
+  harness: {
+    running: [{ type: 'sdd-apply', description: 'apply task 3: strip layout' }],
+    step: { flow: 'SDD', name: 'apply', index: 6, of: 8 },
+    tasks: { done: 2, total: 5, next: 'T3 strip layout' },
+  },
   stats: {
     toolCalls: 37, activeTools: 1, runningTool: 'Bash', toolCounts: { Bash: 14, Read: 9, Edit: 6, Grep: 4, mcp__engram__mem_save: 3, Write: 1 }, lastTurnMs: 74_000, model: 'Opus 5.5', effort: 'high',
     toolTimes: [

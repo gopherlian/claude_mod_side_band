@@ -39,7 +39,7 @@ has no footnote. In the strip (R13) the credit follows the columns after a blank
 for all of it.
 
 **R13 (strip).** Where the pane is not docked (it sits inline above the prompt, or as a widget), the band SHALL draw
-its groups side by side, as columns, in the order Time, Claude, Project, System, instead of stacked. A docked band
+its groups side by side, as columns, in the order Time, Claude, GentleAI (where the harness is installed), Project, System, instead of stacked. A docked band
 keeps stacking them (R3).
 
 **R14 (columns).** Each column starts with its group's titled rule (`━━ Claude ━━━`) on its first row; the Time group

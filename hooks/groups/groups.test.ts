@@ -6,6 +6,7 @@ import { containerLine } from '../sections/docker'
 import { creditLines } from '../sections/credit'
 import { RESOURCE_ICONS } from '../sections/palette'
 import { rule, softRule } from '../sections/usage'
+import { harness } from './harness'
 import { arrange, groups } from './index'
 import { project } from './project'
 import { session } from './session'
@@ -315,7 +316,7 @@ test('every group but the time one is named, on the line that separates it from 
   const lines = arrange(full, 200)
   const texts = lines.map(l => l.text)
 
-  expect(groups.map(g => g.label)).toEqual([undefined, 'Claude', 'Project', 'System'])
+  expect(groups.map(g => g.label)).toEqual([undefined, 'Claude', 'GentleAI', 'Project', 'System'])
   expect(texts[0].startsWith('┏')).toBe(true)
   expect(texts.filter(t => t.startsWith('━━ ')).map(t => t.replace(/ ━+$/, ''))).toEqual([
     '━━ Claude',
@@ -609,6 +610,75 @@ test('a faint rule sets the cost, the tools and the turn apart inside the Claude
   // No rule when a block is missing: a quiet session with no turn has none at its foot.
   const quiet = session.lines(busy({ stats: { toolCalls: 0, activeTools: 0 } })).map(l => l.text)
   expect(quiet[quiet.length - 1]).not.toBe(rule)
+})
+
+const harnessCtx = (over: Partial<GroupContext['harness'] & object> = {}): GroupContext =>
+  ctx({
+    columns: 34,
+    harness: {
+      running: [{ type: 'sdd-apply', description: 'apply task 3: strip layout' }],
+      step: { flow: 'SDD', name: 'apply', index: 6, of: 8 },
+      tasks: { done: 2, total: 5, next: 'T3 strip layout' },
+      ...over,
+    },
+  })
+
+test('the GentleAI group is not drawn where the harness is not installed', () => {
+  expect(harness.lines(ctx())).toEqual([])
+  expect(harness.strip!.lines(ctx())).toEqual([])
+  expect(harness.label).toBe('GentleAI')
+})
+
+test('the GentleAI group shows the step as pips, what runs now, and the tasks as a bar', () => {
+  const rows = harness.lines(harnessCtx()).map(l => l.text)
+
+  expect(rows[0]).toBe('Step  ●●●●●●○○ 6/8 apply')
+  expect(rows[1]).toBe('Now   ▸ apply task 3: strip layout')
+  expect(rows[2]).toMatch(/^Tasks ━+╸?─+ 2\/5$/)
+  expect(rows.every(row => row.length <= 34)).toBe(true)
+})
+
+test('with several agents running the first is named and the rest counted', () => {
+  const rows = harness
+    .lines(harnessCtx({ running: [{ type: 'a', description: 'one' }, { type: 'b', description: 'two' }, { type: 'c', description: 'three' }] }))
+    .map(l => l.text)
+
+  expect(rows[1]).toBe('Now   ▸ one +2')
+})
+
+test('with nothing running the next task is shown dim, and with no task either the harness is idle', () => {
+  const next = harness.lines(harnessCtx({ running: [] }))[1]!
+  expect(next.text).toBe('Now   · T3 strip layout')
+  expect(next.cells!.at(-1)!.dimColor).toBe(true)
+
+  expect(harness.lines(harnessCtx({ running: [], tasks: undefined, step: undefined })).map(l => l.text)).toEqual(['Now   idle'])
+})
+
+test('a step outside an ordered workflow is its flow and its name', () => {
+  const rows = harness.lines(harnessCtx({ step: { flow: 'judgment day', name: 'judging' } })).map(l => l.text)
+
+  expect(rows[0]).toBe('Step  judgment day · judging')
+})
+
+test('in the strip the GentleAI rows are cut to the budget and never pass the width', () => {
+  const rows = harness.strip!.lines({ ...harnessCtx(), columns: 28, budget: 2 })
+
+  expect(rows).toHaveLength(2)
+  expect(rows.every(row => row.text.length <= 28)).toBe(true)
+})
+
+test('what the harness is doing is read whole: it goes over as many rows as it needs, under its own text', () => {
+  const task = 'apply task 3: lay the strip out and keep every column inside its width'
+  const rows = harness
+    .lines({ ...harnessCtx({ running: [{ type: 'sdd-apply', description: task }, { type: 'b', description: 'x' }] }), columns: 28 })
+    .map(l => l.text)
+  const now = rows.slice(rows.findIndex(row => row.startsWith('Now')), rows.findIndex(row => row.startsWith('Tasks')))
+
+  expect(now.length).toBeGreaterThan(2)
+  expect(now[0]!.startsWith('Now   ▸ ')).toBe(true)
+  for (const row of now.slice(1)) expect(row.startsWith(' '.repeat(8))).toBe(true)
+  expect(now.every(row => row.length <= 28)).toBe(true)
+  expect(now.map(row => row.trim()).join(' ').replace(/^Now\s+▸ /, '')).toBe(`${task} +1`)
 })
 
 test('the tools chart is not drawn when no call fell in the last ten minutes, but the list of tools stays', () => {
