@@ -6,8 +6,9 @@ import { CPU_COLOR, GPU_COLOR } from './palette'
 const c = (name: string, ...networks: string[]) => ({ name, networks })
 const texts = (lines: { text: string }[]) => lines.map(l => l.text)
 
-test('a container is a bar and its name, filling the width', () => {
-  expect(containerLine('api', 20).text).toBe('▀'.repeat(16) + ' api')
+test('a container is two bars, CPU then GPU, and its name, filling the width', () => {
+  // 16 cells for two bars and the space between them: the CPU one 7 cells, the GPU one 8.
+  expect(containerLine('api', 20).text).toBe('─'.repeat(7) + ' ' + '─'.repeat(8) + ' api')
 })
 
 test('the longer the name, the shorter the bar', () => {
@@ -20,11 +21,11 @@ test('the longer the name, the shorter the bar', () => {
   expect(barOf(containerLine('gateway-dev-workspace', 30).text)).toBeLessThan(barOf(short))
 })
 
-test('a name too long for the width is cut, a bar stays and the line never overflows', () => {
+test('a name too long for the width is cut, a CPU bar stays and the line never overflows', () => {
   const line = containerLine('x'.repeat(50), 20).text
 
   expect(line.length).toBe(20)
-  expect(line.startsWith('▀▀ x')).toBe(true)
+  expect(line.startsWith('── x')).toBe(true)
 })
 
 test('containers that share a network go together, in the order they come', () => {
@@ -74,27 +75,26 @@ test('the cap counts containers, not separators, and the rest are counted', () =
   expect(lines[4].dimColor).toBe(true)
 })
 
-const runs = (load: { cpu?: number; gpu?: number }) =>
-  containerLine('api', 20, load).cells!.filter(cell => cell.text.includes('▀'))
-const filledCells = (load: { cpu?: number; gpu?: number }, half: 'color' | 'backgroundColor', color: string) =>
-  runs(load)
-    .filter(cell => cell[half] === color)
-    .reduce((sum, cell) => sum + cell.text.length, 0)
+/** Half cells filled in `color`: a `▬` is two, a `╸` one. */
+const halves = (load: { cpu?: number; gpu?: number }, color: string) =>
+  containerLine('api', 20, load)
+    .cells!.filter(cell => cell.color === color)
+    .reduce((sum, cell) => sum + [...cell.text].reduce((n, ch) => n + (ch === '▬' ? 2 : ch === '╸' ? 1 : 0), 0), 0)
 
-test('the top half of the bar is the CPU in green and the bottom half the GPU in blue, in proportion', () => {
-  // 16 cells of bar: 50% is 8, 25% is 4.
+test('the first bar is the CPU in green and the second the GPU in blue, in proportion, on a thin track', () => {
+  // The CPU bar is 7 cells (14 halves), the GPU bar 8 (16 halves): 50% of 14 is 7, 25% of 16 is 4.
   const load = { cpu: 50, gpu: 25 }
 
-  expect(filledCells(load, 'color', CPU_COLOR)).toBe(8)
-  expect(filledCells(load, 'backgroundColor', GPU_COLOR)).toBe(4)
-  expect(runs(load).reduce((sum, cell) => sum + cell.text.length, 0)).toBe(16)
+  expect(halves(load, CPU_COLOR)).toBe(7)
+  expect(halves(load, GPU_COLOR)).toBe(4)
+  expect(containerLine('api', 20, load).text).toBe('▬▬▬╸─── ▬▬────── api')
 })
 
-test('a bar with no load is empty, a trickle still shows one cell and a full load fills it', () => {
-  expect(filledCells({}, 'color', CPU_COLOR) + filledCells({}, 'backgroundColor', GPU_COLOR)).toBe(0)
-  expect(filledCells({ cpu: 0.4 }, 'color', CPU_COLOR)).toBe(1)
-  expect(filledCells({ cpu: 250, gpu: 100 }, 'color', CPU_COLOR)).toBe(16)
-  expect(filledCells({ cpu: 250, gpu: 100 }, 'backgroundColor', GPU_COLOR)).toBe(16)
+test('a bar with no load is empty, a trickle still shows a half cell and a full load fills it', () => {
+  expect(halves({}, CPU_COLOR) + halves({}, GPU_COLOR)).toBe(0)
+  expect(halves({ cpu: 0.4 }, CPU_COLOR)).toBe(1)
+  expect(halves({ cpu: 250, gpu: 100 }, CPU_COLOR)).toBe(14)
+  expect(halves({ cpu: 250, gpu: 100 }, GPU_COLOR)).toBe(16)
 })
 
 test('only a container that asked for a GPU shows the GPU use', () => {
@@ -107,9 +107,8 @@ test('only a container that asked for a GPU shows the GPU use', () => {
     5,
     100,
   )
-  const blue = (i: number) =>
-    lines[i].cells!.filter(c => c.backgroundColor === GPU_COLOR).reduce((sum, c) => sum + c.text.length, 0)
+  const blue = (i: number) => lines[i].cells!.filter(c => c.color === GPU_COLOR).reduce((sum, c) => sum + c.text.length, 0)
 
-  expect(blue(0)).toBe(17)
+  expect(blue(0)).toBe(8)
   expect(blue(1)).toBe(0)
 })

@@ -10,35 +10,42 @@ const MIN_BAR = 2
 /** What is left of a bar that is not filled. */
 const TRACK_COLOR = '#3c3c3c'
 
-/** Cells of `width` a percent fills: at least one when there is any load, never more than the bar. */
-const filled = (percent: number | undefined, width: number): number =>
-  !percent || percent <= 0 ? 0 : Math.min(width, Math.max(1, Math.round((percent / 100) * width)))
+/** Half cells of `width` a percent fills: at least one when there is any load, never more than the bar. */
+const halvesOf = (percent: number | undefined, width: number): number =>
+  !percent || percent <= 0 ? 0 : Math.min(width * 2, Math.max(1, Math.round((percent / 100) * width * 2)))
 
-/** What a container uses, in percent. A missing value draws an empty half. */
+/** A bar of `width` cells for `percent`: `▬` in `color`, a `╸` for a half cell, then the thin track. */
+const barCells = (percent: number | undefined, width: number, color: string): Cell[] => {
+  const halves = halvesOf(percent, width)
+  const full = Math.floor(halves / 2)
+  const half = halves % 2 === 1
+
+  return [
+    { text: '▬'.repeat(full) + (half ? '╸' : ''), color },
+    { text: '─'.repeat(width - full - (half ? 1 : 0)), color: TRACK_COLOR },
+  ].filter(cell => cell.text !== '')
+}
+
+/** What a container uses, in percent. A missing value draws an empty bar. */
 export type Load = { cpu?: number; gpu?: number }
 
 /**
- * One container: a bar that takes what the name leaves of the width, then the
- * name. The bar is two halves of one row: the top is the CPU, in green, the
- * bottom the GPU, in blue, each filled in proportion to its percent.
+ * One container: two bars that take what the name leaves of the width, then the
+ * name. The first is the CPU, in green, the second the GPU, in blue, each filled
+ * in proportion to its percent. A width too short for two bars is the CPU alone.
  */
 export const containerLine = (name: string, columns: number, load: Load = {}): Line => {
   const shown = name.slice(0, Math.max(0, columns - MIN_BAR - 1))
   const width = Math.max(MIN_BAR, columns - shown.length - 1)
-  const cpu = filled(load.cpu, width)
-  const gpu = filled(load.gpu, width)
+  const two = width >= 2 * MIN_BAR + 1
+  const cpuWidth = two ? Math.floor((width - 1) / 2) : width
 
-  const cells: Cell[] = []
-  for (let i = 0; i < width; i++) {
-    const color = i < cpu ? CPU_COLOR : TRACK_COLOR
-    const backgroundColor = i < gpu ? GPU_COLOR : TRACK_COLOR
-    const last = cells[cells.length - 1]
-    if (last && last.color === color && last.backgroundColor === backgroundColor) last.text += '▀'
-    else cells.push({ text: '▀', color, backgroundColor })
-  }
+  const cells: Cell[] = barCells(load.cpu, cpuWidth, CPU_COLOR)
+  if (two) cells.push({ text: ' ' }, ...barCells(load.gpu, width - 1 - cpuWidth, GPU_COLOR))
   cells.push({ text: ` ${shown}` })
+  const text = cells.map(cell => cell.text).join('')
 
-  return { text: `${'▀'.repeat(width)} ${shown}`.slice(0, columns), cells }
+  return { text: text.slice(0, columns), cells }
 }
 
 /**

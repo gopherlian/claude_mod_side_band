@@ -386,7 +386,7 @@ test('docker lists at most five names and counts the rest; none running is said'
   const many = system
     .lines(ctx({ system: { dockers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map(name => ({ name, networks: ['n'] })) } }))
     .map(l => l.text)
-  expect(many.filter(t => t.startsWith('▀')).length).toBe(5)
+  expect(many.filter(t => /^[▬╸─]+ [▬╸─]+ [a-g]$/.test(t)).length).toBe(5)
   expect(many).toContain('+2 more')
   expect(many[0]).toBe('docker · 7 running')
 

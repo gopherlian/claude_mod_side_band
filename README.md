@@ -255,8 +255,8 @@ of the same colour so they read well.
 - **`≡` RAM, `⇄` Swap, `◉` Disk:** memory in use, swap in use, and the disk the session's working directory is on.
 - **`↓` Down, `↑` Up:** what the network receives and sends. A network bar has no fixed top speed, so it is scaled to the highest rate seen since
   the mod loaded (never below 1 MB/s, so a trickle does not look full).
-- **Docker:** one bar per running container, then its name. The bar has two halves: the top half is the container's
-  CPU (green) and the bottom half the GPU (blue). Docker does not split a GPU between containers, so a container
+- **Docker:** one row per running container: two bars, then its name. The first bar is the container's CPU (green)
+  and the second its GPU (blue), both in the same `▬` form as every other bar. Docker does not split a GPU between containers, so a container
   that asked for a GPU shows the GPU's whole utilisation. Containers that share a network (directly or through
   another container) are grouped, with a faint rule between groups. Five are drawn; the rest are counted (`+3 more`).
 

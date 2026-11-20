@@ -49,7 +49,7 @@ colours.
 grey `#64748b`; the cost is green `#68d391`, the tools (chart, list and bars) and the GentleAI tasks the green of the CPU bar, the effort pips cyan `#4dd0e1` lit and
 `#4a5568` faint.
 
-**R7b (bars).** Every bar (the context, plan windows, resources, network rates, tools and tasks) SHALL be a fill of `▬`
+**R7b (bars).** Every bar (the context, plan windows, resources, network rates, containers, tools and tasks) SHALL be a fill of `▬`
 that ends in a half cell `╸` where it falls halfway, over a thin track `─`, in the bar's colour: a gauge, not a hatched
 block. A bar keeps its width whatever its fill.
 
