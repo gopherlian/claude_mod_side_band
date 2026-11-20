@@ -26,26 +26,23 @@ const barCells = (percent: number | undefined, width: number, color: string): Ce
   ].filter(cell => cell.text !== '')
 }
 
-/** What a container uses, in percent. A missing value draws an empty bar. */
+/** What a container uses, in percent. A GPU that is not given is not drawn. */
 export type Load = { cpu?: number; gpu?: number }
 
 /**
- * One container: two bars that take what the name leaves of the width, then the
- * name. The first is the CPU, in green, the second the GPU, in blue, each filled
- * in proportion to its percent. A width too short for two bars is the CPU alone.
+ * One container: its CPU bar, in green, that takes what the name leaves of the
+ * width, then the name; under it, when the container has a GPU, a second bar of
+ * the same length in blue. Each is filled in proportion to its percent.
  */
-export const containerLine = (name: string, columns: number, load: Load = {}): Line => {
+export const containerLines = (name: string, columns: number, load: Load = {}): Line[] => {
   const shown = name.slice(0, Math.max(0, columns - MIN_BAR - 1))
   const width = Math.max(MIN_BAR, columns - shown.length - 1)
-  const two = width >= 2 * MIN_BAR + 1
-  const cpuWidth = two ? Math.floor((width - 1) / 2) : width
+  const row = (cells: Cell[]): Line => ({ text: cells.map(cell => cell.text).join('').slice(0, columns), cells })
 
-  const cells: Cell[] = barCells(load.cpu, cpuWidth, CPU_COLOR)
-  if (two) cells.push({ text: ' ' }, ...barCells(load.gpu, width - 1 - cpuWidth, GPU_COLOR))
-  cells.push({ text: ` ${shown}` })
-  const text = cells.map(cell => cell.text).join('')
-
-  return { text: text.slice(0, columns), cells }
+  return [
+    row([...barCells(load.cpu, width, CPU_COLOR), { text: ` ${shown}` }]),
+    ...(load.gpu !== undefined ? [row(barCells(load.gpu, width, GPU_COLOR))] : []),
+  ]
 }
 
 /**
@@ -80,7 +77,7 @@ export const groupByNetwork = (containers: Container[]): Container[][] => {
 }
 
 /**
- * The bars of the containers, at most `max` of them, a faint rule between
+ * The bars of the containers (a CPU bar each, a GPU bar under it for one that has a GPU), at most `max` containers, a faint rule between
  * groups of different networks and a count of those left out. `gpuUtil` is the
  * whole GPU's use: docker does not split it, so each container that asked for a
  * GPU shows it. Where every
@@ -95,7 +92,7 @@ export const dockerLines = (containers: Container[], columns: number, max: numbe
     if (lines.length > 0) lines.push(softRule(columns))
     const shown = group.slice(0, left)
     for (const container of shown) {
-      lines.push(containerLine(container.name, columns, { cpu: container.cpu, gpu: container.gpu ? gpuUtil : undefined }))
+      lines.push(...containerLines(container.name, columns, { cpu: container.cpu, gpu: container.gpu ? gpuUtil : undefined }))
     }
     left -= shown.length
   }

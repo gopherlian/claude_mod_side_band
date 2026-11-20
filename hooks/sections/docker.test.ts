@@ -1,28 +1,28 @@
 import { expect, test } from 'claude-code/testing'
 
-import { containerLine, dockerLines, groupByNetwork } from './docker'
+import { containerLines, dockerLines, groupByNetwork } from './docker'
 import { CPU_COLOR, GPU_COLOR } from './palette'
 
 const c = (name: string, ...networks: string[]) => ({ name, networks })
+const first = (name: string, columns: number) => containerLines(name, columns)[0]!.text
 const texts = (lines: { text: string }[]) => lines.map(l => l.text)
 
-test('a container is two bars, CPU then GPU, and its name, filling the width', () => {
-  // 16 cells for two bars and the space between them: the CPU one 7 cells, the GPU one 8.
-  expect(containerLine('api', 20).text).toBe('─'.repeat(7) + ' ' + '─'.repeat(8) + ' api')
+test('a container is its CPU bar and its name, filling the width', () => {
+  expect(first('api', 20)).toBe('─'.repeat(16) + ' api')
 })
 
 test('the longer the name, the shorter the bar', () => {
   const barOf = (text: string) => text.split(' ')[0].length
-  const short = containerLine('db', 30).text
-  const long = containerLine('gateway-dev-workspace', 40).text
+  const short = first('db', 30)
+  const long = first('gateway-dev-workspace', 40)
 
   expect(short.length).toBe(30)
   expect(long.length).toBe(40)
-  expect(barOf(containerLine('gateway-dev-workspace', 30).text)).toBeLessThan(barOf(short))
+  expect(barOf(first('gateway-dev-workspace', 30))).toBeLessThan(barOf(short))
 })
 
-test('a name too long for the width is cut, a CPU bar stays and the line never overflows', () => {
-  const line = containerLine('x'.repeat(50), 20).text
+test('a name too long for the width is cut, a bar stays and the line never overflows', () => {
+  const line = first('x'.repeat(50), 20)
 
   expect(line.length).toBe(20)
   expect(line.startsWith('── x')).toBe(true)
@@ -52,13 +52,13 @@ test('containers with no network are kept together rather than dropped', () => {
 test('one network gives just the bars, with nothing between them', () => {
   const lines = dockerLines([c('a', 'net'), c('b', 'net')], 20, 5)
 
-  expect(texts(lines)).toEqual([containerLine('a', 20).text, containerLine('b', 20).text])
+  expect(texts(lines)).toEqual([first('a', 20), first('b', 20)])
 })
 
 test('several networks put a faint grey line between the groups', () => {
   const lines = dockerLines([c('a', 'x'), c('b', 'y')], 20, 5)
 
-  expect(texts(lines)).toEqual([containerLine('a', 20).text, '─'.repeat(20), containerLine('b', 20).text])
+  expect(texts(lines)).toEqual([first('a', 20), '─'.repeat(20), first('b', 20)])
   expect(lines[1].color).toBe('#3a3a3a')
 })
 
@@ -66,38 +66,39 @@ test('the cap counts containers, not separators, and the rest are counted', () =
   const lines = dockerLines([c('a', 'x'), c('b', 'x'), c('c', 'y'), c('d', 'y')], 20, 3)
 
   expect(texts(lines)).toEqual([
-    containerLine('a', 20).text,
-    containerLine('b', 20).text,
+    first('a', 20),
+    first('b', 20),
     '─'.repeat(20),
-    containerLine('c', 20).text,
+    first('c', 20),
     '+1 more',
   ])
   expect(lines[4].dimColor).toBe(true)
 })
 
-/** Half cells filled in `color`: a `▬` is two, a `╸` one. */
+/** Half cells filled in `color` over all the rows of the container: a `▬` is two, a `╸` one. */
 const halves = (load: { cpu?: number; gpu?: number }, color: string) =>
-  containerLine('api', 20, load)
-    .cells!.filter(cell => cell.color === color)
+  containerLines('api', 20, load)
+    .flatMap(line => line.cells!)
+    .filter(cell => cell.color === color)
     .reduce((sum, cell) => sum + [...cell.text].reduce((n, ch) => n + (ch === '▬' ? 2 : ch === '╸' ? 1 : 0), 0), 0)
 
-test('the first bar is the CPU in green and the second the GPU in blue, in proportion, on a thin track', () => {
-  // The CPU bar is 7 cells (14 halves), the GPU bar 8 (16 halves): 50% of 14 is 7, 25% of 16 is 4.
-  const load = { cpu: 50, gpu: 25 }
+test('the CPU bar is green and the GPU bar, under it, blue, in proportion, on a thin track', () => {
+  // Each bar is 16 cells (32 halves): 50% is 16, 25% is 8.
+  const rows = containerLines('api', 20, { cpu: 50, gpu: 25 })
 
-  expect(halves(load, CPU_COLOR)).toBe(7)
-  expect(halves(load, GPU_COLOR)).toBe(4)
-  expect(containerLine('api', 20, load).text).toBe('▬▬▬╸─── ▬▬────── api')
+  expect(rows.map(row => row.text)).toEqual(['▬'.repeat(8) + '─'.repeat(8) + ' api', '▬▬▬▬' + '─'.repeat(12)])
+  expect(halves({ cpu: 50, gpu: 25 }, CPU_COLOR)).toBe(16)
+  expect(halves({ cpu: 50, gpu: 25 }, GPU_COLOR)).toBe(8)
 })
 
 test('a bar with no load is empty, a trickle still shows a half cell and a full load fills it', () => {
-  expect(halves({}, CPU_COLOR) + halves({}, GPU_COLOR)).toBe(0)
+  expect(halves({ cpu: 0, gpu: 0 }, CPU_COLOR) + halves({ cpu: 0, gpu: 0 }, GPU_COLOR)).toBe(0)
   expect(halves({ cpu: 0.4 }, CPU_COLOR)).toBe(1)
-  expect(halves({ cpu: 250, gpu: 100 }, CPU_COLOR)).toBe(14)
-  expect(halves({ cpu: 250, gpu: 100 }, GPU_COLOR)).toBe(16)
+  expect(halves({ cpu: 250, gpu: 100 }, CPU_COLOR)).toBe(32)
+  expect(halves({ cpu: 250, gpu: 100 }, GPU_COLOR)).toBe(32)
 })
 
-test('only a container that asked for a GPU shows the GPU use', () => {
+test('only a container that asked for a GPU has a GPU bar, and it has its own row', () => {
   const lines = dockerLines(
     [
       { name: 'cv', networks: ['n'], cpu: 10, gpu: true },
@@ -107,8 +108,10 @@ test('only a container that asked for a GPU shows the GPU use', () => {
     5,
     100,
   )
-  const blue = (i: number) => lines[i].cells!.filter(c => c.color === GPU_COLOR).reduce((sum, c) => sum + c.text.length, 0)
+  const blue = (i: number) => lines[i]!.cells!.filter(c => c.color === GPU_COLOR).reduce((sum, c) => sum + c.text.length, 0)
 
-  expect(blue(0)).toBe(8)
-  expect(blue(1)).toBe(0)
+  expect(lines).toHaveLength(3)
+  expect(blue(0)).toBe(0)
+  expect(blue(1)).toBe(17)
+  expect(lines[2]!.text.endsWith(' db')).toBe(true)
 })

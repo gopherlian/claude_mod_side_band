@@ -2,7 +2,7 @@ import { expect, test } from 'claude-code/testing'
 
 import { bigText } from '../bigdigits'
 import { formatShortTime } from '../widgets/clock'
-import { containerLine } from '../sections/docker'
+import { containerLines } from '../sections/docker'
 import { creditLines } from '../sections/credit'
 import { RESOURCE_COLORS, RESOURCE_ICONS } from '../sections/palette'
 import { rule, softRule } from '../sections/usage'
@@ -275,8 +275,8 @@ test('the system group adds memory, disk, network and docker to the bars', () =>
   expect(texts.some(t => /Download|Upload/.test(t))).toBe(false)
   expect(texts[texts.indexOf(down) - 1]).toBe('─'.repeat(30))
   expect(texts).toContain('docker · 2 running')
-  expect(texts).toContain(containerLine('api', 30).text)
-  expect(texts).toContain(containerLine('db', 30).text)
+  expect(texts).toContain(containerLines('api', 30)[0]!.text)
+  expect(texts).toContain(containerLines('db', 30)[0]!.text)
   expect(texts.some(t => t.startsWith('●'))).toBe(false)
   // One network: the only inner separators are the two before the network and docker blocks.
   expect(texts.filter(t => /^─+$/.test(t)).length).toBe(2)
@@ -386,7 +386,7 @@ test('docker lists at most five names and counts the rest; none running is said'
   const many = system
     .lines(ctx({ system: { dockers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map(name => ({ name, networks: ['n'] })) } }))
     .map(l => l.text)
-  expect(many.filter(t => /^[▬╸─]+ [▬╸─]+ [a-g]$/.test(t)).length).toBe(5)
+  expect(many.filter(t => /^[▬╸─]+ [a-g]$/.test(t)).length).toBe(5)
   expect(many).toContain('+2 more')
   expect(many[0]).toBe('docker · 7 running')
 

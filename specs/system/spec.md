@@ -22,9 +22,9 @@ colour as they fill. See [appearance](../appearance/spec.md) R7.
 loaded, never below 1 MB/s.
 
 **R4.** Under another faint rule, when `docker` is available, the group SHALL draw `docker · <n> running` (or
-`docker · none running`) and one row per container, a bar pair followed by its name. The row has two bars, as every bar a fill of `▬`
-over a thin track `─` (appearance R7b): the first is the container's CPU in the CPU colour, the second its GPU in the
-GPU colour, each as long as half of what the name leaves. A trickle of load still shows a half cell `╸`. A container that asked docker for a GPU
+`docker · none running`) and one CPU bar per container, followed by its name. As every bar it is a fill of `▬` over a thin track `─`
+(appearance R7b), in the CPU colour, as long as what the name leaves; a trickle of load still shows a half cell `╸`.
+Under it, only for a container that asked docker for a GPU, a second bar of the same length in the GPU colour. A container that asked docker for a GPU
 shows the GPU's whole utilisation; docker does not split it.
 
 **R5.** Containers that share a network, directly or through another container, SHALL form one group, with a faint
