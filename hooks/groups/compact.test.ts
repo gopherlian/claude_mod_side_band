@@ -62,7 +62,7 @@ test('the compact Claude column: context on one row, the windows, the cost, the 
   const rows = texts(session.strip!.lines(ctx({ budget: 7 })))
 
   expect(rows).toHaveLength(7)
-  expect(rows[0]).toMatch(/^Context [█▒─]+ +17%$/)
+  expect(rows[0]).toMatch(/^Context [▬▒─]+ +17%$/)
   expect(rows[1]).toMatch(/^Session .* 18% +2h30m$/)
   expect(rows[2]).toMatch(/^Weekly .* 17% +1d4h$/)
   expect(rows.join('\n')).not.toContain('time elapsed')
@@ -88,7 +88,7 @@ test('after the chart the tools list gets the rows left, and counts the tools it
   const rows = texts(session.strip!.lines(ctx({ budget: 14 })))
 
   expect(rows).toHaveLength(14)
-  expect(rows[12]).toMatch(/^ {2}Bash +━+╸?─* +30$/)
+  expect(rows[12]).toMatch(/^ {2}Bash +▬+╸?─* +30$/)
   expect(rows[13]).toBe('  +2 more')
   expect(texts(session.strip!.lines(ctx({ budget: 15 })))[14]).toMatch(/^ {2}Edit /)
 })
@@ -116,9 +116,9 @@ test('the compact System column puts two resources on a row, then the network, t
   const rows = texts(system.strip!.lines(ctx({ columns: 29 })))
 
   expect(rows).toHaveLength(5)
-  expect(rows[0]).toMatch(/^CPU  [█▏▎▍▌▋▊▉─]{5} +2% GPU  [█▏▎▍▌▋▊▉─]{5} +0%$/)
-  expect(rows[1]).toMatch(/^VRAM [█▏▎▍▌▋▊▉─]{5} +8% RAM  [█▏▎▍▌▋▊▉─]{5} +17%$/)
-  expect(rows[2]).toMatch(/^Swap [█▏▎▍▌▋▊▉─]{5} +0% Disk [█▏▎▍▌▋▊▉─]{5} +6%$/)
+  expect(rows[0]).toMatch(/^CPU  [▬╸─]{5} +2% GPU  [▬╸─]{5} +0%$/)
+  expect(rows[1]).toMatch(/^VRAM [▬╸─]{5} +8% RAM  [▬╸─]{5} +17%$/)
+  expect(rows[2]).toMatch(/^Swap [▬╸─]{5} +0% Disk [▬╸─]{5} +6%$/)
   expect(rows[3]).toBe('↓ 833B/s  ↑ 800B/s')
   expect(rows[4]).toBe('docker · none running')
 })

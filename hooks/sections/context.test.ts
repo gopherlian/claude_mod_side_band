@@ -39,7 +39,7 @@ test('the bar has one run per consumer in a fixed order, then the reserve hatche
   ])
   expect(cells[4]!.text).toMatch(/^▒+$/)
   expect(cells[5]!.text).toMatch(/^─+$/)
-  expect(cells.slice(0, 4).every(cell => /^█+$/.test(cell.text))).toBe(true)
+  expect(cells.slice(0, 4).every(cell => /^▬+$/.test(cell.text))).toBe(true)
 })
 
 test('a consumer with tokens always gets a cell, however small', () => {
@@ -59,7 +59,7 @@ test('the system prompt and the system tools share one run', () => {
     20,
   )!
 
-  expect(cells.map(cell => cell.text)).toEqual(['█'.repeat(10), '─'.repeat(10)])
+  expect(cells.map(cell => cell.text)).toEqual(['▬'.repeat(10), '─'.repeat(10)])
   expect(cells[0]!.color).toBe(ROLE_COLORS.system)
 })
 

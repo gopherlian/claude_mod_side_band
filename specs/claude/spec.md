@@ -8,7 +8,7 @@ The Claude group, titled `Claude`: this session and the plan.
 percent used.
 
 **R1a (composition).** Where the session reports what fills the context, the bar SHALL be drawn in runs, one per
-consumer in proportion to its tokens: messages blue, system (the prompt and the tools) violet, MCP tools teal, anything
+consumer in proportion to its tokens, each run a fill of `▬`: messages blue, system (the prompt and the tools) violet, MCP tools teal, anything
 else (memory files, skills, agents) amber; then the autocompact reserve hatched `▒` in grey, and the free space as the
 thin empty track `─`. The runs keep that order. A consumer with tokens SHALL get at least one cell. Tools loaded on demand
 are outside the window and SHALL NOT be drawn. Without the breakdown the bar is the plain one.
@@ -59,8 +59,8 @@ pace.
   tall as its calls next to the busiest slice (four dots a row, filled from the bottom), a baseline of dots `⣀` for a
   quiet slice; with no call in those ten minutes the chart is not drawn, nor its blank rows;
 - under it a list like a process monitor, one row per tool used this session, the most used first (ties by name):
-  `▸ Bash      ━━━━━━━━━━━━━━╸─── 14`, the tool's name (an MCP tool by its own name, `mem_save`, without its server), a
-  thin bar (`━` filled, `╸` a half step, `─` the rest in faint grey) as long as its calls next to the busiest tool's,
+  `▸ Bash      ▬▬▬▬▬▬▬▬▬▬▬▬▬▬╸─── 14`, the tool's name (an MCP tool by its own name, `mem_save`, without its server), a
+  bar (`▬` filled, `╸` a half step, `─` the rest in faint grey) as long as its calls next to the busiest tool's,
   and the count; the running tool has a `▸` and its name lit, the others are dim; at most six rows, the last of them
   `+N more` where tools are left out;
 - the current turn's time or the last one's, dim (`turn 0:42`, `last 1:14`);

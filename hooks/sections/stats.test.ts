@@ -92,11 +92,11 @@ test('the braille chart is as wide as asked, top row first, with a baseline of d
   expect(toolBraille([NOW - 1000], NOW, 0, 3)).toEqual([])
 })
 
-test('a thin bar is heavy line where full, light where not, and steps by halves of a cell', () => {
+test('a bar is `▬` where full, the thin line where not, and steps by halves of a cell', () => {
   expect(thinBar(0, 4)).toEqual({ fill: '', track: '────' })
-  expect(thinBar(0.5, 4)).toEqual({ fill: '━━', track: '──' })
-  expect(thinBar(0.375, 4)).toEqual({ fill: '━╸', track: '──' })
-  expect(thinBar(1, 4)).toEqual({ fill: '━━━━', track: '' })
+  expect(thinBar(0.5, 4)).toEqual({ fill: '▬▬', track: '──' })
+  expect(thinBar(0.375, 4)).toEqual({ fill: '▬╸', track: '──' })
+  expect(thinBar(1, 4)).toEqual({ fill: '▬▬▬▬', track: '' })
 })
 
 test('there are recent calls only when one fell in the last ten minutes', () => {

@@ -49,10 +49,12 @@ colours.
 grey `#64748b`; the cost is green `#68d391`, the tools chart violet `#c084fc`, the effort pips cyan `#4dd0e1` lit and
 `#4a5568` faint.
 
-**R7b (bars).** Every bar SHALL be a solid fill of `█` that ends in eighths of a cell (`▏▎▍▌▋▊▉`), over a thin track
-`─` in the bar's colour: a gauge, not a hatched block. A bar keeps its width whatever its fill.
+**R7b (bars).** Every bar (the context, plan windows, resources, network rates, tools and tasks) SHALL be a fill of `▬`
+that ends in a half cell `╸` where it falls halfway, over a thin track `─`, in the bar's colour: a gauge, not a hatched
+block. A bar keeps its width whatever its fill.
 
-- *Given* 43% of a 10-cell bar, *Then* it is `████▎─────`.
+- *Given* 43% of a 10-cell bar, *Then* it is `▬▬▬▬╸─────`.
+- *Given* 1% of a 10-cell bar, *Then* it is `──────────`: a fill is drawn from a quarter of a cell.
 
 **R8.** No row SHALL be wider than the band: text is wrapped, never allowed to push the right edge out. In the stacked
 band nothing a row says is lost to the width: what does not fit goes on further rows (the weather items, the outlook,

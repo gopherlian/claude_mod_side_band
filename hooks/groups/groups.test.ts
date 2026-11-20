@@ -188,9 +188,9 @@ test('the session group draws the cost, the tools chart, the turn and the model,
   expect(lines[head + 5]).toBe(' ')
   const list = lines.slice(head + 6, -3)
   expect(list.slice(0, 3)).toEqual([
-    expect.stringMatching(/^▸ Bash {5}━+╸?─* 4$/),
-    expect.stringMatching(/^ {2}Read {5}━+╸?─* 2$/),
-    expect.stringMatching(/^ {2}mem_save ━+╸?─* 1$/),
+    expect.stringMatching(/^▸ Bash {5}▬+╸?─* 4$/),
+    expect.stringMatching(/^ {2}Read {5}▬+╸?─* 2$/),
+    expect.stringMatching(/^ {2}mem_save ▬+╸?─* 1$/),
   ])
   expect(lines).toContain('turn 0:42')
   expect(lines).toContain('Sonnet 5.5 ●●○○○ medium')
@@ -270,7 +270,7 @@ test('the system group adds memory, disk, network and docker to the bars', () =>
   expect(texts.some(t => t.startsWith('◉ Disk  ') && t.includes('30%'))).toBe(true)
   // The arrows say which way: what comes in and what goes out.
   const down = texts.find(t => t.startsWith('↓ Down  '))!
-  expect(down).toMatch(/^↓ Down  [█▏▎▍▌▋▊▉─]{14}  512K\/s$/)
+  expect(down).toMatch(/^↓ Down  [▬╸─]{14}  512K\/s$/)
   expect(texts.some(t => t.startsWith('↑ Up    ') && t.endsWith('   2K/s'))).toBe(true)
   expect(texts.some(t => /Download|Upload/.test(t))).toBe(false)
   expect(texts[texts.indexOf(down) - 1]).toBe('─'.repeat(30))
@@ -476,7 +476,7 @@ test('every resource of the system group has its icon before its name, and every
     '↑ Up    ',
   ])
   // The bar starts in the same column on every row, the network ones too.
-  expect(texts.map(t => t.search(/[█▏▎▍▌▋▊▉─]/))).toEqual(texts.map(() => 8))
+  expect(texts.map(t => t.search(/[▬╸─]/))).toEqual(texts.map(() => 8))
   expect(texts.every(t => t.length === 30)).toBe(true)
 })
 
@@ -634,7 +634,7 @@ test('the GentleAI group shows the step as pips, what runs now, and the tasks as
 
   expect(rows[0]).toBe('Step  ●●●●●●○○ 6/8 apply')
   expect(rows[1]).toBe('Now   ▸ apply task 3: strip layout')
-  expect(rows[2]).toMatch(/^Tasks ━+╸?─+ 2\/5$/)
+  expect(rows[2]).toMatch(/^Tasks ▬+╸?─+ 2\/5$/)
   expect(rows.every(row => row.length <= 34)).toBe(true)
 })
 

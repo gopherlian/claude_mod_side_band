@@ -6,6 +6,10 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- Every bar (context, plan windows, resources, network, tools, tasks) is drawn with `▬` over a thin `─` track, ending in
+  a half step `╸`.
+
 ## [1.7.1] - 2026-11-20
 
 ### Changed

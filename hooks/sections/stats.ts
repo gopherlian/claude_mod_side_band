@@ -111,13 +111,16 @@ export const toolBraille = (times: number[], now: number, width: number, rows: n
   })
 }
 
-/** A thin bar `width` cells long: heavy line where it is full, light line where it is not, a half step between. */
+/**
+ * The bar every gauge of the band is drawn with, `width` cells long: `▬` where it is full, `╸` for a half cell and the
+ * thin `─` for the rest.
+ */
 export const thinBar = (fraction: number, width: number): { fill: string; track: string } => {
   const halves = Math.round(Math.min(1, Math.max(0, fraction)) * width * 2)
   const full = Math.floor(halves / 2)
   const half = halves % 2 === 1
 
-  return { fill: '━'.repeat(full) + (half ? '╸' : ''), track: '─'.repeat(Math.max(0, width - full - (half ? 1 : 0))) }
+  return { fill: '▬'.repeat(full) + (half ? '╸' : ''), track: '─'.repeat(Math.max(0, width - full - (half ? 1 : 0))) }
 }
 
 /** Whether any tool call falls in the last ten minutes: with none, the chart has nothing to show. */

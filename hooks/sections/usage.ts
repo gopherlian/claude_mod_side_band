@@ -2,6 +2,7 @@
 import { formatLeft } from '../format'
 import { compositionCells, compositionLegend } from './context'
 import type { Category } from './context'
+import { thinBar } from './stats'
 
 export type UsageData = {
   contextTokens?: number
@@ -135,16 +136,11 @@ export const colorFor = (percent: number | undefined): string | undefined =>
 /** The empty part of a bar: a thin line, so the fill reads as a solid gauge over it. */
 export const TRACK = '─'
 
-/** The last cell of a fill, by eighths: the bar moves one eighth of a cell at a time. */
-const EIGHTHS = ['', '▏', '▎', '▍', '▌', '▋', '▊', '▉']
-
-/** A bar `width` cells long: whole blocks, an eighth-step block where the fill ends, then the track. */
+/** A bar `width` cells long for `percent`: whole `▬`, a `╸` where a half cell is filled, then the thin track. */
 export const bar = (percent: number, width: number): string => {
-  const eighths = Math.round((Math.min(100, Math.max(0, percent)) / 100) * width * 8)
-  const full = Math.floor(eighths / 8)
-  const part = full < width ? (EIGHTHS[eighths % 8] ?? '') : ''
+  const { fill, track } = thinBar(percent / 100, width)
 
-  return '█'.repeat(full) + part + TRACK.repeat(width - full - (part ? 1 : 0))
+  return fill + track
 }
 
 /** A tick over the bar, at `share` (0 to 1) of its length; it replaces the cell it lands on. */

@@ -75,7 +75,7 @@ const allocate = (parts: Share[], width: number): number[] => {
 
 /**
  * The context bar as runs of one colour each, `width` cells in all, or nothing
- * where the session reported no breakdown. Consumers are blocks, the reserve is
+ * where the session reported no breakdown. Consumers are `▬`, the reserve is
  * hatched and the free space is the thin empty track.
  */
 export const compositionCells = (categories: Category[] | undefined, width: number): Cell[] | undefined => {
@@ -91,7 +91,7 @@ export const compositionCells = (categories: Category[] | undefined, width: numb
       ? { text: TRACK.repeat(count) }
       : key === 'buffer'
         ? { text: '▒'.repeat(count), color: BUFFER_COLOR }
-        : { text: '█'.repeat(count), color: ROLE_COLORS[key] }
+        : { text: '▬'.repeat(count), color: ROLE_COLORS[key] }
   })
 }
 

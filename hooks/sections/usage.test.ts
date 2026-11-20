@@ -27,9 +27,9 @@ const windows = (): UsageData => ({
 })
 
 test('a meter can carry a mark where the time of its window stands', () => {
-  expect(meter('Session', 41, 24, 0.77)).toBe('Session ████▌───┃──  41%')
-  expect(meter('Session', 41, 24, 0)).toBe('Session ┃███▌──────  41%')
-  expect(meter('Session', 41, 24, 1)).toBe('Session ████▌─────┃  41%')
+  expect(meter('Session', 41, 24, 0.77)).toBe('Session ▬▬▬▬╸───┃──  41%')
+  expect(meter('Session', 41, 24, 0)).toBe('Session ┃▬▬▬╸──────  41%')
+  expect(meter('Session', 41, 24, 1)).toBe('Session ▬▬▬▬╸─────┃  41%')
   expect(meter('Session', 41, 24, 7)).toBe(meter('Session', 41, 24, 1))
   expect(meter('Session', 41, 24, -3)).toBe(meter('Session', 41, 24, 0))
   expect(meter('Session', 41, 24, 0.77).length).toBe(meter('Session', 41, 24).length)
@@ -39,8 +39,8 @@ test('the plan meters are marked where their time stands; the context and the re
   const lines = usageLines(windows(), 24, NOW).map(l => l.text)
 
   expect(lines[1]).not.toContain('┃')
-  expect(lines[2]).toBe('Session ████▌───┃──  41%')
-  expect(lines[3]).toBe('Weekly  ██▌──┃─────  23%')
+  expect(lines[2]).toBe('Session ▬▬▬▬╸───┃──  41%')
+  expect(lines[3]).toBe('Weekly  ▬▬╸──┃─────  23%')
 
   const spend = usageLines(
     { contextWindow: 200_000, limits: [{ kind: 'spend_limit', percentUsed: 50, resetsAt: endsIn(3_600_000) }] },
@@ -74,8 +74,8 @@ test('without the time, or without a valid end, a meter has no mark', () => {
 test('a window row ends with the time left, short and dim, where the bar keeps at least 8 cells', () => {
   const rows = usageLines(windows(), 28, NOW).filter(l => /^(Session|Weekly)/.test(l.text))
 
-  expect(rows[0]!.text).toMatch(/^Session [█▏▎▍▌▋▊▉─┃]{8}  41%   1h9m$/)
-  expect(rows[1]!.text).toMatch(/^Weekly  [█▏▎▍▌▋▊▉─┃]{8}  23%  3d12h$/)
+  expect(rows[0]!.text).toMatch(/^Session [▬╸─┃]{8}  41%   1h9m$/)
+  expect(rows[1]!.text).toMatch(/^Weekly  [▬╸─┃]{8}  23%  3d12h$/)
   for (const row of rows) {
     expect(row.text).toHaveLength(28)
     expect(row.cells!.map(cell => cell.text).join('')).toBe(row.text)
@@ -127,7 +127,7 @@ test('with the breakdown, the context bar is drawn in runs and keeps its number'
   expect(row.cells!.map(cell => cell.text).join('')).toBe(row.text)
   expect(row.cells!.some(cell => cell.color === '#2b6cb0')).toBe(true)
   expect(row.cells!.some(cell => cell.color === '#0f766e')).toBe(true)
-  expect(row.text).toMatch(/█+▒+─+ +14%$/)
+  expect(row.text).toMatch(/▬+▒+─+ +14%$/)
 })
 
 test('the legend of the runs sits right under the context bar, before the plan windows', () => {
@@ -188,15 +188,15 @@ test('the context warns from 70% and alarms from 85%', () => {
 })
 
 test('the bar fills in proportion', () => {
-  expect(bar(50, 10)).toBe('█████─────')
-  expect(bar(150, 4)).toBe('████')
+  expect(bar(50, 10)).toBe('▬▬▬▬▬─────')
+  expect(bar(150, 4)).toBe('▬▬▬▬')
   expect(bar(-5, 3)).toBe('───')
 })
 
-test('the fill ends in eighths of a cell over a thin track, and the bar keeps its width', () => {
-  expect(bar(43, 10)).toBe('████▎─────')
-  expect(bar(1, 10)).toBe('▏─────────')
-  expect(bar(99, 10)).toBe('█████████▉')
+test('the fill ends in halves of a cell over a thin track, and the bar keeps its width', () => {
+  expect(bar(43, 10)).toBe('▬▬▬▬╸─────')
+  expect(bar(1, 10)).toBe('──────────')
+  expect(bar(99, 10)).toBe('▬▬▬▬▬▬▬▬▬▬')
   for (let percent = 0; percent <= 100; percent += 7) expect(bar(percent, 9)).toHaveLength(9)
 })
 
