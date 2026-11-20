@@ -2,6 +2,7 @@
 // Shown only where the harness is installed.
 import { SDD_STEPS } from '../harness'
 import type { HarnessState, Step } from '../harness'
+import { RESOURCE_COLORS } from '../sections/palette'
 import { thinBar } from '../sections/stats'
 import { wrap } from '../sections/wrap'
 import type { Cell, Line } from '../sections/usage'
@@ -9,7 +10,7 @@ import type { Group, GroupContext } from './types'
 
 const PIP_ON = '#4dd0e1'
 const PIP_OFF = '#4a5568'
-const TASKS_COLOR = '#68d391'
+const TASKS_COLOR = RESOURCE_COLORS.cpu
 const LABEL_WIDTH = 6
 
 const joined = (cells: Cell[], columns: number): Line => {

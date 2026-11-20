@@ -279,7 +279,8 @@ row centred.
 | The pace tick `┃` | green |
 | Session and Weekly bars, the Context label and percent | default, **yellow from 70%** and **red from 85%** of the window |
 | Context runs | messages blue `#2b6cb0` · system violet `#6b21a8` · MCP teal `#0f766e` · other amber `#8a6d0b` · reserve grey `#64748b` |
-| Cost · tools chart · effort pips | green `#68d391` · violet `#c084fc` · cyan `#4dd0e1` (faint `#4a5568`) |
+| Cost · effort pips | green `#68d391` · cyan `#4dd0e1` (faint `#4a5568`) |
+| Tools (chart, list, bars) · GentleAI tasks | the green of the CPU bar |
 | CPU · GPU · VRAM · NPU | green `#2f855a` · blue `#2b6cb0` · cyan `#0e7490` · indigo `#4c51bf` |
 | RAM · Swap · Disk | purple `#6b21a8` · mustard `#8a6d0b` · teal `#0f766e` |
 | Down · Up | dark lime `#4d7c0f` · slate `#64748b` |

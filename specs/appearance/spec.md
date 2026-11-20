@@ -46,7 +46,7 @@ colours.
 
 **R7a.** The Claude group's graphics SHALL use the same muted palette and no orange: the context runs are blue
 `#2b6cb0` (messages), violet `#6b21a8` (system), teal `#0f766e` (MCP tools) and amber `#8a6d0b` (other), the reserve
-grey `#64748b`; the cost is green `#68d391`, the tools chart violet `#c084fc`, the effort pips cyan `#4dd0e1` lit and
+grey `#64748b`; the cost is green `#68d391`, the tools (chart, list and bars) and the GentleAI tasks the green of the CPU bar, the effort pips cyan `#4dd0e1` lit and
 `#4a5568` faint.
 
 **R7b (bars).** Every bar (the context, plan windows, resources, network rates, tools and tasks) SHALL be a fill of `▬`

@@ -26,7 +26,7 @@ and `+N` when others run too. It is read whole: what does not fit goes on furthe
 (in the strip, only by the rows the column has). With none running, the first open task of the feature document, dim
 (`Now   · T3 strip layout`); with that either, `Now   -`.
 
-**R5 (tasks).** Where the project has `odd/tasks/<feature>.md`, the newest of them, a `Tasks` row SHALL draw a green bar (`▬` filled, `─` the rest in
+**R5 (tasks).** Where the project has `odd/tasks/<feature>.md`, the newest of them, a `Tasks` row SHALL draw a bar in the green of the CPU bar (`▬` filled, `─` the rest in
 faint grey) and `done/total` of the checkboxes under its `## Tasks` heading. With no document, no checkbox, or every box done
 (no work in hand), the row is still drawn: an empty bar and `-/-`, dim.
 

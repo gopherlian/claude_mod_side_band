@@ -1,6 +1,7 @@
 // The Claude session: context, plan windows, time, cost, tools, turn, model.
 import { formatClock, formatDuration } from '../format'
 import { effortCells, modelName, hasRecentCalls, shortToolName, thinBar, toolBraille, toolRanking, toolSpark } from '../sections/stats'
+import { RESOURCE_COLORS } from '../sections/palette'
 import { blank, compactUsageLines, softRule, usageLines } from '../sections/usage'
 import type { Cell, Line } from '../sections/usage'
 import { wrapCells, wrapParts } from '../sections/wrap'
@@ -9,8 +10,8 @@ import type { Group, GroupContext } from './types'
 
 /** The cost stands out in green, the lighter shade of the CPU bar. */
 const COST_COLOR = '#68d391'
-/** The tools chart borrows the violet of the RAM bar. */
-const SPARK_COLOR = '#c084fc'
+/** The tools take the green of the CPU bar. */
+const SPARK_COLOR = RESOURCE_COLORS.cpu
 /** The unfilled part of a thin bar. */
 const TRACK_COLOR = '#4a5568'
 /** The braille chart of the tools is this many rows tall. */

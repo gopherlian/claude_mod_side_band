@@ -7,6 +7,7 @@ All notable changes to this mod are written here. The format follows
 ## [Unreleased]
 
 ### Changed
+- The tools (chart, list and bars) take the green of the CPU bar instead of violet, and so do the GentleAI tasks.
 - Every bar (context, plan windows, resources, network, tools, tasks) is drawn with `▬` over a thin `─` track, ending in
   a half step `╸`. The autocompact reserve of the context bar is a grey `▬` too, no longer a hatched block.
 

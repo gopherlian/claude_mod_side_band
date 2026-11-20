@@ -4,7 +4,7 @@ import { bigText } from '../bigdigits'
 import { formatShortTime } from '../widgets/clock'
 import { containerLine } from '../sections/docker'
 import { creditLines } from '../sections/credit'
-import { RESOURCE_ICONS } from '../sections/palette'
+import { RESOURCE_COLORS, RESOURCE_ICONS } from '../sections/palette'
 import { rule, softRule } from '../sections/usage'
 import { harness } from './harness'
 import { arrange, groups } from './index'
@@ -703,4 +703,19 @@ test('the Tasks row is an empty bar and a dim `-/-` when there is no checklist o
   expect(harness.lines(harnessCtx({ tasks: undefined })).at(-1)!.text).toBe(done.text)
   // A checklist in progress is unchanged.
   expect(harness.lines(harnessCtx()).at(-1)!.text).toMatch(/ 2\/5$/)
+})
+
+test('the tools chart and the bars of the tools list take the green of the CPU bar', () => {
+  const rows = session.lines(busy())
+  const chart = rows.find(row => /^[⠀-⣿]{30}$/.test(row.text))!
+  const list = rows.find(row => row.text.startsWith('▸ Bash'))!
+
+  expect(chart.cells![0]!.color).toBe(RESOURCE_COLORS.cpu)
+  expect(list.cells!.some(cell => cell.color === RESOURCE_COLORS.cpu && cell.text.includes('▬'))).toBe(true)
+})
+
+test('the GentleAI tasks bar takes the green of the CPU bar', () => {
+  const tasks = harness.lines(harnessCtx()).at(-1)!
+
+  expect(tasks.cells!.some(cell => cell.color === RESOURCE_COLORS.cpu && cell.text.includes('▬'))).toBe(true)
 })
