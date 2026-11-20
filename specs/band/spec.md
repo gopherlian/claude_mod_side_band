@@ -18,14 +18,15 @@ of content and never more than 45% of the window, with 2 columns of padding on e
 - *Given* the user ran `/band` to hide it, *When* a new session starts, *Then* the band stays hidden.
 - *Given* it was never hidden, *When* a session starts, *Then* the band is open.
 
-**R3.** The band SHALL draw its groups in this order, top to bottom: Time, Claude, Project, System. Every group
+**R3.** The band SHALL draw its groups in this order, top to bottom: Time, Claude, GentleAI (where the harness is installed), Project, System, Docker (where docker is
+available). Every group
 after the first SHALL be preceded by a blank row and a titled rule (`━━ Claude ━━━…`), with no blank row below the
 rule; the Time group has no title. The blank row above `━━ Claude` carries the mod's version, right-aligned
 (see [update](../update/spec.md) R3).
 
 **R4.** When a docked band has fewer rows than its groups need, it SHALL scroll (mouse wheel; arrow keys while it
 has focus) and SHALL NOT drop any group. Where it cannot scroll, it SHALL drop whole groups, highest priority
-number first (System 3, Project 2, Claude 1), and SHALL NOT draw half a group. The Time group (priority 0) is never
+number first (Docker 5, GentleAI 4, System 3, Project 2, Claude 1), and SHALL NOT draw half a group. The Time group (priority 0) is never
 dropped.
 
 - *Given* a band that cannot scroll and has room for Time and Claude only, *Then* Project and System are absent

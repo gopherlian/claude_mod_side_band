@@ -6,6 +6,11 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Added
+- A **Docker** group after System, drawn only where docker is available: the count, and per container its name over its
+  CPU bar (and a GPU bar for one that has a GPU), a blank row between containers and, with several networks, a faint
+  blue rule that names each network.
+
 ### Changed
 - The tools (chart, list and bars) take the green of the CPU bar instead of violet, and so do the GentleAI tasks.
 - Every bar (context, plan windows, resources, network, tools, tasks) is drawn with `▬` over a thin `─` track, ending in

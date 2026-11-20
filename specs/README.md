@@ -19,6 +19,7 @@ specs/
 | [time](time/spec.md) | The time group: big clock, weather, date, timer |
 | [claude](claude/spec.md) | The Claude group: context, plan windows, the pace tick, activity, model |
 | [harness](harness/spec.md) | The GentleAI group: the workflow step, what runs now, the feature's tasks; only where the harness is installed |
+| [docker](docker/spec.md) | The Docker group: the containers, a CPU and a GPU bar each, grouped by network; only where docker is available |
 | [project](project/spec.md) | The project group: the repository's state |
 | [system](system/spec.md) | The system group: resource bars, network rates, containers |
 | [update](update/spec.md) | The mod's version above `━━ Claude`, and how it updates itself |

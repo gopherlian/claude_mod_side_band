@@ -42,7 +42,8 @@ colour (see [system](../system/spec.md) R1):
 | Up | `#64748b` | `#a0aec0` |
 
 No resource SHALL use orange (reserved for separators and frames) or pink. The container bars SHALL use the CPU and GPU
-colours.
+colours. The rule that opens a group of containers, and the name of its network on it, SHALL be a very faint blue
+`#3d5a80`, apart from the faint grey `#3a3a3a` of the rules inside a group.
 
 **R7a.** The Claude group's graphics SHALL use the same muted palette and no orange: the context runs are blue
 `#2b6cb0` (messages), violet `#6b21a8` (system), teal `#0f766e` (MCP tools) and amber `#8a6d0b` (other), the reserve

@@ -1,15 +1,11 @@
-// The machine: percent bars for CPU, GPU, memory and disk, then rates and counts.
+// The machine: percent bars for CPU, GPU, memory and disk, then the network rates.
 import { formatRate } from '../format'
-import { dockerLines } from '../sections/docker'
 import { compactMeter, meterLine, monitorLines, rateLine } from '../sections/monitor'
 import { RESOURCE_TEXT_COLORS } from '../sections/palette'
 import type { Resource } from '../sections/palette'
 import { softRule } from '../sections/usage'
 import type { Cell, Line } from '../sections/usage'
 import type { Group, GroupContext } from './types'
-
-/** Containers drawn as bars; the rest are counted. */
-const MAX_DOCKERS = 5
 
 /** The resources that have a percent, in the order they are drawn: processors first, then memory and disk. */
 const percents = (ctx: GroupContext): { label: string; percent: number; resource: Resource }[] => {
@@ -41,8 +37,6 @@ export const system: Group = {
   lines: (ctx: GroupContext): Line[] => {
     const lines = monitorLines(ctx.hardware, ctx.columns)
     const s = ctx.system
-    const gpus = ctx.hardware?.gpus ?? []
-    const gpuUtil = gpus.length > 0 ? Math.max(...gpus.map(g => g.util)) : undefined
 
     if (s.ramPercent !== undefined) lines.push(meterLine('RAM', s.ramPercent, ctx.columns, 'ram'))
     if (s.swapPercent !== undefined) lines.push(meterLine('Swap', s.swapPercent, ctx.columns, 'swap'))
@@ -53,18 +47,10 @@ export const system: Group = {
       lines.push(rateLine('Down', s.downBps, peak, ctx.columns, 'down'))
       lines.push(rateLine('Up', s.upBps, peak, ctx.columns, 'up'))
     }
-    if (s.dockers !== undefined) {
-      if (lines.length > 0) lines.push(softRule(ctx.columns))
-      lines.push({
-        text: (s.dockers.length === 0 ? 'docker · none running' : `docker · ${s.dockers.length} running`).slice(0, ctx.columns),
-        dimColor: true,
-      })
-      lines.push(...dockerLines(s.dockers, ctx.columns, MAX_DOCKERS, gpuUtil))
-    }
 
     return lines
   },
-  // In the strip: two resources to a row, the rates on one row and the containers counted.
+  // In the strip: two resources to a row, the rates on one row and the containers counted (they have no column).
   strip: {
     min: 28,
     max: 40,

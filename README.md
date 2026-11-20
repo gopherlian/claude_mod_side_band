@@ -13,7 +13,7 @@ hot-reloads. It only reads; it never changes your files, your repository or your
 - [Install](#install)
 - [Use it](#use-it)
 - [How it works](#how-it-works)
-- [The groups](#the-groups): [Time](#1-time) · [Claude](#2-claude) · [GentleAI](#3-gentleai) · [Project](#4-project) · [System](#5-system) · [Credit](#the-credit)
+- [The groups](#the-groups): [Time](#1-time) · [Claude](#2-claude) · [GentleAI](#3-gentleai) · [Project](#4-project) · [System](#5-system) · [Docker](#6-docker) · [Credit](#the-credit)
 - [Colour guide](#colour-guide)
 - [Develop it](#develop-it) (spec-driven)
 - [License](#license)
@@ -154,7 +154,7 @@ right, each one compact:
 <p align="center"><img src="docs/img/strip.svg" alt="The strip: the groups side by side"></p>
 
 The columns need 99 columns across to show all four groups (130 where the GentleAI group is drawn). Fewer than that and
-whole groups are dropped, GentleAI first, then System, then Project, then Claude; the time always stays. Width left over is shared among the columns. The strip is
+whole groups are dropped, Docker first, then GentleAI, then System, then Project, then Claude; the time always stays. Width left over is shared among the columns. The strip is
 never taller than the rows the pane has, and a column that is taller is cut at the bottom, the least important row
 first. The band asks for 8 rows when it opens, which is what the tallest column needs. The
 credit follows the columns where there are rows for all of it.
@@ -168,8 +168,9 @@ docked pane nothing is dropped, because it scrolls.
 | 0 | Time | never |
 | 1 | Claude | fourth |
 | 2 | Project | third |
-| 3 | System | second |
-| 4 | GentleAI | first |
+| 3 | System | third |
+| 4 | GentleAI | second |
+| 5 | Docker | first |
 
 If rows are left after the groups, the credit goes at the foot, right under an orange rule, whole or not at all.
 
@@ -255,10 +256,21 @@ of the same colour so they read well.
 - **`≡` RAM, `⇄` Swap, `◉` Disk:** memory in use, swap in use, and the disk the session's working directory is on.
 - **`↓` Down, `↑` Up:** what the network receives and sends. A network bar has no fixed top speed, so it is scaled to the highest rate seen since
   the mod loaded (never below 1 MB/s, so a trickle does not look full).
-- **Docker:** per running container its name, dim and right-aligned, then its CPU bar (green) across the whole width; under it,
-  for a container that asked for a GPU, a GPU bar (blue) of the same length. Both are in the same `▬` form as every other bar. Docker does not split a GPU between containers, so a container
-  that asked for a GPU shows the GPU's whole utilisation. Containers that share a network (directly or through
-  another container) are grouped, with a faint rule between groups. Five are drawn; the rest are counted (`+3 more`).
+
+### 6. Docker
+
+The containers, a group of their own after System, drawn only where `docker` is available. It starts with how many are
+running (`3 running`, or `none running`). Each container is its name, dim and right-aligned, over its CPU bar (green)
+across the whole width; for a container that asked for a GPU, a GPU bar (blue) of the same length goes under it. Both
+are in the same `▬` form as every other bar. Docker does not split a GPU between containers, so a container that
+asked for a GPU shows the GPU's whole utilisation. A blank row sets one container apart from the next.
+
+Containers that share a network (directly or through another container) are grouped. With more than one group, each
+opens with a rule that names its network (`── app ────────`), in a very faint blue so it is not mistaken for the
+grey rules inside a group. Five containers are drawn; the rest are counted (`+3 more`). In the strip there is no Docker
+column: the System column counts them (`docker · 3 running`).
+
+<p align="center"><img src="docs/img/docker.svg" alt="The Docker group"></p>
 
 ### The credit
 

@@ -1,7 +1,8 @@
 import { expect, test } from 'claude-code/testing'
 
-import { containerLines, dockerLines, groupByNetwork } from './docker'
+import { NETWORK_COLOR, containerLines, dockerLines, groupByNetwork } from './docker'
 import { CPU_COLOR, GPU_COLOR } from './palette'
+import { INNER_RULE_COLOR } from './usage'
 
 const c = (name: string, ...networks: string[]) => ({ name, networks })
 /** The rows of a container with no GPU: its name, then its CPU bar. */
@@ -43,30 +44,37 @@ test('containers with no network are kept together rather than dropped', () => {
   expect(groupByNetwork([c('a'), c('b')]).map(group => group.length)).toEqual([2])
 })
 
-test('one network gives just the bars, with nothing between them', () => {
+test('one network gives the containers with a blank row between them, and no rule', () => {
   const lines = dockerLines([c('a', 'net'), c('b', 'net')], 20, 5)
 
-  expect(texts(lines)).toEqual([...rowsOf('a', 20), ...rowsOf('b', 20)])
+  expect(texts(lines)).toEqual([...rowsOf('a', 20), ' ', ...rowsOf('b', 20)])
 })
 
-test('several networks put a faint grey line between the groups', () => {
+test('several networks each open with a faint grey rule that names the network, after a blank row', () => {
   const lines = dockerLines([c('a', 'x'), c('b', 'y')], 20, 5)
 
-  expect(texts(lines)).toEqual([...rowsOf('a', 20), '─'.repeat(20), ...rowsOf('b', 20)])
-  expect(lines[2].color).toBe('#3a3a3a')
+  expect(texts(lines)).toEqual(['── x ' + '─'.repeat(15), ...rowsOf('a', 20), ' ', '── y ' + '─'.repeat(15), ...rowsOf('b', 20)])
+  // The rule and the name are one very faint blue, not the grey of the rules inside a group.
+  expect(lines[0].color).toBe(NETWORK_COLOR)
+  expect(lines[0].cells!.map(cell => cell.color)).toEqual([NETWORK_COLOR])
+  expect(NETWORK_COLOR).not.toBe(INNER_RULE_COLOR)
+  expect(lines[4].text).toBe('── y ' + '─'.repeat(15))
 })
 
 test('the cap counts containers, not separators, and the rest are counted', () => {
   const lines = dockerLines([c('a', 'x'), c('b', 'x'), c('c', 'y'), c('d', 'y')], 20, 3)
 
   expect(texts(lines)).toEqual([
+    '── x ' + '─'.repeat(15),
     ...rowsOf('a', 20),
+    ' ',
     ...rowsOf('b', 20),
-    '─'.repeat(20),
+    ' ',
+    '── y ' + '─'.repeat(15),
     ...rowsOf('c', 20),
     '+1 more',
   ])
-  expect(lines[7].dimColor).toBe(true)
+  expect(lines[10].dimColor).toBe(true)
 })
 
 /** Half cells filled in `color` over all the rows of the container: a `▬` is two, a `╸` one. */
@@ -108,9 +116,10 @@ test('only a container that asked for a GPU has a GPU bar, and it has its own ro
   )
   const blue = (i: number) => (lines[i]!.cells ?? []).filter(c => c.color === GPU_COLOR).reduce((sum, c) => sum + c.text.length, 0)
 
-  expect(lines).toHaveLength(5)
+  expect(lines).toHaveLength(6)
   expect(blue(0)).toBe(0)
   expect(blue(2)).toBe(20)
-  expect(lines[3]!.text.endsWith('db')).toBe(true)
-  expect(blue(4)).toBe(0)
+  expect(lines[3]!.text).toBe(' ')
+  expect(lines[4]!.text.endsWith('db')).toBe(true)
+  expect(blue(5)).toBe(0)
 })

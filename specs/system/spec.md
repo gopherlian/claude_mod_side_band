@@ -21,16 +21,7 @@ colour as they fill. See [appearance](../appearance/spec.md) R7.
 `↑ Up` (what it sends) as bars with the rate at the right (`3.2M/s`). A network bar has no fixed top speed, so it SHALL be scaled to the highest rate seen since the mod
 loaded, never below 1 MB/s.
 
-**R4.** Under another faint rule, when `docker` is available, the group SHALL draw `docker · <n> running` (or
-`docker · none running`) and, per container, its name on a row of its own, dim and right-aligned, then its CPU bar across the whole width. As
-every bar it is a fill of `▬` over a thin track `─` (appearance R7b), in the CPU colour; a trickle of load still shows
-a half cell `╸`. Under it, only for a container that asked docker for a GPU, a second bar of the same length in the GPU
-colour. A container that asked docker for a GPU
-shows the GPU's whole utilisation; docker does not split it.
-
-**R5.** Containers that share a network, directly or through another container, SHALL form one group, with a faint
-rule between groups and the order docker lists them in kept. At most five containers SHALL be drawn; the rest are
-counted (`+3 more`).
+**R4 (moved).** The containers are the [docker](../docker/spec.md) group, no longer part of this one.
 
 **R6.** Resources not found SHALL be left out (see [band](../band/spec.md) R10). The CPU bar SHALL appear after the
 second sample.

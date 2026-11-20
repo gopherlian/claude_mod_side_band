@@ -1,11 +1,14 @@
 // The containers: one bar each, grouped by the networks they share.
 import type { Container } from '../monitor/types'
 import { CPU_COLOR, GPU_COLOR } from './palette'
-import { softRule } from './usage'
+import { blank, softRule } from './usage'
 import type { Cell, Line } from './usage'
 
 /** A bar never gets shorter than this. */
 const MIN_BAR = 2
+
+/** The rule over a group of containers and the name of its network: a very faint blue, apart from the grey inner rules. */
+export const NETWORK_COLOR = '#3d5a80'
 
 /** What is left of a bar that is not filled. */
 const TRACK_COLOR = '#3c3c3c'
@@ -79,24 +82,52 @@ export const groupByNetwork = (containers: Container[]): Container[][] => {
   return [...groups.values()]
 }
 
+/** The networks of a group, in the order they come, each once, joined by ` · `; empty for containers with none. */
+const networkNames = (group: Container[]): string =>
+  [...new Set(group.flatMap(container => container.networks))].filter(Boolean).join(' · ')
+
 /**
- * The containers, at most `max`: each its name, its CPU bar and, for one that has a GPU, a GPU bar, with a faint rule between
- * groups of different networks and a count of those left out. `gpuUtil` is the
- * whole GPU's use: docker does not split it, so each container that asked for a
- * GPU shows it. Where every
- * container shares a network there is no separator at all.
+ * The rule over a group of containers, with the name of its network at the left (`── app ───────`), the whole of it
+ * in a very faint blue; without a name, or where the name would not fit, a plain faint grey rule.
+ */
+export const networkRule = (name: string, columns: number): Line => {
+  const shown = name.slice(0, Math.max(0, columns - 6))
+  if (!shown) return softRule(columns)
+
+  const head = `── ${shown} `
+  const tail = '─'.repeat(Math.max(0, columns - head.length))
+
+  return {
+    text: head + tail,
+    color: NETWORK_COLOR,
+    cells: [{ text: head + tail, color: NETWORK_COLOR }],
+  }
+}
+
+/**
+ * The containers, at most `max`: each its name, its CPU bar and, for one that has a GPU, a GPU bar, a blank row between
+ * two of a group and, where there is more than one group (a network each), over every group a faint rule that names
+ * its network, after a blank row; and a count of those left out. `gpuUtil` is the
+ * whole GPU's use: docker does not split it, so each container that asked for a GPU shows it.
  */
 export const dockerLines = (containers: Container[], columns: number, max: number, gpuUtil?: number): Line[] => {
   const lines: Line[] = []
   let left = max
 
-  for (const group of groupByNetwork(containers)) {
+  const groups = groupByNetwork(containers)
+  for (const group of groups) {
     if (left <= 0) break
-    if (lines.length > 0) lines.push(softRule(columns))
-    const shown = group.slice(0, left)
-    for (const container of shown) {
-      lines.push(...containerLines(container.name, columns, { cpu: container.cpu, gpu: container.gpu ? gpuUtil : undefined }))
+    // With several groups, each opens with a rule that names its network, a blank row above all but the first.
+    if (groups.length > 1) {
+      if (lines.length > 0) lines.push(blank())
+      lines.push(networkRule(networkNames(group), columns))
     }
+    const shown = group.slice(0, left)
+    shown.forEach((container, i) => {
+      // A blank row sets each container apart from the one above it in its group.
+      if (i > 0) lines.push(blank())
+      lines.push(...containerLines(container.name, columns, { cpu: container.cpu, gpu: container.gpu ? gpuUtil : undefined }))
+    })
     left -= shown.length
   }
   if (containers.length > max) lines.push({ text: `+${containers.length - max} more`, dimColor: true })

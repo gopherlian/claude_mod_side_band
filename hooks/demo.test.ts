@@ -10,10 +10,10 @@ test('the demonstration fills every group, with a container on the GPU and two n
   const d = demo(NOW)
   const texts = arrange({ now: NOW, columns: 28, rows: 60, ...d }, 500).map(line => line.text)
 
-  expect(texts.filter(text => text.startsWith('━━ ')).map(text => text.split(' ')[1])).toEqual(['Claude', 'GentleAI', 'Project', 'System'])
+  expect(texts.filter(text => text.startsWith('━━ ')).map(text => text.split(' ')[1])).toEqual(['Claude', 'GentleAI', 'Project', 'System', 'Docker'])
   expect(d.system.dockers!.filter(container => container.gpu).map(container => container.name)).toEqual(['model-service'])
   expect(groupByNetwork(d.system.dockers!)).toHaveLength(2)
-  for (const words of [/Context 265k/, /^Session /, /^Weekly /, /^▣ GPU /, /^▤ VRAM /, /^⇄ Swap /, /^↓ Down  /, /^docker · 3/, /^⧗ Timer /]) {
+  for (const words of [/Context 265k/, /^Session /, /^Weekly /, /^▣ GPU /, /^▤ VRAM /, /^⇄ Swap /, /^↓ Down  /, /^3 running/, /^⧗ Timer /]) {
     expect(texts.some(text => words.test(text))).toBe(true)
   }
 })

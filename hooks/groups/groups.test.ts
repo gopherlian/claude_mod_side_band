@@ -9,6 +9,7 @@ import { INNER_RULE_COLOR, rule, softRule } from '../sections/usage'
 
 /** A separator inside a group, told from an empty bar (which is also a run of `─`) by its colour. */
 const isSoftRule = (line: { text: string; color?: string }) => /^─+$/.test(line.text) && line.color === INNER_RULE_COLOR
+import { docker } from './docker'
 import { harness } from './harness'
 import { arrange, groups } from './index'
 import { project } from './project'
@@ -265,7 +266,7 @@ test('the project group is hidden outside a repository', () => {
   expect(lines).toEqual(['TASK-12', '3 changed · ↑1'])
 })
 
-test('the system group adds memory, disk, network and docker to the bars', () => {
+test('the system group adds memory, disk and the network to the bars, and no containers', () => {
   const rows = system.lines(
     ctx({ system: { ramPercent: 50, diskPercent: 30, downBps: 524288, upBps: 2048, netPeakBps: 1048576, dockers: [{ name: 'api', networks: ['n'] }, { name: 'db', networks: ['n'] }] } }),
   )
@@ -278,14 +279,23 @@ test('the system group adds memory, disk, network and docker to the bars', () =>
   expect(texts.some(t => t.startsWith('↑ Up    ') && t.endsWith('   2K/s'))).toBe(true)
   expect(texts.some(t => /Download|Upload/.test(t))).toBe(false)
   expect(texts[texts.indexOf(down) - 1]).toBe('─'.repeat(30))
-  expect(texts).toContain('docker · 2 running')
+  expect(texts.some(t => t.startsWith('●'))).toBe(false)
+  // The only inner separator is the one before the network block; the containers are their own group.
+  expect(rows.filter(isSoftRule).length).toBe(1)
+  expect(texts.some(t => t.includes('docker') || t.includes('running'))).toBe(false)
+  expect(texts.some(t => t.includes('Swap'))).toBe(false)
+})
+
+test('the Docker group counts the containers and draws each, and is not drawn without docker', () => {
+  const rows = docker.lines(ctx({ system: { dockers: [{ name: 'api', networks: ['n'] }, { name: 'db', networks: ['n'] }] } }))
+  const texts = rows.map(l => l.text)
+
+  expect(docker.label).toBe('Docker')
+  expect(texts[0]).toBe('2 running')
   expect(texts).toContain(containerLines('api', 30)[0]!.text)
   expect(texts).toContain(containerLines('db', 30)[0]!.text)
-  expect(texts.some(t => t.startsWith('●'))).toBe(false)
-  // One network: the only inner separators are the two before the network and docker blocks.
-  expect(rows.filter(isSoftRule).length).toBe(2)
-  expect(texts[texts.indexOf('docker · 2 running') - 1]).toBe('─'.repeat(30))
-  expect(texts.some(t => t.includes('Swap'))).toBe(false)
+  expect(docker.lines(ctx()).length).toBe(0)
+  expect(docker.strip).toBeUndefined()
 })
 
 test('when rows run short the highest priority number is dropped first, whole', () => {
@@ -320,7 +330,7 @@ test('every group but the time one is named, on the line that separates it from 
   const lines = arrange(full, 200)
   const texts = lines.map(l => l.text)
 
-  expect(groups.map(g => g.label)).toEqual([undefined, 'Claude', 'GentleAI', 'Project', 'System'])
+  expect(groups.map(g => g.label)).toEqual([undefined, 'Claude', 'GentleAI', 'Project', 'System', 'Docker'])
   expect(texts[0].startsWith('┏')).toBe(true)
   expect(texts.filter(t => t.startsWith('━━ ')).map(t => t.replace(/ ━+$/, ''))).toEqual([
     '━━ Claude',
@@ -352,9 +362,11 @@ test('every separator inside a group is the faint one, so none is mistaken for a
   const lines = arrange(rich, 200)
   const texts = lines.map(l => l.text)
 
-  // Claude after the bars and before the model, System before the network and docker blocks, docker between networks.
-  expect(lines.filter(isSoftRule).length).toBe(5)
-  expect(texts.filter(t => t.startsWith('━━ ')).length).toBe(3)
+  // The faint rules: Claude after the bars and before the model, System before the network block. Docker's two name
+  // a network each, in blue.
+  expect(lines.filter(isSoftRule).length).toBe(3)
+  expect(texts.filter(t => /^── [xy] ─+$/.test(t))).toHaveLength(2)
+  expect(texts.filter(t => t.startsWith('━━ ')).length).toBe(4)
   expect(texts.filter(t => /^━+$/.test(t))).toEqual([])
   expect(texts.some(t => t.startsWith('┄'))).toBe(false)
 })
@@ -388,15 +400,15 @@ test('a group dropped for lack of rows takes its name with it', () => {
 })
 
 test('docker lists at most five names and counts the rest; none running is said', () => {
-  const many = system
+  const many = docker
     .lines(ctx({ system: { dockers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map(name => ({ name, networks: ['n'] })) } }))
     .map(l => l.text)
   expect(many.filter(t => /^ +[a-g]$/.test(t)).length).toBe(5)
   expect(many).toContain('+2 more')
-  expect(many[0]).toBe('docker · 7 running')
+  expect(many[0]).toBe('7 running')
 
-  expect(system.lines(ctx({ system: { dockers: [] } })).map(l => l.text)).toContain('docker · none running')
-  expect(system.lines(ctx()).some(l => l.text.startsWith('docker'))).toBe(false)
+  expect(docker.lines(ctx({ system: { dockers: [] } })).map(l => l.text)).toContain('none running')
+  expect(docker.lines(ctx()).length).toBe(0)
 })
 
 test('the credit goes last, right under an untitled orange rule with no blank row around it, whole, only where rows are left over', () => {

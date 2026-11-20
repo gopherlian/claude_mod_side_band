@@ -1,4 +1,5 @@
 import { harness } from './harness'
+import { docker } from './docker'
 import { project } from './project'
 import { session } from './session'
 import { system } from './system'
@@ -8,7 +9,7 @@ import { blank, rule, titledRule } from '../sections/usage'
 import type { Line } from '../sections/usage'
 
 /** Display order, top to bottom. Add a theme by appending it. */
-export const groups: Group[] = [time, session, harness, project, system]
+export const groups: Group[] = [time, session, harness, project, system, docker]
 
 /** Between two groups: a blank row, then the rule that names the second. */
 const SEPARATOR_ROWS = 2
