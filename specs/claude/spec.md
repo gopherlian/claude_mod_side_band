@@ -9,15 +9,15 @@ percent used.
 
 **R1a (composition).** Where the session reports what fills the context, the bar SHALL be drawn in runs, one per
 consumer in proportion to its tokens, each run a fill of `▬`: messages blue, system (the prompt and the tools) violet, MCP tools teal, anything
-else (memory files, skills, agents) amber; then the autocompact reserve hatched `▒` in grey, and the free space as the
+else (memory files, skills, agents) amber; then the autocompact reserve, also `▬`, in grey, and the free space as the
 thin empty track `─`. The runs keep that order. A consumer with tokens SHALL get at least one cell. Tools loaded on demand
 are outside the window and SHALL NOT be drawn. Without the breakdown the bar is the plain one.
 
 - *Given* messages 100k, MCP tools 37k, a 33k reserve and 830k free in a 1.0M window, *Then* the bar has a blue run, a
   teal run, a grey hatched run and the empty track, and its number is the percent used.
 
-**R1b (legend).** Under the bar, up to two rows SHALL name the runs: a square `■` (`▒` for the reserve) in the run's
-colour, a short name and its tokens (`■ msgs 100k  ■ mcp 37k  ▒ buffer 33k  ■ sys 21k`), largest first, what does
+**R1b (legend).** Under the bar, up to two rows SHALL name the runs: a square `■` (grey for the reserve) in the run's
+colour, a short name and its tokens (`■ msgs 100k  ■ mcp 37k  ■ buffer 33k  ■ sys 21k`), largest first, what does
 not fit left out. Free space is never listed as a consumer.
 
 **R2.** The group SHALL draw one bar per plan window the session reports: `Session` (five hours) then `Weekly` (seven

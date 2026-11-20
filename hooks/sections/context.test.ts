@@ -37,7 +37,7 @@ test('the bar has one run per consumer in a fixed order, then the reserve hatche
     BUFFER_COLOR,
     undefined,
   ])
-  expect(cells[4]!.text).toMatch(/^▒+$/)
+  expect(cells[4]!.text).toMatch(/^▬+$/)
   expect(cells[5]!.text).toMatch(/^─+$/)
   expect(cells.slice(0, 4).every(cell => /^▬+$/.test(cell.text))).toBe(true)
 })
@@ -79,7 +79,7 @@ test('with nothing to show there is no composition', () => {
 test('the legend names the runs, largest first, the reserve among them; free space is never listed', () => {
   const rows = compositionLegend(categories, 40).map(text)
 
-  expect(rows).toEqual(['■ msgs 100k  ■ mcp 37k  ▒ buffer 33k', '■ sys 21k  ■ other 4k'])
+  expect(rows).toEqual(['■ msgs 100k  ■ mcp 37k  ■ buffer 33k', '■ sys 21k  ■ other 4k'])
   expect(rows.join(' ')).not.toMatch(/free/)
 })
 
@@ -97,6 +97,6 @@ test('the legend takes at most two rows and never passes the band; what does not
     expect(rows.length).toBeLessThanOrEqual(2)
     for (const row of rows) expect(text(row).length).toBeLessThanOrEqual(columns)
   }
-  expect(compositionLegend(categories, 28).map(text)).toEqual(['■ msgs 100k  ■ mcp 37k', '▒ buffer 33k  ■ sys 21k'])
+  expect(compositionLegend(categories, 28).map(text)).toEqual(['■ msgs 100k  ■ mcp 37k', '■ buffer 33k  ■ sys 21k'])
   expect(compositionLegend(undefined, 28)).toEqual([])
 })

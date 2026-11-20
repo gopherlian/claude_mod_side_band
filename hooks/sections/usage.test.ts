@@ -127,13 +127,13 @@ test('with the breakdown, the context bar is drawn in runs and keeps its number'
   expect(row.cells!.map(cell => cell.text).join('')).toBe(row.text)
   expect(row.cells!.some(cell => cell.color === '#2b6cb0')).toBe(true)
   expect(row.cells!.some(cell => cell.color === '#0f766e')).toBe(true)
-  expect(row.text).toMatch(/▬+▒+─+ +14%$/)
+  expect(row.text).toMatch(/▬+─+ +14%$/)
 })
 
 test('the legend of the runs sits right under the context bar, before the plan windows', () => {
   const lines = usageLines({ ...windows(), contextWindow: 1_000_000, contextPercent: 14, categories: breakdown }, 28, NOW)
 
-  expect(lines.slice(2, 4).map(l => l.text)).toEqual(['■ msgs 100k  ■ mcp 37k', '▒ buffer 33k'])
+  expect(lines.slice(2, 4).map(l => l.text)).toEqual(['■ msgs 100k  ■ mcp 37k', '■ buffer 33k'])
 })
 
 test('the number of the context bar warns from 70% and alarms from 85%, whatever the runs', () => {

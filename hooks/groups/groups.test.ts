@@ -201,7 +201,7 @@ test('the session group draws the cost, the tools chart, the turn and the model,
 test('what fills the context is drawn under the bar, never listing the free space or the reserve as a consumer', () => {
   const lines = session.lines(busy()).map(l => l.text)
 
-  expect(lines.slice(2, 4)).toEqual(['▒ buffer 33k  ■ msgs 30k', '■ sys 12k'])
+  expect(lines.slice(2, 4)).toEqual(['■ buffer 33k  ■ msgs 30k', '■ sys 12k'])
   expect(lines.join('\n')).not.toMatch(/free|autocompact/i)
 })
 

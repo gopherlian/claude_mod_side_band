@@ -75,8 +75,8 @@ const allocate = (parts: Share[], width: number): number[] => {
 
 /**
  * The context bar as runs of one colour each, `width` cells in all, or nothing
- * where the session reported no breakdown. Consumers are `▬`, the reserve is
- * hatched and the free space is the thin empty track.
+ * where the session reported no breakdown. Consumers and the reserve are `▬`, the
+ * reserve in grey, and the free space is the thin empty track.
  */
 export const compositionCells = (categories: Category[] | undefined, width: number): Cell[] | undefined => {
   const parts = shares(categories)
@@ -90,7 +90,7 @@ export const compositionCells = (categories: Category[] | undefined, width: numb
     return key === 'free'
       ? { text: TRACK.repeat(count) }
       : key === 'buffer'
-        ? { text: '▒'.repeat(count), color: BUFFER_COLOR }
+        ? { text: '▬'.repeat(count), color: BUFFER_COLOR }
         : { text: '▬'.repeat(count), color: ROLE_COLORS[key] }
   })
 }
@@ -112,7 +112,7 @@ export const compositionLegend = (categories: Category[] | undefined, columns: n
       return {
         width: 1 + words.length,
         cells: [
-          share.key === 'buffer' ? { text: '▒', color: BUFFER_COLOR } : { text: '■', color: ROLE_COLORS[share.key] },
+          { text: '■', color: share.key === 'buffer' ? BUFFER_COLOR : ROLE_COLORS[share.key] },
           { text: words, dimColor: true },
         ] as Cell[],
       }

@@ -62,7 +62,7 @@ test('the compact Claude column: context on one row, the windows, the cost, the 
   const rows = texts(session.strip!.lines(ctx({ budget: 7 })))
 
   expect(rows).toHaveLength(7)
-  expect(rows[0]).toMatch(/^Context [▬▒─]+ +17%$/)
+  expect(rows[0]).toMatch(/^Context [▬─]+ +17%$/)
   expect(rows[1]).toMatch(/^Session .* 18% +2h30m$/)
   expect(rows[2]).toMatch(/^Weekly .* 17% +1d4h$/)
   expect(rows.join('\n')).not.toContain('time elapsed')

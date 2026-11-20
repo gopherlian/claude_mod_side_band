@@ -8,7 +8,7 @@ All notable changes to this mod are written here. The format follows
 
 ### Changed
 - Every bar (context, plan windows, resources, network, tools, tasks) is drawn with `▬` over a thin `─` track, ending in
-  a half step `╸`.
+  a half step `╸`. The autocompact reserve of the context bar is a grey `▬` too, no longer a hatched block.
 
 ## [1.7.1] - 2026-11-20
 

@@ -198,7 +198,7 @@ From top to bottom:
 
 1. **Context.** Tokens in the context window against its size, and a bar with the percent. The bar is drawn in
    *runs*, one colour per consumer: messages (blue), system prompt and tools (violet), MCP tools (teal) and anything
-   else (amber), then the autocompact reserve hatched in grey `▒`, and the free space as the thin track `─`. Under it, a
+   else (amber), then the autocompact reserve in grey `▬`, and the free space as the thin track `─`. Under it, a
    legend names the runs with their tokens (`■ msgs 203k  ■ mcp 37k`), largest first.
 2. **Session** and **Weekly.** The plan's five-hour and seven-day windows, each as a bar with the percent used and,
    at the end of the row, the time left (`1h9m`, `3d12h`). A spend limit, when your plan has one, is drawn as
