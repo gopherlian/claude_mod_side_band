@@ -56,5 +56,8 @@ breaking change, minor for a new feature, patch for a fix or a restyle.
   one. Use generic names (`feat-7`, `web`, `Anytown`) and say what changed, never why it was found. Check the diff for
   this before every commit.
 - **Language.** Code, comments, UI text, specs and docs are in English.
+- **Commits are atomic.** One logical change per commit, with its code, its tests, its spec and its docs (and the
+  screenshots it moves) together, and the tests green at every commit. Several changes may go out in one release, each
+  in its own commit; the release itself is its own commit (see Versions).
 - **Commits** follow Conventional Commits (`feat:`, `fix:`, `style:`, `docs:`, `test:`, `refactor:`), with no
   `Co-Authored-By` or AI attribution. Commit identity for this repository is set in its local git config.
