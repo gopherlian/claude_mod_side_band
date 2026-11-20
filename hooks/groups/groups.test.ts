@@ -155,6 +155,7 @@ const busy = (over: Partial<GroupContext> = {}) =>
       runningTool: 'Bash',
       turnStartedAt: NOW - 42_000,
       toolTimes: [NOW - 30_000, NOW - 20_000, NOW - 5 * 60_000],
+      toolCounts: { Bash: 4, Read: 2, mcp__engram__mem_save: 1 },
       model: 'claude-sonnet-5-5',
       effort: 'medium',
       categories: [
@@ -175,8 +176,21 @@ test('the session group draws the cost, the tools chart, the turn and the model,
   expect(lines.find(l => l.startsWith('Session'))).toMatch(/2h$/)
   expect(lines.find(l => l.startsWith('Session'))).toContain('┃')
   expect(lines.some(l => l.startsWith('┃ time elapsed'))).toBe(false)
-  expect(lines).toContain('1h00m · $3.00 · $3.00/h')
-  expect(lines.find(l => l.startsWith('tools'))).toMatch(/^tools [·▂▃▄▅▆▇█]{10} 7 ▸ Bash$/)
+  expect(lines).toContain('Cost $3.00  $3.00/h')
+  expect(lines).toContain('Time 1h00m')
+  expect(lines).toContain('tools 7 calls ▸ Bash')
+  // Under the header a braille chart across the whole band, three rows tall; then one thin-barred row per tool.
+  const head = lines.findIndex(l => l.startsWith('tools'))
+  // A blank row before the chart and another after it.
+  expect(lines[head + 1]).toBe(' ')
+  for (const row of lines.slice(head + 2, head + 5)) expect(row).toMatch(/^[\u2800-\u28ff]{30}$/)
+  expect(lines[head + 5]).toBe(' ')
+  const list = lines.slice(head + 6, -3)
+  expect(list.slice(0, 3)).toEqual([
+    expect.stringMatching(/^▸ Bash {5}━+╸?─* 4$/),
+    expect.stringMatching(/^ {2}Read {5}━+╸?─* 2$/),
+    expect.stringMatching(/^ {2}mem_save ━+╸?─* 1$/),
+  ])
   expect(lines).toContain('turn 0:42')
   expect(lines).toContain('Sonnet 5.5 ●●○○○ medium')
   expect(lines[lines.length - 2]).toBe('─'.repeat(30))
@@ -192,7 +206,7 @@ test('what fills the context is drawn under the bar, never listing the free spac
 
 test('the cost is green and the effort pips are lit up to its level', () => {
   const rows = session.lines(busy())
-  const cost = rows.find(l => l.text.startsWith('1h00m'))!
+  const cost = rows.find(l => l.text.startsWith('Cost'))!
   const model = rows.find(l => l.text.startsWith('Sonnet'))!
 
   expect(cost.cells!.find(c => c.text === '$3.00')!.color).toBeDefined()
@@ -207,14 +221,18 @@ test('the last turn is shown once it ends, and a quiet session has an empty char
     .map(l => l.text)
 
   expect(rows).toContain('last 1:14')
-  expect(rows).toContain('tools ·········· 0')
+  expect(rows).toContain('tools 0 calls · last 10 min')
+  // With no call in the last ten minutes there is no chart, and no blank rows for it.
+  expect(rows.some(row => /^[\u2800-\u28ff]+$/.test(row))).toBe(false)
+  expect(rows[rows.indexOf('tools 0 calls · last 10 min') + 1]).toBe('──────────────────────────────')
   expect(rows.some(l => l.startsWith('turn'))).toBe(false)
 })
 
 test('the cost per hour comes after three minutes of session', () => {
   const young = session.lines(busy({ usage: { ...busy().usage!, startedAt: NOW - 60_000 } })).map(l => l.text)
 
-  expect(young).toContain('1m · $3.00')
+  expect(young).toContain('Cost $3.00')
+  expect(young).toContain('Time 1m')
 })
 
 const paced = (over: Partial<GroupContext> = {}) =>
@@ -273,7 +291,7 @@ test('when rows run short the highest priority number is dropped first, whole', 
   })
   const ids = (rows: number) => {
     const lines = arrange(full, rows)
-    return groups.filter(g => g.lines(full).every(l => lines.some(x => x.text === l.text))).map(g => g.id)
+    return groups.filter(g => g.lines(full).length > 0 && g.lines(full).every(l => lines.some(x => x.text === l.text))).map(g => g.id)
   }
   expect(ids(200)).toEqual(['time', 'session', 'project', 'system'])
   // Each boundary between groups takes two rows: a blank one and the rule that names the group.
@@ -335,14 +353,15 @@ test('every separator inside a group is the faint one, so none is mistaken for a
   expect(texts.some(t => t.startsWith('┄'))).toBe(false)
 })
 
-test('a blank row sits right before the rule that names a group, and nowhere else', () => {
+test('a blank row sits right before the rule that names a group, and nowhere else but around the tools chart', () => {
   const full = ctx({
     git: { branch: 'US-1', changed: 0, ahead: 0, behind: 0 },
     system: { ramPercent: 10 },
     usage: { contextWindow: 200_000, limits: [] },
   })
   const texts = arrange(full, 200).map(l => l.text)
-  const blanks = texts.flatMap((t, i) => (t.trim() === '' ? [i] : []))
+  const braille = (t: string | undefined) => /^[\u2800-\u28ff]+$/.test(t ?? '')
+  const blanks = texts.flatMap((t, i) => (t.trim() === '' && !braille(texts[i - 1]) && !braille(texts[i + 1]) ? [i] : []))
   const rules = texts.flatMap((t, i) => (t.startsWith('━━ ') ? [i] : []))
 
   expect(rules.length).toBe(3)
@@ -575,4 +594,29 @@ test('a day of a season leaves a blank row between the frame and the outlook; 9 
   expect(below(lines())[0]).toContain('rain 30%')
   // The strip counts its rows: there neither the blank row nor the greeting is drawn.
   for (const id of ['navidad', 'donis']) expect(lines(id, 8).length).toBe(lines(undefined, 8).length)
+})
+
+test('a faint rule sets the cost, the tools and the turn apart inside the Claude group', () => {
+  const rows = session.lines(busy()).map(l => l.text)
+  const rule = '─'.repeat(30)
+  const at = (prefix: string) => rows.findIndex(l => l.startsWith(prefix))
+
+  expect(rows[at('tools') - 1]).toBe(rule)
+  expect(rows[at('turn') - 1]).toBe(rule)
+  expect(rows[at('Cost') - 1]).toBe(rule)
+  // Cost and time stay together, in one block.
+  expect(rows[at('Cost') + 1]).toBe('Time 1h00m')
+  // No rule when a block is missing: a quiet session with no turn has none at its foot.
+  const quiet = session.lines(busy({ stats: { toolCalls: 0, activeTools: 0 } })).map(l => l.text)
+  expect(quiet[quiet.length - 1]).not.toBe(rule)
+})
+
+test('the tools chart is not drawn when no call fell in the last ten minutes, but the list of tools stays', () => {
+  const old = busy({ stats: { ...busy().stats, toolTimes: [NOW - 11 * 60_000] } })
+  const rows = session.lines(old).map(l => l.text)
+  const head = rows.findIndex(l => l.startsWith('tools'))
+
+  expect(rows.some(row => /^[\u2800-\u28ff]+$/.test(row))).toBe(false)
+  expect(rows[head + 1]).toMatch(/^▸ Bash /)
+  expect(session.strip!.lines({ ...old, budget: 20 }).some(line => /^[\u2800-\u28ff]+$/.test(line.text))).toBe(false)
 })

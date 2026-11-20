@@ -37,6 +37,7 @@ const ctx = (over: Partial<GroupContext> = {}): GroupContext => ({
     toolCalls: 42,
     activeTools: 0,
     toolTimes: [NOW - 20_000],
+    toolCounts: { Bash: 30, Read: 8, Edit: 4 },
     lastTurnMs: 9_000,
     model: 'Sonnet 5.5',
     effort: 'medium',
@@ -58,24 +59,45 @@ const ctx = (over: Partial<GroupContext> = {}): GroupContext => ({
 const texts = (lines: { text: string }[]) => lines.map(line => line.text)
 
 test('the compact Claude column: context on one row, the windows, the cost, the model, the tools', () => {
-  const rows = texts(session.strip!.lines(ctx()))
+  const rows = texts(session.strip!.lines(ctx({ budget: 7 })))
 
-  expect(rows).toHaveLength(6)
+  expect(rows).toHaveLength(7)
   expect(rows[0]).toMatch(/^Context [█▒─]+ +17%$/)
   expect(rows[1]).toMatch(/^Session .* 18% +2h30m$/)
   expect(rows[2]).toMatch(/^Weekly .* 17% +1d4h$/)
   expect(rows.join('\n')).not.toContain('time elapsed')
-  expect(rows[3]).toMatch(/^17m · \$1\.18/)
-  expect(rows[4]).toBe('Sonnet 5.5 ●●○○○ medium')
-  expect(rows[5]).toMatch(/^tools [·▂▃▄▅▆▇█]{10} 42$/)
+  expect(rows[3]).toMatch(/^Cost \$1\.18/)
+  expect(rows[4]).toBe('Time 17m')
+  expect(rows[5]).toBe('Sonnet 5.5 ●●○○○ medium')
+  expect(rows[6]).toMatch(/^tools [·▂▃▄▅▆▇█]{10} 42$/)
   expect(rows.every(row => row.length <= 30)).toBe(true)
 })
 
-test('the compact Claude column is cut to its rows at the bottom, the tools first', () => {
+test('with six rows to spare the tools are a header and a braille chart three rows tall, between blank rows', () => {
+  const rows = texts(session.strip!.lines(ctx({ budget: 12 })))
+
+  expect(rows).toHaveLength(12)
+  expect(rows[6]).toBe('tools 42 calls · last 10 min')
+  expect(rows[7]).toBe(' ')
+  for (const row of rows.slice(8, 11)) expect(row).toMatch(/^[\u2800-\u28ff]{30}$/)
+  expect(rows[11]).toBe(' ')
+  expect(texts(session.strip!.lines(ctx({ budget: 11 })))[6]).toMatch(/^tools [·▂▃▄▅▆▇█]{10} 42$/)
+})
+
+test('after the chart the tools list gets the rows left, and counts the tools it has no row for', () => {
+  const rows = texts(session.strip!.lines(ctx({ budget: 14 })))
+
+  expect(rows).toHaveLength(14)
+  expect(rows[12]).toMatch(/^ {2}Bash +━+╸?─* +30$/)
+  expect(rows[13]).toBe('  +2 more')
+  expect(texts(session.strip!.lines(ctx({ budget: 15 })))[14]).toMatch(/^ {2}Edit /)
+})
+
+test('the compact Claude column is cut to its rows at the bottom', () => {
   const rows = texts(session.strip!.lines(ctx({ budget: 5 })))
 
   expect(rows).toHaveLength(5)
-  expect(rows[4]).toBe('Sonnet 5.5 ●●○○○ medium')
+  expect(rows[4]).toMatch(/^Time /)
   expect(texts(session.strip!.lines(ctx({ budget: 3 })))).toHaveLength(3)
 })
 

@@ -203,9 +203,12 @@ From top to bottom:
    at the end of the row, the time left (`1h9m`, `3d12h`). A spend limit, when your plan has one, is drawn as
    **Spend**. The `┃` on each bar is the *pace tick*, see below.
 3. **A faint rule** between the legend of the context runs and the bars, and another before the session's facts.
-4. **The session line:** how long it has run, what it has cost (in green), and the cost per hour (after three minutes).
-5. **Tools:** a small chart of the tool calls of the last ten minutes (one cell a minute, `·` for a quiet one), the
-   total, and the tool running now. Then the current turn's time, or the last one's.
+4. **Cost and time:** `Cost $4.82  $3.04/h` (what it has cost, in green, and the cost per hour after three minutes),
+   and under it `Time 1h35m`, how long the session has run.
+5. **Tools:** `tools 25 calls ▸ Bash` and, under it, between two blank rows, a fine braille chart three rows tall across the whole width of the
+   tool calls of the last ten minutes (the oldest on the left; a baseline of dots where nothing ran; not drawn at all when no call fell in those ten minutes). Then a list like
+   `htop`: one row per tool used, the most used first, with its name, a thin bar and its count (`▸ Bash ━━━━╸──── 14`;
+   the running tool has the `▸`). Then the current turn's time, or the last one's.
 6. **The model and the effort level**, under a faint rule: the model's short name and five pips filled up to the
    effort (`Opus 5.5 ●●●○○ high`).
 

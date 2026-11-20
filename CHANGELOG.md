@@ -6,6 +6,14 @@ All notable changes to this mod are written here. The format follows
 
 ## [Unreleased]
 
+### Added
+- A faint rule inside the Claude group between the cost, the tools and the turn.
+
+### Changed
+- The tools: a fine braille chart three rows tall across the whole width, between two blank rows, and under it a list like `htop`, one row per
+  tool used with its name, a thin bar and its count; the running tool is marked `▸`.
+- The cost reads `Cost $4.82  $3.04/h`, with the session's time under it as `Time 1h35m`.
+
 ## [1.6.0] - 2026-11-19
 
 ### Added

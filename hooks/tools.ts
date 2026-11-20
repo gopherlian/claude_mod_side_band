@@ -14,6 +14,7 @@ export const trackTool = async <T>(
   at?: number,
 ): Promise<T> => {
   stats.toolCalls += 1
+  stats.toolCounts = { ...stats.toolCounts, [tool]: (stats.toolCounts?.[tool] ?? 0) + 1 }
   if (at !== undefined) {
     stats.toolTimes = [...(stats.toolTimes ?? []).filter(time => at - time < SPARK_SPAN_MS), at]
   }

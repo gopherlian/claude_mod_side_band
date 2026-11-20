@@ -52,14 +52,27 @@ pace.
 
 **R8.** After the plan windows, under a faint rule (stacked band only), the group SHALL draw:
 
-- how long the session has run, its cost, in green, and, after three minutes, the cost per hour, dim
-  (`1h35m · $4.82 · $3.04/h`);
-- `tools <chart> <count>`: a chart of the tool calls of the last ten minutes, one cell a minute, oldest on the left,
-  `·` for a quiet minute and `▂▃▄▅▆▇█` by how busy it was, scaled to the busiest minute; then the total, then the tool
-  running now (`▸ Bash`);
+- `Cost $4.82  $3.04/h`: what the session has cost, in green, and, after three minutes, the cost per hour, dim; under
+  it `Time 1h35m`, how long the session has run;
+- `tools <n> calls ▸ <running>` (`· last 10 min` when none runs), and under it a braille chart three rows tall across
+  the whole width, with a blank row before it and another after it: the tool calls of the last ten minutes, two slices to a cell, the oldest on the left, each slice as
+  tall as its calls next to the busiest slice (four dots a row, filled from the bottom), a baseline of dots `⣀` for a
+  quiet slice; with no call in those ten minutes the chart is not drawn, nor its blank rows;
+- under it a list like a process monitor, one row per tool used this session, the most used first (ties by name):
+  `▸ Bash      ━━━━━━━━━━━━━━╸─── 14`, the tool's name (an MCP tool by its own name, `mem_save`, without its server), a
+  thin bar (`━` filled, `╸` a half step, `─` the rest in faint grey) as long as its calls next to the busiest tool's,
+  and the count; the running tool has a `▸` and its name lit, the others are dim; at most six rows, the last of them
+  `+N more` where tools are left out;
 - the current turn's time or the last one's, dim (`turn 0:42`, `last 1:14`);
 - under a faint rule, the model by its short name (`claude-sonnet-5-5` is `Sonnet 5.5`) and the effort as five pips
   filled up to its level, then its word (`Opus 5.5 ●●●○○ high`): low 1, medium 2, high 3, xhigh 4, max 5.
+
+**R8b (strip).** In the strip the tools are drawn with their chart only where the column's rows hold the header, the
+chart and its two blank rows whole; otherwise the one row `tools <chart> <count>` (ten cells, `·` for a quiet minute, `▂▃▄▅▆▇█` by how
+busy). The list takes the rows left after that, whole. A band too narrow for a bar of four cells draws no list.
+
+**R8c (separators).** In the stacked band a faint rule SHALL set apart the cost block (`Cost` and `Time`), the tools block
+(the chart and the list) and the turn row; a block that is not drawn leaves no rule.
 
 **R8a (narrow band).** In the stacked band, where a row of the facts or the model does not fit the band, it SHALL go
 on further rows, at its spaces, each part keeping its colour; nothing is cut.

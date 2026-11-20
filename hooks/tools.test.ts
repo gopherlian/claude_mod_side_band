@@ -92,3 +92,13 @@ test('without a time a call is counted and nothing is charted', async () => {
   expect(stats.toolCalls).toBe(1)
   expect(stats.toolTimes).toBeUndefined()
 })
+
+test('each tool is counted by its name', async () => {
+  const stats = fresh()
+
+  await trackTool(stats, 'Bash', async () => 1)
+  await trackTool(stats, 'Bash', async () => 1)
+  await trackTool(stats, 'Read', async () => 1)
+
+  expect(stats.toolCounts).toEqual({ Bash: 2, Read: 1 })
+})

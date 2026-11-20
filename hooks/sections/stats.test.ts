@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { effortCells, modelName, toolSpark } from './stats'
+import { effortCells, hasRecentCalls, modelName, shortToolName, thinBar, toolBraille, toolRanking, toolSpark } from './stats'
 import type { Cell } from './usage'
 
 const MIN = 60_000
@@ -61,4 +61,47 @@ test('the chart is scaled to its busiest minute and the calls older than the cha
 test('the chart is as wide as asked and shows the whole ten minutes in fewer cells', () => {
   expect(toolSpark([NOW - 1000], NOW, 5)).toHaveLength(5)
   expect(toolSpark([NOW - 1000], NOW, 0)).toBe('')
+})
+
+test('an MCP tool is shown by its own name, without its server', () => {
+  expect(shortToolName('mcp__engram__mem_save')).toBe('mem_save')
+  expect(shortToolName('Bash')).toBe('Bash')
+})
+
+test('the tools are ranked by use, ties by name, and the same short name adds up', () => {
+  expect(toolRanking({ Read: 2, Bash: 5, Edit: 2, mcp__a__find: 1, mcp__b__find: 1 })).toEqual([
+    { name: 'Bash', count: 5 },
+    { name: 'Edit', count: 2 },
+    { name: 'find', count: 2 },
+    { name: 'Read', count: 2 },
+  ])
+  expect(toolRanking({})).toEqual([])
+})
+
+test('the braille chart is as wide as asked, top row first, with a baseline of dots where nothing ran', () => {
+  const quiet = toolBraille([], NOW, 6, 3)
+  expect(quiet).toEqual(['⠀⠀⠀⠀⠀⠀', '⠀⠀⠀⠀⠀⠀', '⣀⣀⣀⣀⣀⣀'])
+
+  // One call in the last slice is the busiest: it fills the right column of the last cell, four dots a row.
+  const one = toolBraille([NOW - 1000], NOW, 6, 3)
+  expect(one.map(row => row.length)).toEqual([6, 6, 6])
+  expect(one[0]!.at(-1)).toBe('⢸')
+  // On the bottom row the quiet slice beside it leaves its baseline dot.
+  expect(one[2]!.at(-1)).toBe('⣸')
+  expect(one[2]![0]).toBe('⣀')
+  expect(toolBraille([NOW - 1000], NOW, 0, 3)).toEqual([])
+})
+
+test('a thin bar is heavy line where full, light where not, and steps by halves of a cell', () => {
+  expect(thinBar(0, 4)).toEqual({ fill: '', track: '────' })
+  expect(thinBar(0.5, 4)).toEqual({ fill: '━━', track: '──' })
+  expect(thinBar(0.375, 4)).toEqual({ fill: '━╸', track: '──' })
+  expect(thinBar(1, 4)).toEqual({ fill: '━━━━', track: '' })
+})
+
+test('there are recent calls only when one fell in the last ten minutes', () => {
+  expect(hasRecentCalls([], NOW)).toBe(false)
+  expect(hasRecentCalls([NOW - 11 * MIN], NOW)).toBe(false)
+  expect(hasRecentCalls([NOW - 11 * MIN, NOW - 1000], NOW)).toBe(true)
+  expect(hasRecentCalls([NOW + 5000], NOW)).toBe(false)
 })

@@ -33,7 +33,7 @@ const ctx = (columns: number): GroupContext => ({
     ],
   },
   stats: {
-    toolCalls: 37, activeTools: 0, lastTurnMs: 74_000, model: 'Opus 5.5', effort: 'high',
+    toolCalls: 37, activeTools: 1, runningTool: 'Bash', toolCounts: { Bash: 14, Read: 9, Edit: 6, Grep: 4, mcp__engram__mem_save: 3, Write: 1 }, lastTurnMs: 74_000, model: 'Opus 5.5', effort: 'high',
     toolTimes: [
       NOW - 9 * 60_000, NOW - 8 * 60_000 - 20_000, NOW - 8 * 60_000 - 5_000, NOW - 6 * 60_000, NOW - 5 * 60_000 - 40_000,
       NOW - 5 * 60_000 - 30_000, NOW - 5 * 60_000 - 10_000, NOW - 5 * 60_000, NOW - 3 * 60_000 - 30_000,

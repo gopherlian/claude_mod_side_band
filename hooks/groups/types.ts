@@ -22,6 +22,8 @@ export type SessionStats = {
   categories?: Category[]
   /** When each tool call of the last ten minutes started, oldest first; the tools chart is drawn from them. */
   toolTimes?: number[]
+  /** How many times each tool was called this session, by the tool's name. */
+  toolCounts?: Record<string, number>
 }
 
 /** Everything a group may draw from; each group reads only its own part. */

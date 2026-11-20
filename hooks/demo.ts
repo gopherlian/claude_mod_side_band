@@ -51,6 +51,7 @@ export const demo = (now: number): Demo => ({
     model: 'Opus 5.5',
     effort: 'high',
     toolTimes: toolTimes(now),
+    toolCounts: { Bash: 14, Read: 9, Edit: 6, Grep: 4, mcp__engram__mem_save: 3, Write: 1 },
     categories: [
       { name: 'System prompt', tokens: 6_000, kind: 'used' },
       { name: 'System tools', tokens: 15_000, kind: 'used' },
